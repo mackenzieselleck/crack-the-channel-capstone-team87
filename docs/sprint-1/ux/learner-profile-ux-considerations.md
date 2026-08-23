@@ -6,7 +6,7 @@
 | **Project**     | Crack the Channel, Interactive QKD (BB84) Learning Platform                                                                                                                                                                                                                                    |
 | **Client**      | IBM via RMIT Capstone Consultancy                                                                                                                                                                                                                                                              |
 | **Task**        | Research the needs, expectations, challenges and characteristics of the target first-year student audience with little or no quantum background, and identify UX considerations for presenting BB84 and quantum eavesdropping concepts in a beginner-friendly interactive learning experience. |
-| **Based on**    | Crack the Channel Requirements and User Stories Baseline (Sprint 1), plus a 25-response student survey conducted 20 August 2026                                                                                                                                                                |
+| **Based on**    | Crack the Channel Requirements and User Stories Baseline (Sprint 1), including BA learning observations recorded 23 August 2026, plus a 25-response student survey conducted 20 August 2026                                                                                                  |
 | **Prepared by** | Jerome Altamia (UX)                                                                                                                                                                                                                                                                            |
 | **Status**      | Validated with primary survey data. Findings ready to share with the team.                                                                                                                                                                                                                     |
 
@@ -14,7 +14,7 @@
 
 This document identifies who the platform is being designed for, what beginner knowledge level to design around, and what that implies for the user experience. The initial version of this document was built from the Sprint 1 requirements baseline alone. This version replaces those assumptions with findings from a short survey of 25 RMIT students, run on 20 August 2026.
 
-The survey was distributed informally (word of mouth among Cyber Security students), not as a random sample of all first-years. It also included some 2nd to 4th year respondents alongside the target 1st-year group, which is noted as a limitation in section 7.
+The survey was distributed informally (word of mouth among IT & Computing students), not as a random sample of all first-years. It also included some 2nd to 4th year respondents alongside the target 1st-year group, which is noted as a limitation in section 8.
 
 ## 2. Who Responded
 
@@ -29,7 +29,7 @@ The survey was distributed informally (word of mouth among Cyber Security studen
 
 ## 3. Target Learner Characteristics
 
-- Primarily first-year RMIT students in Cyber Security, Information Security, and related IT degrees, consistent with the requirements baseline’s target audience.
+- Primarily first-year RMIT students in Cyber Security, Information Security, and related IT degrees, consistent with the requirements baseline's target audience.
 
 - Motivation is mostly intrinsic: curiosity, degree relevance, or wanting a head start, rather than being required to be there. Only one respondent described active disinterest.
 
@@ -43,11 +43,11 @@ The "little or no prior quantum knowledge" assumption from the requirements base
 
 - 56% of all respondents, and 73% of 1st-years, recognised none of "BB84", "qubit", or "quantum key distribution" before the survey.
 
-- Despite this, every respondent, including everyone who rated themselves 1 or 2 out of 5, gave an accurate, working definition of "eavesdropping" in a cybersecurity context. General security intuition is solid even where quantum-specific knowledge is not, which is a decent hook the design can use.
+- Despite this, every respondent, including everyone who rated themselves 1 or 2 out of 5, gave an accurate, working definition of "eavesdropping" in a cybersecurity context. General security intuition is solid even where quantum-specific knowledge is not, which is a solid hook the design can use.
 
 ## 5. Key UX Needs, Validated
 
-What respondents said worries them most about learning a topic like this. Based on the responses, interaction feedback is just as big a concern as content difficulty.
+What respondents said worries them most about learning a topic like this. Tied for first place is a genuine finding: interaction feedback is just as big a concern as content difficulty.
 
 | **Biggest worry about learning this topic** | **Responses** |
 |---|---|
@@ -65,25 +65,39 @@ Each consideration below is backed by what respondents actually said, not just i
 | **Design consideration**                                                                       | **Evidence**                                                                                                                                                                                                                                                                             | **Maps to**  |
 |---|---|---|
 | Give feedback after every action, not just at the end                                          | Tied for the single biggest worry (6 of 25): "hard to tell if I am doing it right." In their own words about what builds confidence: "clear error messages that tell me how to fix it," "instant feedback after each action," "a clear indicator of success or failure after each step." | UX-05, UX-06 |
-| Anchor BB84 and Eve to the general idea of eavesdropping, not quantum theory first             | All respondent, including all 20 who rated their quantum understanding at 1 or 2 out of 5, gave an accurate definition of eavesdropping in a cybersecurity context, meaning gap is quantum-specific and not security-general.                                                          | LR-03, LR-04 |
+| Anchor BB84 and Eve to the general idea of eavesdropping, not quantum theory first             | Every single respondent, including all 20 who rated their quantum understanding at 1 or 2 out of 5, gave an accurate definition of eavesdropping in a cybersecurity context. The gap is quantum-specific, not security-general.                                                          | LR-03, LR-04 |
 | Lead with diagrams and hands-on interaction over text                                          | Diagrams/visuals was the top preference (19 of 25), then hands-on interaction (14), then video (12). Short text explanations came last (8).                                                                                                                                              | LR-05, UX-01 |
-| Use plain-language labels, not technical terms, on every control                               | "Too much jargon" was a big concern (5 of 25). Confidence builders named directly: "plain-language labels instead of technical terms," "labelled icons and buttons," "simple instructions written in plain English."                                                                  | LR-02, UX-04 |
+| Use plain-language labels, not technical terms, on every control                               | "Too much jargon" was a top-tier worry (5 of 25). Confidence builders named directly: "plain-language labels instead of technical terms," "labelled icons and buttons," "simple instructions written in plain English."                                                                  | LR-02, UX-04 |
 | Show a visible progress indicator through the exchange                                         | Named directly as a confidence builder: "a progress indicator or checklist," "a progress bar showing how far along I am," "a short onboarding tutorial."                                                                                                                                 | UX-03        |
-| Keep the interface to one clear starting point and a small number of visible options at a time | The most common past point of confusion was interface overload, not content: "too many settings and no clear starting point," "too many options on screen at once," "settings buried in submenus," "didn’t know where to start."                                                         | UX-04, UX-06 |
-| Confirm every action with a visible result before moving on                                    | "No feedback when I clicked something" and "the app didn’t explain what to do first" were named as past sources of confusion. Matches the requirement that the learner should never be left in an unexplained state.                                                                     | FR-10, UX-06 |
+| Keep the interface to one clear starting point and a small number of visible options at a time | The most common past point of confusion was interface overload, not content: "too many settings and no clear starting point," "too many options on screen at once," "settings buried in submenus," "didn't know where to start."                                                         | UX-04, UX-06 |
+| Confirm every action with a visible result before moving on                                    | "No feedback when I clicked something" and "the app didn't explain what to do first" were named as past sources of confusion. Matches the requirement that the learner should never be left in an unexplained state.                                                                     | FR-10, UX-06 |
 
-## 7. Limitations
+## 7. Content Framing Considerations (BA Learning Observations)
 
-- Convenience sample, not a random one. Several respondents mention a friend in Cyber Security, suggesting recruitment through existing course networks.
+The considerations below come from a different type of evidence than section 6. They are drawn from a learning-observation log the Business Analyst kept while personally upskilling in quantum computing and BB84 concepts for this project, not from the 25-response student survey. This is one individual's account of what helped or hindered their own understanding, not a finding validated across a sample, so it is kept separate from the survey-backed table and should be treated as directional guidance on content accuracy and framing rather than confirmed UX preference.
+
+| **Content consideration**                                                             | **Learning observation**                                                                                                                                                                                                                       | **Maps to**  |
+|---|---|---|
+| Never describe quantum computing as "faster" classical computing                       | Framing quantum computing as sped-up classical computing was recorded as an early misconception. Quantum computing is a different problem-solving approach suited to particular problems, not a general substitute for classical computing.  | LR-01, LR-02 |
+| Avoid the "0 and 1 at the same time" explanation of a qubit                            | This common shorthand for superposition was recorded as a source of confusion. Framing a qubit's state as representing a set of possible outcomes, rather than as simultaneously being 0 and 1, was clearer.                                  | LR-02, LR-04 |
+| Make the measurement step visible, not just implied                                    | Distinguishing the quantum state from the classical outcome produced by measurement was recorded as a key turning point in understanding BB84. The BB84 interaction should make this distinction evident, graphically and/or in text.         | LR-04, UX-05 |
+| Introduce the communication/security problem before Alice, Bob, bases and Eve mechanics | Quantum communication topics were recorded as more approachable once framed as a communication/security problem first. This refines the survey-backed "anchor to eavesdropping" consideration in section 6 with a concrete sequence: communication problem, then Alice, Bob, measurement bases, then Eve. | LR-03, LR-04 |
+| Introduce new terminology one concept at a time                                        | Encountering qubit, superposition and measurement together, all at once, was recorded as harder to follow than meeting each term in turn with a simple explanation ahead of any simulator use.                                                | LR-01, LR-03 |
+
+## 8. Limitations
+
+- Convenience sample, not a random one. Most respondents mention a friend in Cyber Security, suggesting recruitment through existing course networks.
 
 - 40% of respondents were 2nd-year or above, outside the primary target group. Their answers are included above but the 1st-year-only figures in section 4 should be weighted more heavily.
 
 - All findings are self-reported. Nobody has yet used an actual prototype, so this reflects stated preference, not observed behaviour. That gap is intended to be closed by the usability testing planned for later sprints.
 
-## 8. Next Steps
+- The content framing considerations in section 7 are drawn from a single respondent (the Business Analyst's own learning log), not a sample, and reflect one person's path to understanding rather than a validated finding.
+
+## 9. Next Steps
 
 - Share these findings with the team for review.
 
-- Use the design considerations table as the basis for early wireframes of onboarding, the Alice/Bob exchange, and Eve mode.
+- Use the design considerations table in section 6, together with the content framing considerations in section 7, as the basis for early wireframes of onboarding, the Alice/Bob exchange, and Eve mode.
 
 - Revisit after the first usability testing round, once a real prototype exists to observe rather than describe.
