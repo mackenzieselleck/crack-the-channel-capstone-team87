@@ -37,3 +37,50 @@ The Qiskit service will be a separate FastAPI application running Qiskit's Aer s
 
 ### External APIs and Services:
 Anthropic's Claude API will be used for the AI Agent. It will be called via the Agent Orchestration Layer, not directly from the browser. This ensures that the API key is never exposed to the client. At this stage, no other external services are required for the core features. Anything further added as extension features will be added to this section only after agreement with the team and client
+
+### Arcitecture Diagram
+``` mermaid
+flowchart TB
+ subgraph BROWSER["Browser"]
+        UI["Crack the Channel UI<br>Next.js React + Tailwind"]
+  end
+ subgraph APP["Next.js - API Routes"]
+        ROUTES["API Routes<br>Request Handling"]
+        AGENT["Agent Orchestration<br>Tool Definitions"]
+  end
+ subgraph SUPABASE["Supabase - Managed BaaS"]
+        AUTH["User Auth"]
+        PG[("Postgres<br>Users + Learning Progress + Badges")]
+  end
+ subgraph QISKIT["Qiskit Service · Docker + Render"]
+        FASTAPI["FastAPI"]
+        AER["Aer Simulator"]
+  end
+ subgraph CLAUDE["Claude API"]
+        CLAUDEAGENT["AI Agent<br>Structured Tool Calls Only"]
+  end
+    ROUTES --> AGENT
+    AUTH --> PG
+    FASTAPI --> AER
+    UI -- Requests and forms --> ROUTES
+    ROUTES -- Rendered UI / JSON --> UI
+    ROUTES -- Auth and queries --> AUTH
+    AGENT -- run_circuit --> FASTAPI
+    FASTAPI -- Results --> AGENT
+    ROUTES -- Agent calls --> CLAUDEAGENT
+
+    style UI stroke:#9b36ff
+    style ROUTES stroke:#ff50ed
+    style AGENT stroke:#ff50ed
+    style AUTH stroke:#52bfff
+    style PG stroke:#52bfff
+    style FASTAPI stroke:#54ffa4
+    style AER stroke:#54ffa4
+    style CLAUDEAGENT stroke:#fef84c
+    style BROWSER stroke:#9b36ff,fill:#e7b3ff
+    style APP stroke:#ff50ed,fill:#feb9fe
+    style SUPABASE stroke:#52bfff,fill:#baf6ff
+    style QISKIT stroke:#54ffa4,fill:#bbffd9
+    style CLAUDE stroke:#fef84c,fill:#FFF9C4
+```
+Architecture Diagram made with Mermaid
