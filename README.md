@@ -5,7 +5,7 @@ Crack The Channel - IBM Capstone Project Team 87
 | Member | Role |
 |---|---|
 | Thomas Clowes | PM |
-| Srilekha Byreddy | BA |
+| Srilekha Byreddy | BA + Dev |
 | Jerome Altamia | UX |
 | Mackenzie Selleck | Dev |
 | Sarah Salman | Dev |
