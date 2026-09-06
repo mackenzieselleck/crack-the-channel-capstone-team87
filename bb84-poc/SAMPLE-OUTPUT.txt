@@ -1,0 +1,74 @@
+================================================================
+  BB84 QKD - Standalone Qiskit Proof of Concept
+  Crack the Channel | Team 87
+================================================================
+
+1 - BB84 circuit execution
+----------------------------------------------------------------
+Example: Alice encodes bit=1 in the diagonal (x) basis,
+Bob measures in the diagonal (x) basis (bases match).
+
+     ┌───┐┌───┐ send ┌───┐┌─┐
+  q: ┤ X ├┤ H ├──░───┤ H ├┤M├
+     └───┘└───┘  ░   └───┘└╥┘
+c: 1/══════════════════════╩═
+                           0 
+
+Example: same qubit, Bob measures in the rectilinear (+) basis
+(bases mismatch - Bob's result is random).
+
+     ┌───┐┌───┐ send ┌─┐
+  q: ┤ X ├┤ H ├──░───┤M├
+     └───┘└───┘  ░   └╥┘
+c: 1/═════════════════╩═
+                      0 
+
+2 - Core key-exchange flow demonstration
+----------------------------------------------------------------
+Showing first 16 of 200 qubits (no eavesdropper):
+
+  i | A-bit A-base | Eve | B-base B-res | kept? match?
+  ----------------------------------------------------
+   0 |   0     +   |  -  |   +     0   |  yes   OK
+   1 |   0     +   |  -  |   x     1   |   .    
+   2 |   1     +   |  -  |   x     1   |   .    
+   3 |   0     +   |  -  |   +     0   |  yes   OK
+   4 |   0     +   |  -  |   +     0   |  yes   OK
+   5 |   0     x   |  -  |   x     0   |  yes   OK
+   6 |   0     x   |  -  |   +     0   |   .    
+   7 |   0     x   |  -  |   +     0   |   .    
+   8 |   1     +   |  -  |   +     1   |  yes   OK
+   9 |   0     x   |  -  |   +     1   |   .    
+  10 |   0     +   |  -  |   +     0   |  yes   OK
+  11 |   0     +   |  -  |   +     0   |  yes   OK
+  12 |   0     x   |  -  |   x     0   |  yes   OK
+  13 |   0     +   |  -  |   +     0   |  yes   OK
+  14 |   0     x   |  -  |   x     0   |  yes   OK
+  15 |   0     x   |  -  |   x     0   |  yes   OK
+
+3 - Qiskit outputs / results documented
+----------------------------------------------------------------
+  [No eavesdropper]
+    qubits sent .............. 200
+    sifted key length ........ 107 (~53% of qubits, bases matched)
+    bits sampled for QBER .... 53
+    errors in sample ......... 0
+    QBER ..................... 0.0%
+    verdict .................. low error rate -> channel trusted, key accepted
+    final key (first 24 bits)  111100100101111000010001...
+
+  [Eve intercepting]
+    qubits sent .............. 200
+    sifted key length ........ 100 (~50% of qubits, bases matched)
+    bits sampled for QBER .... 50
+    errors in sample ......... 10
+    QBER ..................... 20.0%
+    verdict .................. HIGH error rate -> eavesdropping detected, key discarded
+    final key (first 24 bits)  010000011110111011101101...
+
+KEY OBSERVATION
+----------------------------------------------------------------
+  A clean channel yields ~0% QBER; intercept-resend eavesdropping
+  drives QBER to ~25%. That increase reflects the security principle
+  being taught by the platform
+================================================================
