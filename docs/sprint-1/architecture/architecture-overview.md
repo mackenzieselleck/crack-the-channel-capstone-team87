@@ -36,7 +36,29 @@ Supabase will provide both authentication (login, password handling, session man
 The Qiskit service will be a separate FastAPI application running Qiskit's Aer simulator, packaged in Docker and deployed to Render. This is the only component that executes Qiskit code and it is deliberately isolated from the rest of the stack. This is due to the fact that Qiskit is based in Python and because the service will need to execute agent generated and user submitted circuits and therefore will need to run inside a sandboxed environment to mitigate risk
 
 ### External APIs and Services:
-Anthropic's Claude API will be used for the AI Agent. It will be called via the Agent Orchestration Layer, not directly from the browser. This ensures that the API key is never exposed to the client. At this stage, no other external services are required for the core features. Anything further added as extension features will be added to this section only after agreement with the team and client
+An Open AI will be used for the AI Agent and is still to be determined. It will be called via the Agent Orchestration Layer, not directly from the browser. This ensures that the API key is never exposed to the client. At this stage, no other external services are required for the core features. Anything further added will be included in this section after agreement with the team and client
+
+### Dependecies
+All current dependecies and their versions can be found in the `package.json` file within the boilerplate. Please update if new dependencies are added
+- react Turnstile
+- react-webgl2
+- supabase/ssr
+- supabase/supabase-js
+- lucide-react
+- next
+- react
+- react-dom
+- zod
+- tailwindcss/postcss
+- types/node
+- types/react
+- types/react-dom
+- eslint
+- typescript
+- supabase
+- tailwindcss
+
+
 
 ### Arcitecture Diagram
 ``` mermaid
