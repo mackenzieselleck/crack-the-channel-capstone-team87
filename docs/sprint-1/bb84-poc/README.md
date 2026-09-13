@@ -8,7 +8,7 @@ This POC is not integrated into the web product, how it will later connect is do
 
 ## Setup & run
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate  # needs Python >= 3.10
 pip install -r requirements.txt
 python bb84_poc.py                 # default demo (Eve off, then on)
 python bb84_poc.py --qubits 2000   # QBER converges to ~25% with Eve
@@ -20,3 +20,5 @@ python bb84_poc.py --seed 7        # reproducible run
 - `SAMPLE-OUTPUT.txt` — captured output of a default run
 - `TECHNICAL-ARCHITECTURE.md` — how the POC will connect to the web app later
 - `requirements.txt` — pinned Qiskit + Aer versions
+- `TECHNICAL-NOTES.md` — results, dependencies, limitations & assumptions
+- `SPRINT2-HANDOVER.md` — what Sprint 2 needs to build on this POC
