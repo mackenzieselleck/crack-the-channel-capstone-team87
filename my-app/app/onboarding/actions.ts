@@ -30,6 +30,6 @@ export async function completeOnboarding(formData: FormData) {
         redirect(`/onboarding?error=${encodeURIComponent(error.message)}`)
     }
 
-    redirect('/dashboard')
+    redirect('/spike/simulator')
 
 }

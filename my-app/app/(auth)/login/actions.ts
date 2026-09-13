@@ -23,5 +23,5 @@ export async function login(formData: FormData) {
     })
 
     if (error) return { error: error.message }
-    redirect('/dashboard')
+    redirect('/spike/simulator')
 }
