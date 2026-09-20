@@ -5,8 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 const NAV_LINKS = [
-  { href: '/spike/simulator', label: 'Simulator' },
-  { href: '/spike/learn', label: 'Learning' },
+  { href: '/simulator', label: 'Simulator' },
+  { href: '/learn', label: 'Learning' },
 ];
 
 export default function Navbar() {
