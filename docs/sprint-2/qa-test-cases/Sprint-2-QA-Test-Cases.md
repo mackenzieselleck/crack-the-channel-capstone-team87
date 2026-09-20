@@ -111,7 +111,7 @@ The project setup guide states that each team member runs the Next.js app locall
 
 FR-12 requires basic authentication and association of learner progress with an individual account. 
 
-|**ID**|**Test Case**|**Steps **|**Expected Result**|**Status**|
+|**ID**|**Test Case**|**Steps**|**Expected Result**|**Status**|
 |---|---|---|---|---|
 |AUTH-01|Valid signup|Open signup → enter valid details → complete Turnstile → submit|Account is successfully created|Not Run|
 |AUTH-02|Invalid<br>signup|Submit signup with<br>invalid/incomplete details|Validation/error message is<br>displayed, and the account is<br>not created|Not Run|
@@ -151,7 +151,7 @@ The BB84 requirements specifically require an interactive Qiskit-based exchange,
 
 The learning requirements emphasise beginner-first content, progressive learning, plain language, contextual explanation, and practical interaction 
 
-|**ID**|**Test Case**|**Steps **|**Expected Result**|**Status**|
+|**ID**|**Test Case**|**Steps**|**Expected Result**|**Status**|
 |---|---|---|---|---|
 |LEARN-<br>01|BB84<br>introduction|Open learning content|Purpose of BB84 is<br>introduced before simulation|Not Run|
 |LEARN-<br>02|Beginner<br>terminology|Open introductory<br>content|Quantum/BB84 terminology<br>is explained in plain language|Not Run|
