@@ -4,6 +4,12 @@ The Python/FastAPI service described in ../docs/sprint-1/bb84-poc/TECHNICAL-ARCH
 
 This service is stateless and internal-only: no auth, no database, no user data. It takes validated parameters in, and returns a JSON result. It is reached only by the Next.js backend, never directly by the browser.
 
+## Decisions: channel noise & post-processing
+
+*Channel noise:* kept ideal (0% QBER with no eavesdropper), matching the POC. No noise model was added. This limits the teaching point to just eavesdropping as a cause of error, rather than also introducing the ~11% real-world security threshold. Can be revisited later as an optional add-on without breaking anything, since it's additive. 
+*Post-processing:* required, and implemented. Even on an ideal channel, an active eavesdropper still injects real bit errors into the sifted key — that's one of the platform's two core teaching modes (Eve on/off). Presenting the raw sifted bits as "the key" is misleading, so error correction + privacy amplification (below) were built to actually produce a reconciled, compressed key instead.
+
+
 ## Structure
 
 ```
