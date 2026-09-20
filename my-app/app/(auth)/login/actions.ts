@@ -23,9 +23,5 @@ export async function login(formData: FormData) {
     })
 
     if (error) return { error: error.message }
-<<<<<<< HEAD
-    redirect('/simulator')
-=======
     redirect('/learn/test-module')
->>>>>>> main
 }
