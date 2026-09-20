@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV_LINKS = [
-  { href: '/spike/simulator', label: 'Simulator' },
-  { href: '/spike/learn', label: 'Learning' },
+  { href: '/simulator', label: 'Simulator' },
+  { href: '/learn', label: 'Learning' },
 ];
 
 export default function Navbar() {

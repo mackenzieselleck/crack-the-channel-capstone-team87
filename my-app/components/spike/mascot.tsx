@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRive, useViewModelInstanceNumber } from '@rive-app/react-webgl2';
 
 //rive file names
-const RIVE_SRC = 'spike_mascot.riv';
+const RIVE_SRC = '/spike/spike_mascot.riv';
 const ARTBOARD_NAME = 'Artboard 1';
 const STATE_MACHINE_NAME = 'State Machine 1';
 const MOOD_PROPERTY = 'mood';
