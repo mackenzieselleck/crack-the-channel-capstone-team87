@@ -2,12 +2,6 @@
 BB84 key post-processing: error correction (reconciliation) and privacy
 amplification.
 
-The POC (docs/sprint-1/bb84-poc/bb84_poc.py) stops after QBER
-estimation: its "final key" is just the leftover sifted bits, 
-which is not a secure key (see TECHNICAL-NOTES.md section 3,
-"No post-processing"). This code implements the two missing steps of real
-BB84 so the service produces an actual shared secret key:
-
 1. Error correction (reconciliation) - Alice and Bob split their (still 
    possibly-mismatched) keys into 4-bit blocks and publicly compare block parities. 
    Parities must match, if not, one bit in the block is wrong, and is found by repeatedly
