@@ -1,7 +1,8 @@
 'use client';
 //sets navbar
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 
 const NAV_LINKS = [
   { href: '/spike/simulator', label: 'Simulator' },
@@ -10,6 +11,21 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error('Logout failed:', error.message);
+      return;
+    }
+
+    router.replace('/login');
+    router.refresh();
+  };
 
   return (
     <nav className="sticky top-0 z-40 border-b border-[#233049] bg-[#0B1220]/90 backdrop-blur">
@@ -29,6 +45,11 @@ export default function Navbar() {
             </Link>
           );
         })}
+
+        <button type="button" onClick={handleLogout}
+         className="font-body text-sm font-medium text-[#8B95AC] transition hover:text-[#E7ECF5]">
+          Logout
+        </button>
       </div>
     </nav>
   );

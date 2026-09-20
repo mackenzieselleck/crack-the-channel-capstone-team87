@@ -1,6 +1,13 @@
 import Navbar from '@/components/spike/navbar';
+import { requireOnboarding } from '@/lib/auth/require-user';
 
-export default function SpikeLayout({ children }: { children: React.ReactNode }) {
+export default async function SpikeLayout({ 
+  children,
+ }: { 
+  children: React.ReactNode;
+ }) {
+  await requireOnboarding();
+  
   return (
     <>
       <Navbar />
