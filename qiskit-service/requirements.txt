@@ -1,0 +1,6 @@
+# Requires Python >= 3.10 (Qiskit 2.5.2)
+qiskit==2.5.2
+qiskit-aer==0.17.2
+fastapi==0.141.1
+uvicorn[standard]==0.53.0
+pydantic==2.13.5
