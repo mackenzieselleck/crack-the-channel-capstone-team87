@@ -113,14 +113,8 @@ FR-12 requires basic authentication and association of learner progress with an 
 
 |**ID**|**Test Case**|**Steps **|**Expected Result**|**Status**|
 |---|---|---|---|---|
-|AUTH-01|Valid signup|Open signup → enter valid|Account is successfully|Not Run|
-|||details → complete|created||
-|||Turnstile → submit|||
-
-
-
+|AUTH-01|Valid signup|Open signup → enter valid details → complete Turnstile → submit|Account is successfully created|Not Run|
 |AUTH-02|Invalid<br>signup|Submit signup with<br>invalid/incomplete details|Validation/error message is<br>displayed, and the account is<br>not created|Not Run|
-|---|---|---|---|---|
 |AUTH-03|Valid login|Enter valid account<br>credentials|User is authenticated and<br>enters the application|Not Run|
 |AUTH-04|Invalid login|Enter an incorrect<br>password|Login fails, and an appropriate<br>error is displayed|Not Run|
 |AUTH-05|Logout|Log in → select logout<br>And attempt to access a<br>protected page directly.|User is logged out, session<br>ends, and the user is<br>redirected to the<br>login/authentication page.<br>Lastly, Protected pages<br>cannot be accessed without<br>signing in again.|Not Run|
@@ -141,16 +135,12 @@ The BB84 requirements specifically require an interactive Qiskit-based exchange,
 |BB84-01|Launch BB84<br>simulation|Open simulator → start<br>exchange|BB84 simulation starts<br>successfully|Not Run|
 |BB84-02|Alice interaction|Select Alice → perform<br>required sender actions|Alice's actions can be<br>completed and are<br>understandable|Not Run|
 |BB84-03|Bob interaction|Select Bob → perform<br>receiver actions|Bob's actions can be<br>completed and are<br>understandable|Not Run|
-
-
-
 |BB84-04|Complete<br>exchange|Perform required BB84<br>stages|Exchange completes and<br>produces an outcome|Not Run|
-|---|---|---|---|---|
 |BB84-05|Qiskit execution|Run exchange|Actual Qiskit-based processing<br>produces a result|Not Run|
 |BB84-06|Exchange<br>outcome|Complete exchange →<br>view result|Result is clearly displayed with<br>appropriate explanation|Not Run|
 |BB84-07|Eve mode|Enable Eve during<br>exchange|Eve scenario becomes active<br>and is understandable|Not Run|
-|BB84-08|Eve effect|Run exchange with Eve<br>enabled|Learner can observe a<br>difference caused byEve|Not Run|
-|BB84-09|QBER feedback|Complete exchange →<br>inspectQBER|QBER/error-rate is displayed|Not Run|
+|BB84-08|Eve effect|Run exchange with Eve<br>enabled|Learner can observe a<br>difference caused by Eve|Not Run|
+|BB84-09|QBER feedback|Complete exchange →<br>inspect QBER|QBER/error-rate is displayed|Not Run|
 |BB84-10|QBER<br>interpretation|View QBER result|Beginner-friendly explanation<br>states why the error rate<br>matters|Not Run|
 |BB84-11|No Eve<br>comparison|Run exchange without Eve|Learner can observe baseline<br>exchange behaviour|Not Run|
 |BB84-12|Action/result<br>relationship|Perform a protocol action<br>→inspect feedback|Result explains what<br>happened and why|Not Run|
@@ -164,19 +154,14 @@ The learning requirements emphasise beginner-first content, progressive learning
 |**ID**|**Test Case**|**Steps **|**Expected Result**|**Status**|
 |---|---|---|---|---|
 |LEARN-<br>01|BB84<br>introduction|Open learning content|Purpose of BB84 is<br>introduced before simulation|Not Run|
-|LEARN-<br>02|Beginner<br>terminology|Open introductory<br>content|Quantum/BB84 terminology<br>is explained inplain language|Not Run|
+|LEARN-<br>02|Beginner<br>terminology|Open introductory<br>content|Quantum/BB84 terminology<br>is explained in plain language|Not Run|
 |LEARN-<br>03|Progressive<br>learning|Move through learning<br>stages|Concepts are introduced<br>progressively|Not Run|
 |LEARN-<br>04|Learning<br>structure|Open the learning<br>pathway and navigate<br>through a major module.|Learning content is organised<br>into major modules, each<br>divided into manageable<br>segments, and learners can<br>navigate through segments in<br>the intended sequence.|Not Run|
 |LEARN-<br>05|Visual support|Review learning content|Relevant<br>diagrams/visualisations<br>appear where expected|Not Run|
 |LEARN-<br>06|Contextual<br>explanation|Perform major<br>learning/simulation<br>action|Appropriate<br>explanation/feedback is<br>presented|Not Run|
-|LEARN-<br>07|Final outcome<br>explanation|Complete BB84 exchange|Final result is explained in<br>beginner-friendlyterms|Not Run|
+|LEARN-<br>07|Final outcome<br>explanation|Complete BB84 exchange|Final result is explained in<br>beginner-friendly terms|Not Run|
 |LEARN-<br>08|Learning/activity<br>connection|Complete learning<br>content → enter activity|Learning content connects<br>appropriately to interactive<br>activity|Not Run|
-
-
-
-|LEARN-|Learning|Complete early activity →|Later activity builds on|Not Run|
-|---|---|---|---|---|
-|09|progression|access later activity|previous concepts where<br>applicable||
+|LEARN-09|Learning progression|Complete early activity → access later activity|Later activity builds on previous concepts where applicable|Not Run|
 
 
 
@@ -201,13 +186,9 @@ The learning requirements emphasise beginner-first content, progressive learning
 |**ID**|**Test Case**|**Steps**|**Expected Result**|**Status**|
 |---|---|---|---|---|
 |AI-01|Open AI Bot|Open AI assistant|AI Bot is accessible|Not Run|
-|AI-02|Quantum question|Ask a relevant<br>quantumquestion|Relevant response is<br>returned|Not Run|
+|AI-02|Quantum question|Ask a relevant<br>quantum question|Relevant response is<br>returned|Not Run|
 |AI-03|BB84 question|Ask a BB84-related<br>question|Response is relevant to<br>BB84|Not Run|
-
-
-
 |AI-04|Beginner<br>explanation|Ask for a simple<br>explanation|Response uses beginner-<br>appropriate language|Not Run|
-|---|---|---|---|---|
 |AI-05|Hint/guidance|Ask for help with an<br>activity|AI provides guidance/hint<br>rather than simply doing<br>the task|Not Run|
 |AI-06|Context relevance|Ask question about<br>current learning<br>activity|Response is relevant to<br>the current learning<br>context|Not Run|
 |AI-07|AI unavailable|Simulate AI/service<br>failure|Core learning content and<br>BB84 functionality remain<br>accessible|Not Run|
@@ -229,12 +210,8 @@ The learning requirements emphasise beginner-first content, progressive learning
 |PROG-08|Repeat<br>interaction|Repeat non-meaningful<br>action|System does not incorrectly<br>award unlimited XP where<br>prevention is implemented|Not Run|
 |PROG-09|Module<br>achievement<br>threshold|Complete the applicable<br>module assessment. Test<br>scores below 70%, exactly<br>70%, and above 70%.|A module achievement/badge<br>is awarded only when the<br>learner achieves at least 70%<br>and satisfies the defined<br>achievement criteria.|Not Run|
 |PROG-10|Badge<br>confirmation|Earn Badge|Visible confirmation is<br>provided|Not Run|
-|PROG-11|Badge<br>persistence|Earn badge → log out →<br>login|Earned badge remains visible<br>in learnerprofile|Not Run|
-
-
-
+|PROG-11|Badge<br>persistence|Earn badge → log out →<br>login|Earned badge remains visible<br>in learner profile|Not Run|
 |PROG-12|Dashboard<br>progression|Open learner dashboard|Level, completed activity,<br>challenge progress and<br>achievements are visible|Not Run|
-|---|---|---|---|---|
 |PROG-13|Next activity|Review dashboard after<br>progress|Appropriate next activity/goal<br>can be identified|Not Run|
 
 
@@ -258,7 +235,7 @@ Assessment answer keys will be stored separately from learner-facing assessment 
 
 |**ID**|**Test case**|**Expected Result**|**Status**|
 |---|---|---|---|
-|SEC-01|Assessment answer-<br>key exposure|Inspect learner-facing<br>assessment data/API<br>response|Correct answers/answer-key data<br>are not exposed to the learner-<br>facingapplication|
+|SEC-01|Assessment answer-key exposure|Inspect learner-facing assessment data/API response|Correct answers/answer-key data are not exposed to the learner-facing application|Not Run|
 
 
 
@@ -266,20 +243,15 @@ Assessment answer keys will be stored separately from learner-facing assessment 
 
 |**ID**|**Test Case**|**Expected Result**|**Status**|
 |---|---|---|---|
-|EDGE-01|User submits empty signup|Validation prevents submission|Not Run|
-||fields|and explains required input||
-
-
-
+|EDGE-01|User submits empty signup fields|Validation prevents submission and explains required input|Not Run|
 |EDGE-02|User enters invalid login<br>credentials|Authentication fails safely with<br>clear feedback|Not Run|
-|---|---|---|---|
 |EDGE-03|User accesses protected page<br>while logged out|User is redirected to<br>authentication|Not Run|
 |EDGE-04|User refreshes during<br>authenticated session|Session remains valid where<br>expected|Not Run|
-|EDGE-05|Qiskit service unavailable|User receives clear<br>error/feedback rather than<br>brokenpage|Not Run|
-|EDGE-06|AI service unavailable|User can still access core<br>learningand BB84|Not Run|
+|EDGE-05|Qiskit service unavailable|User receives clear<br>error/feedback rather than<br>broken page|Not Run|
+|EDGE-06|AI service unavailable|User can still access core<br>learning and BB84|Not Run|
 |EDGE-07|Learner repeats same non-<br>learning action|System does not incorrectly<br>award repeated rewards where<br>prevention is implemented|Not Run|
-|EDGE-08|Incomplete BB84 interaction|User receives appropriate<br>guidance and cannot proceed<br>incorrectlywhere required|Not Run|
-|EDGE-09|Unexpected/invalid input in<br>learningactivity|Application handles input<br>without crashing|Not Run|
+|EDGE-08|Incomplete BB84 interaction|User receives appropriate<br>guidance and cannot proceed<br>incorrectly where required|Not Run|
+|EDGE-09|Unexpected/invalid input in<br>learning activity|Application handles input<br>without crashing|Not Run|
 |EDGE-10|Learner returns after previous<br>session|Saved progress remains available|<sup>Not Run</sup>|
 |EDGE-11|Learner reaches milestone|Celebration does not block<br>further learning|Not Run|
 |EDGE-12|Challenge accessed before<br>relevant progression|Challenge availability/behaviour<br>follows the agreed progression<br>rules|Not Run|
@@ -303,8 +275,8 @@ Assessment answer keys will be stored separately from learner-facing assessment 
 |Progress|PROG-01–PROG-05|FR-13, FR-15, FR-22, LR-13, US-18–US-<br>19,US-29|
 |XP/badges|PROG-06–PROG-13|FR-19–FR-23, LR-12, LR-14, US-27–US-<br>31|
 |AI|AI-01–AI-08|FR-16, NFR-08–NFR-10, LR-11, US-20–<br>US-22|
-|Edge cases|EDGE-01–EDGE-12|FR-10, FR-12–FR-23, UX-06, NFR-02,<br>NFR-08,NFR-11|
-|Daily Challenges|CHAL-01–CHAL-06|FR-17, FR-18, LR-09, LR-10, US-23–US-<br>26|
+|Edge cases|EDGE-01–EDGE-18|FR-10, FR-12–FR-23, UX-06, NFR-02,<br>NFR-08,NFR-11|
+|Daily Challenges|CHA-01–CHA-06|FR-17, FR-18, LR-09, LR-10, US-23–US-<br>26|
 |Module Assessment|ASSESS-01–ASSESS-09|FR-24, BR-15, BR-16, US-32|
 |Module progression|PROG-01, PROG-06, PROG-<br>09|FR-13, FR-19, FR-20, LR-13, US-18, US-<br>28|
 |Publication/assessment<br>security|EDGE-18, SEC-01|TD-01, TD-02, NFR-05/NFR-11 where<br>applicable|
