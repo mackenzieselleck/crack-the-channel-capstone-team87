@@ -197,3 +197,17 @@ npx supabase link --project-ref <project-id>
 ## 8. Who to ask if you need help
 
 Mackenzie! She is the owner of the supabase project, she built the boilerplate, frontend spike and she has the turnstile key. Please ask her if you need help with anything or tell her if you find an issue (there could be some that weren't found, hopefully not)
+
+## Sprint 2 Auth Update — Srilekha
+
+The existing Supabase authentication flow was tested and extended during Sprint 2 Week 1.
+
+### Changes implemented
+- Added logout functionality using `supabase.auth.signOut()`.
+- Added logout redirect to `/login`.
+- Protected `/spike` routes using the existing `requireOnboarding()` authentication guard.
+- Verified that authenticated users can access `/spike` routes.
+- Verified that unauthenticated users are redirected to `/login` when attempting to access protected `/spike` routes.
+
+### Handoff / Review
+Mackenzie to review the authentication changes and confirm they are compatible with the existing Supabase/auth setup.
