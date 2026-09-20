@@ -109,7 +109,7 @@ begin
 -- if page index is out of bounds or higher than the current v_count, raise exception
   select count(*) into v_count from module_pages where module_id = p_module_id;
   if p_page_index < 0 or p_page_index >= v_count then
-    raise exception 'invalid step index';
+    raise exception 'invalid page index';
   end if;
 -- creates user learning progress row on first next click for module if already exists it does nothing
   insert into module_progress (user_id, module_id)
@@ -173,7 +173,7 @@ begin
            ) order by q.position)
     into v_results
     from quiz_questions q
-    join quiz_answer_keys k on k.question_id = q.id
+    join answer_keys k on k.question_id = q.id
    where q.module_id = p_module_id;
 
   -- unpacks array and counts correct answers
