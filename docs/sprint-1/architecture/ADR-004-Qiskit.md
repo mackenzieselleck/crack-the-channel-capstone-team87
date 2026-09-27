@@ -28,7 +28,7 @@ The core decision of a separate Dockerised microservice is still being used. Fur
 | # | Date | Change | Reason | Related |
 |---|---|---|---|---|
 | 1 | 26.09.26 | The service will also be in charge of generating and grading the Daily Challenge tasks by using SymPy and Qiskit | Answers now need to be computed by code due to concerns regarding open source AI competence | ADR 007, ADR 011 |
-| 2 | 26.09.26 | The service is stateless and callable via an internal API key | This ensures database credentials are kept out of the sandbox | ADR 011, ADR 013 |
+| 2 | 26.09.26 | The service is stateless and callable via an internal API key | This ensures database credentials are kept out of the sandbox | ADR 009, ADR 013 |
 
 
 ### Revision 1: Challenge generation and grading added to microservice
@@ -39,5 +39,5 @@ The core decision of a separate Dockerised microservice is still being used. Fur
 ### Revision 2: Stateless and internal authentication
 **What changed:** The icroservice won't have database access or user accounts. Every endpoint except  for`/health` will need an internal API key held securely.
 **Why:** The generate endpoint will return answers, so it can never be callable via the browser. Ensuring database credentials are kept out of the microservice will keep a compromised sandbox from accessing user data.
-**Impact:** The internal API key must be stored as a secret and rotated if a leak ever occurs. Details in ADR 011.
+**Impact:** The internal API key must be stored as a secret and rotated if a leak ever occurs. Details in ADR 009.
 

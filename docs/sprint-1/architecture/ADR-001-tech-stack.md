@@ -33,8 +33,7 @@ Choosing a BaaS means the team does not control user authentication or the under
 | # | Date | Change | Reason | Related |
 |---|---|---|---|---|
 | 1 | 23.09.26 | Change which LLM provider the stack will be implementing for the agent. An open source LLM will be used | This change is due to PI costs and client scope expectations | ADR 005, ADR 006 |
-| 2 | 23.09.26 | The microservice scope has expanded to now also include Daily Challenge math generation and grading, through the use of SymPy | As we now have to use open source AI, which can make errors on complicated mathematics, we need a trusted method to compute these tasks | ADR 004, ADR 007, ADR 011 |
-| 3 | 26.09.26 | The Qiskit service could be hosted on a RMIT lab server instead of Render | The team has been offered lab server access and Render's lower tier options can have slow first requests | ADR 004, ADR 017 |
+| 2 | 23.09.26 | The microservice scope has expanded to now also include Daily Challenge math generation and grading, through the use of SymPy | As we now have to use open source AI, which can make errors on complicated mathematics, we need a trusted method to compute these tasks | ADR 004, ADR 007, ADR 009 |
 
 ### Revision 1: Open source LLM added to the stack
 **What changed:** The LLM provider was previously undecided with Claude API as a hopeful placeholder until client approval. The stack has now been confirmed to include an open source LLM which will be accessed via a Next.js API route. 
@@ -45,8 +44,3 @@ Choosing a BaaS means the team does not control user authentication or the under
 **What changed:** The Python microservice will now handle Daily Challenge problem generation and grading through the use of SymPy and Qiskit.
 **Why:** ADR 007 requires challenge answers to be computed via code instead of the LLM. Due to the complexity of the math Python libraries are the best option, therefore adding these tasks to the existing service will be the most efficient computationally.
 **Impact:** Still two languages and two core environments within the stack. The microservice now carries more of the project's core logic, so additional testing and care will need to be taken with the environment.
-
-### Revision 3: Hosting options for the Microservice
-**What changed:** The Microservice has the option to run on a lab server, with Render kept as the baseline.
-**Why:** The team has access to a lab server that can run the service, this could avoid Render's slow first requests.
-**Impact:** Dependent on RMIT IT and Team approval. Full details and impact has been recorded within ADR 017.
