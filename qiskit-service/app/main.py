@@ -36,8 +36,8 @@ QBER_DETECTION_THRESHOLD = 0.11
 
 app = FastAPI(title="Crack the Channel - Qiskit BB84 service")
 
-# The service is internal-only (reached solely by the web backend per the
-# architecture doc), but CORS is left open here since it may be called
+# The service is internal-only (reached solely by the web backend),
+# but CORS is left open here since it may be called
 # directly during local development.
 app.add_middleware(
     CORSMiddleware,
@@ -55,7 +55,15 @@ def health() -> dict:
 @app.post("/bb84/run", response_model=BB84Response)
 def run(request: BB84Request) -> BB84Response:
     rng = random.Random(request.seed) if request.seed is not None else random.Random()
-    run_result = run_bb84(request.num_qubits, request.eavesdrop, rng)
+
+    run_result = run_bb84(
+        request.num_qubits,
+        request.eavesdrop,
+        rng,
+        user_role=request.user_role,
+        user_bases=request.user_bases,
+        user_bits=request.user_bits,
+    )
 
     corrected_bob, leaked_bits, corrected_errors = cascade_reconcile(
         run_result["alice_remaining"],
@@ -84,6 +92,9 @@ def run(request: BB84Request) -> BB84Response:
             alice_basis=BASIS_SYMBOL[run_result["alice_bases"][i]],
             eve_basis=(
                 BASIS_SYMBOL[run_result["eve_bases"][i]] if request.eavesdrop else None
+            ),
+            eve_bit=(
+                run_result["eve_bits"][i] if request.eavesdrop else None
             ),
             bob_basis=BASIS_SYMBOL[run_result["bob_bases"][i]],
             bob_result=run_result["bob_results"][i],

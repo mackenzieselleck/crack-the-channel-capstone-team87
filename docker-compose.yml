@@ -1,0 +1,17 @@
+services:
+  qiskit-service:
+    build: ./qiskit-service
+    ports:
+      - "8000:8000"
+    mem_limit: 512m
+    cpus: 1.0
+    read_only: true
+    tmpfs:
+      - /tmp
+    networks:
+      - internal
+    restart: unless-stopped
+
+networks:
+  internal:
+    internal: true
