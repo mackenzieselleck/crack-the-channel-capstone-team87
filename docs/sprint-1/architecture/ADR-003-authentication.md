@@ -1,6 +1,6 @@
 # 003 Authentication
-**Date:** 23-08-2026
-**Status:** Pending - on Team and Client approval
+**Date:** 23.08.26
+**Status:** Approved
 
 ## Context
 Crack the Channel needs user accounts and login, along with baseline security practices (password salting/hashing and secure session handling). The site’s requirements specifically call for basic user authentication and security protocols. However, the team's ultimate priority is to spend build effort on the AI Agent, QKD/encryption logic, and Qiskit integration, not on implementing authentication from scratch.
