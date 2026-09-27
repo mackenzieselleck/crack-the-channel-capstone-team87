@@ -1,13 +1,14 @@
 ## Qiskit BB84 service
 
-The Python/FastAPI service described in ../docs/sprint-1/bb84-poc/TECHNICAL-ARCHITECTURE.md. It wraps the standalone POC's proven BB84 logic (bb84_poc.py) behind an HTTP endpoint the Next.js backend calls, and adds key post-processing.
+Python/FastAPI qiskit service. It wraps the standalone POC's proven BB84 logic (bb84_poc.py) behind an HTTP endpoint the Next.js backend calls,
+and adds key post-processing. This service is stateless and internal-only: no auth, no database, no user data. It takes validated parameters, 
+and returns a JSON result. It is reached only by the Next.js backend.
 
-This service is stateless and internal-only: no auth, no database, no user data. It takes validated parameters in, and returns a JSON result. It is reached only by the Next.js backend, never directly by the browser.
 
 ## Decisions: channel noise & post-processing
 
 *Channel noise:* kept ideal (0% QBER with no eavesdropper), matching the POC. No noise model was added. This limits the teaching point to just eavesdropping as a cause of error, rather than also introducing the ~11% real-world security threshold. Can be revisited later as an optional add-on without breaking anything, since it's additive. 
-*Post-processing:* required, and implemented. Even on an ideal channel, an active eavesdropper still injects real bit errors into the sifted key — that's one of the platform's two core teaching modes (Eve on/off). Presenting the raw sifted bits as "the key" is misleading, so error correction + privacy amplification (below) were built to actually produce a reconciled, compressed key instead.
+*Post-processing:* implemented. Presenting the raw sifted bits as "the key" is misleading, so error correction + privacy amplification were built to actually produce a reconciled, compressed key instead.
 
 
 ## Structure
@@ -15,15 +16,29 @@ This service is stateless and internal-only: no auth, no database, no user data.
 ```
 qiskit-service/
 ├── app/
-│   ├── bb84.py            # Qiskit circuit + BB84 exchange logic (ported from bb84_poc.py)
-│   ├── postprocessing.py  # Error correction (Cascade-style) + privacy amplification
-│   ├── schemas.py         # Request/response models
-│   └── main.py            # FastAPI app, POST /bb84/run, GET /health
-├── tests/                 # pytest unit tests for all three modules above
+│ ├── bb84.py               # Qiskit circuit + BB84 exchange logic (ported from bb84_poc.py)
+│ ├── postprocessing.py     # Error correction (Cascade-style) + privacy amplification
+│ ├── schemas.py            # Request/response models
+│ └── main.py               # FastAPI app, POST /bb84/run, GET /health
+├── tests/                  # pytest unit tests for all three modules above
+├── Dockerfile              # Containerised build — see ADR-004-Qiskit.md
+├── .dockerignore
 └── requirements.txt
 ```
 
+The service is run inside Docker via `docker-compose.yml` at the repo root (memory/CPU caps and network isolation are configured there, not in the Dockerfile itself. 
+
+
 ## Setup & run
+
+### Option 1: Docker 
+
+```bash
+docker compose up qiskit-service
+```
+This builds and runs the service inside a container. It's reachable at `http://localhost:8000`, same as the venv option below.
+
+### Option 2: Local venv (faster for active development — supports `--reload`)
 
 ```bash
 cd qiskit-service
@@ -51,6 +66,7 @@ tests covering the BB84 exchange (`test_bb84.py`), error correction and
 privacy amplification (`test_postprocessing.py`), and the HTTP API
 end-to-end (`test_api.py`). (To be written by another team member)
 
+
 ## API
 
 ### `POST /bb84/run`
@@ -61,17 +77,25 @@ end-to-end (`test_api.py`). (To be written by another team member)
 |---|---|---|---|
 | `num_qubits` | int | 200 | 2–5000 |
 | `eavesdrop` | bool | false | simulate an intercept-resend eavesdropper |
-| `seed` | int \| null | null | fixes both the classical bit/basis choices *and* the quantum measurement outcomes, for a fully reproducible run |
+| `seed` | int \| null | null | fixes both the classical bit/basis choices and the quantum measurement outcomes, for a fully reproducible run |
 | `block_size` | int | 4 | error-correction block size (1–64) |
 | `security_parameter` | int | 32 | extra bits shaved off during privacy amplification as a safety margin |
 | `trace_limit` | int | 50 | max per-qubit trace rows returned (0–500), so large exchanges don't balloon the payload — see `TECHNICAL-ARCHITECTURE.md` §4 |
+| `user_role` | "alice" \| "bob" \| "eve" \| null | null | which role a human learner is playing; the other role(s) are generated as NPCs. Omit for the original fully-automated behaviour |
+| `user_bases` | int[] \| null | null | the learner's basis per qubit (0=rectilinear, 1=diagonal). Required, length `num_qubits`, when `user_role` is set |
+| `user_bits` | int[] \| null | null | the learner's bit per qubit. Only used when `user_role="alice"` — Bob and Eve measure rather than choose a bit |
+
+**NPC behaviour.** 
+By default every role is generated automatically. Setting `user_role` lets 
+one role be driven by a user's choices instead: `user_bases`/`user_bits` are
+validated (correct length, values must be 0 or 1, `user_role="eve"` requires 
+`eavesdrop=true`) and substituted in for that one role. This doesn't change 
+how a circuit is built or executed, it only changes where that role's bit/basis
+choices come from. 
 
 The request body is a small, fully-validated set of numeric/boolean
-parameters — nothing here is ever interpreted as code or an arbitrary
-circuit description. That satisfies the "no learner/AI code execution"
-constraint in `SPRINT2-HANDOVER.md` §3: any future learner- or AI-built
-circuit must still arrive as constrained parameters like these, not as a
-string this service `exec()`s.
+parameters, it's not interpreted as code or an arbitrary circuit 
+description, to satisfy the "no learner/AI code execution" constraint.
 
 **Response** — the original data contract from `TECHNICAL-ARCHITECTURE.md`
 §4, plus the post-processing results:
@@ -104,85 +128,11 @@ string this service `exec()`s.
 }
 ```
 
-- `final_key_preview` / hidden field it's derived from — the *sifted* key
-  before post-processing (this is what the original POC called its "final
-  key", and its own docs are explicit it is **not** secure — see below).
-- `error_correction` / `secure_key_preview` / `secure_key_length` — the new
-  post-processing output. When QBER is high (as above, with an active
-  eavesdropper), the secure key can shrink to **zero bits** — that's
-  correct: it means privacy amplification determined there isn't enough
-  uncompromised entropy left to safely extract a key, which is the whole
-  point of running it.
 
 ### `GET /health`
 
 Returns `{"status": "ok"}`. Used for readiness checks.
 
-## Key post-processing — what was added and why
-
-The POC stops at QBER estimation: its "final key" is just the leftover sifted 
-bits, which is not a cryptographically secure key (`TECHNICAL-NOTES.md` §3, 
-"No post-processing"). This service adds the two steps real BB84 needs to 
-actually produce one, implemented in `app/postprocessing.py`:
-
-### 1. Error correction (reconciliation)
-
-BB84 example: an eavesdropper or channel noise, leaves Alice and Bob 
-holding sifted keys that don't match. Before they can use the key 
-for anything, they need to agree on identical bits.
-
-We implement a **single-round, simplified Cascade protocol**
-(`cascade_reconcile`):
-
-1. Split both keys into fixed-size blocks (`block_size`, default 4 bits).
-2. For each block, publicly compare parity (XOR of the block's bits — not
-   the bits themselves).
-3. If parities disagree, binary-search that block down to the one bit that
-   differs (recursively comparing sub-block parities), then flip Bob's bit
-   to match Alice's.
-4. Every parity bit compared this way is public information Eve could also
-   see, so it's counted as `leaked_bits` and later subtracted from the
-   secure key length.
-
-This is a simplification of real Cascade (which runs multiple
-passes with shuffled block orderings to also catch blocks with an even
-number of errors, which cancel out in a single parity check). One round is
-enough to correct the sparse, mostly-single-bit errors this platform's QBER
-range produces, and keeps the algorithm easy to explain and to test. Any
-bits still mismatched after the pass show up as `residual_mismatches`.
-
-### 2. Privacy amplification
-
-Even after reconciliation, an eavesdropper who intercepted qubits (or
-listened to the parity bits above) has some information about the key.
-Privacy amplification compresses the reconciled key into a shorter one that
-information is a negligible fraction of.
-
-We implement **universal hashing via a random Toeplitz matrix over GF(2)**
-(`privacy_amplification` / `_toeplitz_hash`), the standard practical
-construction for this step: output bit `i` is the XOR of a pseudorandom
-subset of the input bits, chosen from a random binary string.
-
-The output length is computed by `secure_key_length`:
-
-```
-output_length = clamp(
-    floor(input_length * (1 - h2(qber))) - leaked_bits - security_parameter,
-    0, input_length
-)
-```
-
-`h2` is the binary (Shannon) entropy function — `h2(qber)` estimates the
-fraction of the key Eve could plausibly know given the observed error rate,
-so `1 - h2(qber)` is roughly what's left. `leaked_bits` accounts for the
-parity bits spent on error correction, and `security_parameter` (default
-32) is a fixed extra safety margin.
-
-**This is a simplified, illustrative bound for a teaching platform** — it
-captures the right shape (higher QBER or more leakage shrinks the key,
-sometimes to zero) but is not a substitute for a formal finite-key security
-proof. The UI should still make clear this demonstrates the idea of
-privacy amplification, not a production-grade QKD implementation.
 
 ## Frontend / backend wiring
 
