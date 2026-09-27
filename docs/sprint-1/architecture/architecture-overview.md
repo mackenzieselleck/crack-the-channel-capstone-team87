@@ -2,6 +2,16 @@
 
 This document describes the full architecture of Crack the Channel. This document should be updated in the event of changes or additions to the site's stack. Whenever a component, technology, or interaction changes, this document should be updated within the same PR as the change, to ensure the overview remains up to date with the site’s current architecture.
 
+## Change Log
+Each change to this document is recorded. This record must include what has been changed, why and any related ADRs. Any scope changes to previous ADRs are also recorded within the original.
+
+| Date | Section | Change | Reason | Related |
+|---|---|---|---|---|
+| 27.09.26 | architecture diagram | The LLM is now an open source model. This replaced the Claude API placeholder | Client scope change requiring the use of an open source LLM | ADR 005, ADR 006 |
+| 27.09.26 | Agent Orchestration Layer | Included descriptions of the two AI uses: the Daily Challenge fixed workflow and the tool calling tutorextension | Daily Challenge generation follows fixed steps as open source models are less reliable | ADR 005, ADR 008, ADR 011 |
+| 27.09.26 | Qiskit | The service now also generates and grades Daily Challenges by adding in SymPy | Answers must be computed by code to reduce the sandbox's attack surface and keep answers away from client | ADR 004, ADR 009 |
+| 27.09.26 | Dependencies | Added `openai` | Client library for an OpenAI compatible LLM endpoint | ADR 006 |
+
 ## Website Requirements and Considerations
 - Basic user authentication and security protocols (eg: login, password salting, user profile retention)
 - Gamified learning: badges, progress bars, streaks, leaderboards
@@ -29,11 +39,17 @@ The frontend will be a Next.js application using React and Tailwind CSS. It will
 ### Agent Orchestration Layer:
 Next.js API routes sit between the UI and the rest of the backend. This is where the system will hold prompts and tool definitions for the AI Agent, call the Agent’s API, and execute the tools via HTTP request. This layer provides agent coordination with the site and Qiskit microservice but ensures separation from them for security purposes
 
+The AI is used in two ways (see ADR 008):
+- **Daily Challenge (fixed workflow):** when a user opens the Daily Challenge and chooses a difficulty tier the orchestration layer will choose a random category which will be seeded by user, date and tier so it can't be rerolled. It then calls the microservice to generate the problem, and asks the LLM to write the challenge text. This will fallback to a template text if the LLM is slow to respond or unavailable. Submissions are then graded by the microservice (or directly, for module multiple choice questions). The LLM then rephrases the grader's feedback. Answers are then stored in a table that user's won't be able to read (see ADR 011).
+- **Ask the Tutor (tool calling agent):** the LLM chooses structured tool calls with validated parameters, as described in ADR 005.
+
 ### Supabase (Backend/Database/Auth):
 Supabase will provide both authentication (login, password handling, session management) and Postgres database (user accounts, lesson progress, badges, streaks, leaderboard data) as a managed service. A BaaS was chosen to manage user data and authentication so that the team could focus build effort on the core design features of the site: the AI Agent, the QKD/encryption logic and Qiskit integration, rather than on implementing authentication and data access from scratch
 
-### Qiskit:
-The Qiskit service will be a separate FastAPI application running Qiskit's Aer simulator, packaged in Docker and deployed to Render. This is the only component that executes Qiskit code and it is deliberately isolated from the rest of the stack. This is due to the fact that Qiskit is based in Python and because the service will need to execute agent generated and user submitted circuits and therefore will need to run inside a sandboxed environment to mitigate risk
+### Python Microservice:
+The Qiskit service will be a separate FastAPI application running Qiskit's Aer simulatorand SymPy, packaged in Docker and deployed to Render. This is the only component that executes Qiskit code and it is deliberately isolated from the rest of the stack. This is due to the fact that Qiskit is based in Python and because the service will need to execute user submitted circuits and therefore will need to run inside a sandboxed environment to mitigate risk.
+
+The service also handles all Daily Challenge logic. It will generate each problem from a seed, compute the correct answer, grade user submission and identify any user mistake (see ADR 007 and ADR 009). It will be stateless, have no database access, and can only be called via the orchestration layer using an internal API key.
 
 ### External APIs and Services:
 An Open AI will be used for the AI Agent and is still to be determined. It will be called via the Agent Orchestration Layer, not directly from the browser. This ensures that the API key is never exposed to the client. At this stage, no other external services are required for the core features. Anything further added will be included in this section after agreement with the team and client
@@ -57,10 +73,12 @@ All current dependecies and their versions can be found in the `package.json` fi
 - typescript
 - supabase
 - tailwindcss
+- openai
 
 
 
 ### Arcitecture Diagram
+
 ``` mermaid
 flowchart TB
  subgraph BROWSER["Browser"]
@@ -74,12 +92,12 @@ flowchart TB
         AUTH["User Auth"]
         PG[("Postgres<br>Users + Learning Progress + Badges")]
   end
- subgraph QISKIT["Qiskit Service · Docker + Render"]
+ subgraph QISKIT["Qiskit Service · Docker · Render or lab server"]
         FASTAPI["FastAPI"]
-        AER["Aer Simulator"]
+        AER["Aer Simulator + SymPy<br>Challenge generate / grade"]
   end
- subgraph CLAUDE["Claude API"]
-        CLAUDEAGENT["AI Agent<br>Structured Tool Calls Only"]
+ subgraph LLM["Open-source LLM · OpenAI-compatible endpoint"]
+        LLMAGENT["AI Agent<br>Text generation + structured tool calls only"]
   end
     ROUTES --> AGENT
     AUTH --> PG
@@ -89,7 +107,8 @@ flowchart TB
     ROUTES -- Auth and queries --> AUTH
     AGENT -- run_circuit --> FASTAPI
     FASTAPI -- Results --> AGENT
-    ROUTES -- Agent calls --> CLAUDEAGENT
+    ROUTES -- Agent calls --> LLMAGENT
+    ROUTES -- Generate / grade challenges --> FASTAPI
 
     style UI stroke:#9b36ff
     style ROUTES stroke:#ff50ed
@@ -98,11 +117,11 @@ flowchart TB
     style PG stroke:#52bfff
     style FASTAPI stroke:#54ffa4
     style AER stroke:#54ffa4
-    style CLAUDEAGENT stroke:#fef84c
+    style LLMAGENT stroke:#fef84c
     style BROWSER stroke:#9b36ff,fill:#e7b3ff
     style APP stroke:#ff50ed,fill:#feb9fe
     style SUPABASE stroke:#52bfff,fill:#baf6ff
     style QISKIT stroke:#54ffa4,fill:#bbffd9
-    style CLAUDE stroke:#fef84c,fill:#FFF9C4
+    style LLM stroke:#fef84c,fill:#FFF9C4
 ```
 Architecture Diagram made with Mermaid

@@ -1,6 +1,6 @@
 # 002 Database
-**Date:** 23-08-2026
-**Status:** Pending - on Team and Client approval
+**Date:** 23.08.26
+**Status:** Approved
 
 ## Context
 Crack the Channel needs a data store that can handle user accounts, lesson progress and gamification data (XP, badges, streaks). ADR 001 established Supabase as the backend/data layer due to the decisions within this ADR
