@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 const NAV_LINKS = [
   { href: '/simulator', label: 'Simulator' },
   { href: '/learn', label: 'Learning' },
+  { href: '/profile', label: 'Profile' },
 ];
 
 export default function Navbar() {
