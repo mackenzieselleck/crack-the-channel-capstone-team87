@@ -38,7 +38,14 @@ export function Quiz({ questions, passMark, result, busy, onSubmit, onRetry }: P
             {passMark}%.
           </p>
         </div>
-
+        {result.passed && result.xpAwarded > 0 && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-emerald-900">
+          <p className="font-semibold">+{result.xpAwarded} XP</p>
+            {result.badgesAwarded.map((b) => (
+          <p key={b.id}>Badge earned: {b.title}</p>
+            ))}
+        </div>
+        )}
         {questions.map((q, i) => {
           const r = byId.get(q.id);
           return (
