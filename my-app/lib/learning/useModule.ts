@@ -34,7 +34,7 @@ export function useModule(slug: string) {
       const { data, error: modErr } = await supabase
         .from('modules')
         .select(
-          `id, slug, title, pass_mark,
+          `id, slug, title, summary, pass_mark,
            module_pages ( id, position, title, body ),
            quiz_questions ( id, position, prompt, options )`,
         )
@@ -55,6 +55,7 @@ export function useModule(slug: string) {
         id: data.id,
         slug: data.slug,
         title: data.title,
+        summary: data.summary,
         passMark: data.pass_mark,
         pages: data.module_pages,
         questions: data.quiz_questions,

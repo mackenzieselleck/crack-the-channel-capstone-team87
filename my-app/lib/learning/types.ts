@@ -16,6 +16,7 @@ export interface LearningModule {
   id: string;
   slug: string;
   title: string;
+  summary: string | null;
   passMark: number;
   pages: ModulePage[];
   questions: QuizQuestion[];
