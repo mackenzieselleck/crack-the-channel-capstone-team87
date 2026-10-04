@@ -4,3 +4,6 @@ qiskit-aer==0.17.2
 fastapi==0.141.1
 uvicorn[standard]==0.53.0
 pydantic==2.13.5
+sympy>=1.12
+numpy>=1.26
+pytest>=8
