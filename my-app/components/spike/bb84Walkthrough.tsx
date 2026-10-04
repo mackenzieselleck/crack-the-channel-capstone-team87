@@ -91,6 +91,28 @@ interface Bb84WalkthroughProps {
   onNarrate?: (event: Bb84NarrationEvent) => void;
 }
 
+//mapping constants and response types 
+// (0 = rectilinear, 1 = diagonal - see qiskit-service/app/bb84.py).
+const BASIS_TO_CODE: Record<Basis, number> = { rect: 0, diag: 1 };
+const SYMBOL_TO_BASIS: Record<string, Basis> = { '+': 'rect', x: 'diag' };
+
+interface ApiTraceRow {
+  alice_bit: number;
+  alice_basis: string;
+  eve_basis: string | null;
+  eve_bit: number | null;
+  bob_basis: string;
+  bob_result: number;
+  kept: boolean;
+}
+
+interface Bb84ApiResponse {
+  qber: number;
+  sifted_key_length: number;
+  errors: number;
+  trace: ApiTraceRow[];
+}
+
 function rnd(): Bit {
   //coin flip for bit
   return Math.random() < 0.5 ? 0 : 1;
@@ -581,6 +603,30 @@ function computeDerivedPhoton(
   };
 }
 
+//helper function to build request body
+function buildRequestBody(
+  role: Role,
+  eveActive: boolean,
+  aliceChoices: (AliceChoice | null)[],
+  bobChoices: (Basis | null)[],
+  eveChoices: (Basis | null)[]
+) {
+  const body: Record<string, unknown> = {
+    num_qubits: N,
+    eavesdrop: eveActive,
+    user_role: role,
+  };
+  if (role === 'alice') {
+    body.user_bits = aliceChoices.map((c) => c!.bit);
+    body.user_bases = aliceChoices.map((c) => BASIS_TO_CODE[c!.basis]);
+  } else if (role === 'bob') {
+    body.user_bases = bobChoices.map((b) => BASIS_TO_CODE[b!]);
+  } else {
+    body.user_bases = eveChoices.map((b) => BASIS_TO_CODE[b!]);
+  }
+  return body;
+}
+
 //ensures all choices are made
 function isNextDisabled(
   step: number,
@@ -615,20 +661,25 @@ export default function BB84Walkthrough({ onNarrate }: Bb84WalkthroughProps) {
   const [bobChoices, setBobChoices] = useState<(Basis | null)[]>(() => makeEmptyBasisChoices(N));
   const [eveChoices, setEveChoices] = useState<(Basis | null)[]>(() => makeEmptyBasisChoices(N));
   const [step, setStep] = useState(0);
+
+  const [apiResult, setApiResult] = useState<Bb84ApiResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
  
   const eveActive = role === 'eve' || eveOn;
  
-  function initRound(r: Role | null, eOn: boolean) {
-    setPhotons(generatePhotons(N));
-    setAliceChoices(r === 'alice' ? makeEmptyAliceChoices(N) : randomAlice(N));
-    setBobChoices(r === 'bob' ? makeEmptyBasisChoices(N) : randomBasisArr(N));
-    setEveChoices(r === 'eve' ? makeEmptyBasisChoices(N) : randomBasisArr(N));
+  function initRound(r: Role | null) {
+    setAliceChoices(makeEmptyAliceChoices(N));
+    setBobChoices(makeEmptyBasisChoices(N));
+    setEveChoices(makeEmptyBasisChoices(N));
+    setApiResult(null);
+    setApiError(null);
     setStep(0);
   }
  
   function choosePlayerRole(r: Role) {
     setRole(r);
-    initRound(r, eveOn);
+    initRound(r);
   }
 
   function changeRole() {
@@ -638,33 +689,51 @@ export default function BB84Walkthrough({ onNarrate }: Bb84WalkthroughProps) {
   }
 
   function regenerate() {
-    initRound(role, eveOn);
+    initRound(role);
   }
 
   function restart() {
     if (role === 'alice') setAliceChoices(makeEmptyAliceChoices(N));
     if (role === 'bob') setBobChoices(makeEmptyBasisChoices(N));
     if (role === 'eve') setEveChoices(makeEmptyBasisChoices(N));
+    setApiResult(null);
+    setApiError(null);
     setStep(0);
   }
 
   function toggleEve() {
-    setEveOn((v) => {
-      const next = !v;
-      if (next) setEveChoices((arr) => (arr.every((x) => x !== null) ? arr : randomBasisArr(N)));
-      return next;
-    });
+    setEveOn((v) => !v);
   }
  
+  //reads from the API once available, and otherwise only shows the user's own picks
   const derived = useMemo<DerivedPhoton[]>(() => {
-    return photons.map((photon, i) =>
-      computeDerivedPhoton(photon, aliceChoices[i], bobChoices[i], eveChoices[i], eveActive)
-    );
-  }, [photons, aliceChoices, bobChoices, eveChoices, eveActive]);
+    if (apiResult) {
+      return apiResult.trace.map((row) => ({
+        aliceBit: row.alice_bit as Bit,
+        aliceBasis: SYMBOL_TO_BASIS[row.alice_basis],
+        bobBit: row.bob_result as Bit,
+        bobBasis: SYMBOL_TO_BASIS[row.bob_basis],
+        eveBit: row.eve_bit as Bit,
+        eveBasis: row.eve_basis ? SYMBOL_TO_BASIS[row.eve_basis] : null,
+        matched: row.kept,
+        errored: row.kept && row.alice_bit !== row.bob_result,
+      }));
+    }
+    return Array.from({ length: N }, (_, i) => ({
+      aliceBit: role === 'alice' ? aliceChoices[i]?.bit ?? null : null,
+      aliceBasis: role === 'alice' ? aliceChoices[i]?.basis ?? null : null,
+      bobBit: null,
+      bobBasis: role === 'bob' ? bobChoices[i] ?? null : null,
+      eveBit: null,
+      eveBasis: role === 'eve' ? eveChoices[i] ?? null : null,
+      matched: false,
+      errored: false,
+    }));
+  }, [apiResult, role, aliceChoices, bobChoices, eveChoices]);
  
-  const keptCount = derived.filter((p) => p.matched).length;
-  const errorCount = derived.filter((p) => p.matched && p.errored).length;
-  const qber = keptCount > 0 ? Math.round((errorCount / keptCount) * 100) : 0;
+  const keptCount = apiResult ? apiResult.sifted_key_length : derived.filter((p) => p.matched).length;
+  const errorCount = apiResult ? apiResult.errors : 0;
+  const qber = apiResult ? Math.round(apiResult.qber * 100) : 0;
  
   const allAliceChosen = aliceChoices.every((c) => c !== null);
   const allBobChosen = bobChoices.every((b) => b !== null);
@@ -673,10 +742,36 @@ export default function BB84Walkthrough({ onNarrate }: Bb84WalkthroughProps) {
     ? isNextDisabled(step, role, allAliceChosen, allEveChosen, allBobChosen)
     : true;
  
-  function next() {
+  async function next() {
     if (nextDisabled) return;
-    setStep((s) => Math.min(s + 1, STEPS.length - 1));
+      if (step === 2 && role) {
+        setIsLoading(true);
+        setApiError(null);
+        try {
+          const res = await fetch('/api/simulator', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(
+              buildRequestBody(role, eveActive, aliceChoices, bobChoices, eveChoices)
+            ),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            setApiError(data.message ?? 'The BB84 simulator is unavailable.');
+            setIsLoading(false);
+            return;
+          }
+          setApiResult(data);
+        } catch {
+          setApiError('Could not reach the BB84 simulator.');
+          setIsLoading(false);
+          return;
+        }
+        setIsLoading(false);
+      }
+      setStep((s) => Math.min(s + 1, STEPS.length - 1));
   }
+
   function pickAlice(i: number, bit: Bit, basis: Basis) {
     setAliceChoices((arr) => arr.map((v, idx) => (idx === i ? { bit, basis } : v)));
   }
@@ -1040,20 +1135,18 @@ export default function BB84Walkthrough({ onNarrate }: Bb84WalkthroughProps) {
         <button className="bb84-btn" onClick={regenerate} style={{ background: 'transparent', color: COLORS.text, border: `1px solid ${COLORS.panelBorder}` }}>
           <Shuffle size={14} /> New photons
         </button>
+        {apiError && (
+        <div style={{ fontSize: 12, color: COLORS.err, marginBottom: 10 }}>{apiError}</div>
+        )}
         {role !== 'eve' && (
-          <button
-            className="bb84-btn"
-            onClick={toggleEve}
-            style={{
-              background: 'transparent',
-              color: eveOn ? COLORS.eve : COLORS.text,
-              border: `1px solid ${eveOn ? COLORS.eve : COLORS.panelBorder}`,
-              marginLeft: 'auto',
-            }}
-          >
-            {eveOn ? <Eye size={14} /> : <EyeOff size={14} />}
-            {eveOn ? 'Eve is listening' : 'Simulate an eavesdropper'}
-          </button>
+        <button className="bb84-btn" onClick={next} disabled={nextDisabled || isLoading} style={{
+          background: nextDisabled || isLoading ? COLORS.panel : COLORS.rect,
+          color: nextDisabled || isLoading ? COLORS.textMuted : '#04232B',
+          opacity: nextDisabled || isLoading ? 0.5 : 1,
+          cursor: nextDisabled || isLoading ? 'default' : 'pointer',
+        }}>
+        {isLoading ? 'Running exchange…' : <>Next step <ArrowRight size={14} /></>}
+      </button>
         )}
       </div>
     </div>

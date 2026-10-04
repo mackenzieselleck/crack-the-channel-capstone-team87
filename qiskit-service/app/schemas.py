@@ -5,9 +5,8 @@ section 5 and SPRINT2-HANDOVER.md section 3: the service must never execute lear
 AI-supplied code, only turn validated parameters into circuits itself.
 """
 
-from typing import List, Optional
-
-from pydantic import BaseModel, Field
+from typing import List, Literal, Optional
+from pydantic import BaseModel, Field, model_validator
 
 
 class BB84Request(BaseModel):
@@ -22,14 +21,50 @@ class BB84Request(BaseModel):
         50, ge=0, le=500, description="Max number of per-qubit trace rows to return"
     )
 
+    # NPC handling: at most one role is played by the user
+    #every other role generated as an NPC using the existing random logic in run_bb84()
+
+    user_role: Optional[Literal["alice", "bob", "eve"]] = Field(
+        None, description="Which role the learner is playing. Omit to run all roles as NPCs."
+    )
+    user_bases: Optional[List[int]] = Field(
+        None,
+        description="Learner's basis per qubit (0=rectilinear, 1=diagonal). "
+                    "Required, length num_qubits, when user_role is set.",
+    )
+    user_bits: Optional[List[int]] = Field(
+        None,
+        description="Learner's bit per qubit. Only used when user_role='alice' "
+                    "(Bob/Eve measure rather than choose a bit).",
+    )
+
+    @model_validator(mode="after")
+    def _validate_user_role(self) -> "BB84Request":
+        if self.user_role is None:
+            return self
+        if self.user_role == "eve" and not self.eavesdrop:
+            raise ValueError("user_role='eve' requires eavesdrop=true")
+        if self.user_bases is None or len(self.user_bases) != self.num_qubits:
+            raise ValueError("user_bases is required and must have length num_qubits when user_role is set")
+        if any(b not in (0, 1) for b in self.user_bases):
+            raise ValueError("user_bases values must be 0 or 1")
+        if self.user_role == "alice":
+            if self.user_bits is None or len(self.user_bits) != self.num_qubits:
+                raise ValueError("user_bits is required and must have length num_qubits when user_role='alice'")
+            if any(b not in (0, 1) for b in self.user_bits):
+                raise ValueError("user_bits values must be 0 or 1")
+        return self
+
 
 class TraceRow(BaseModel):
     alice_bit: int
     alice_basis: str
     eve_basis: Optional[str] = None
+    eve_bit: Optional[int] = None
     bob_basis: str
     bob_result: int
     kept: bool
+    
 
 
 class ErrorCorrectionResult(BaseModel):
