@@ -16,6 +16,7 @@ export interface LearningModule {
   id: string;
   slug: string;
   title: string;
+  summary: string | null;
   passMark: number;
   pages: ModulePage[];
   questions: QuizQuestion[];
@@ -34,12 +35,21 @@ export type Position =
 
 export type ModuleStatus = 'not_started' | 'in_progress' | 'completed';
 
+export interface AwardedBadge {
+  id: string;
+  title: string;
+  description: string | null;
+}
+
 export interface QuizResult {
   score: number;
   passed: boolean;
   correctCount: number;
   total: number;
   results: { questionId: string; correct: boolean; explanation: string | null }[];
+  // 0 and [] when the module was already passed before (xp/badges are only awarded once)
+  xpAwarded: number;
+  badgesAwarded: AwardedBadge[];
 }
 
 export const EMPTY_PROGRESS: ModuleProgress = {

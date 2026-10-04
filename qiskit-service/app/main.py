@@ -16,12 +16,15 @@ import random
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+
 from .bb84 import BASIS_SYMBOL, run_bb84
 from .postprocessing import (
     bits_to_hex_preview,
     cascade_reconcile,
     privacy_amplification,
 )
+from .challenges.api import router as challenges_router
+
 from .schemas import (
     BB84Request,
     BB84Response,
@@ -46,6 +49,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(challenges_router)
 
 @app.get("/health")
 def health() -> dict:
