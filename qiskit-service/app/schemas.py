@@ -85,6 +85,7 @@ class BB84Response(BaseModel):
     eavesdrop: bool
     sifted_key_length: int
     qber: float
+    baseline_qber: float
     sample_size: int
     errors: int
     eavesdropping_detected: bool

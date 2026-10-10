@@ -43,3 +43,18 @@ def test_run_bb84_eavesdropping_populates_eve_data():
     assert result["eve_bits"] is not None
     assert len(result["eve_bases"]) == 20
     assert len(result["eve_bits"]) == 20
+
+
+def test_baseline_qber_matches_real_qber_when_nobody_is_listening():
+    result = run_bb84(40, False, random.Random(42))
+
+    assert result["baseline_qber"] == result["qber"]
+    assert result["baseline_qber"] == 0.0
+
+
+def test_baseline_qber_stays_near_zero_while_real_qber_reflects_eve():
+    result = run_bb84(200, True, random.Random(42))
+
+    assert result["baseline_qber"] == 0.0
+    assert result["qber"] > 0.0
+    assert result["qber"] != result["baseline_qber"]
