@@ -4,7 +4,7 @@ import BB84Simulator from '@/components/simulator/BB84Simulator';
 
 export default function SimulatorPage() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-7xl flex-col gap-8 px-6 pb-40 pt-12">
+    <main className="mx-auto flex min-h-screen max-w-7xl flex-col gap-8 bg-[var(--bg-app)] px-6 pb-40 pt-12">
       <div>
         <p className="mb-2 text-sm font-medium uppercase tracking-[0.2em] text-[var(--accent-simulator)]">
           Quantum Key Distribution

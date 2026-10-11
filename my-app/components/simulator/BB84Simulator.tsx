@@ -1091,6 +1091,7 @@ function AnalyseStage({
         observedPercent={qberPercent}
         deltaText={deltaText}
         eveActive={eveActive}
+        eavesdroppingDetected={result.eavesdropping_detected}
       />
 
       {result.sample_size <= 0 ? (
@@ -1145,11 +1146,13 @@ function QberComparison({
   observedPercent,
   deltaText,
   eveActive,
+  eavesdroppingDetected,
 }: {
   baselinePercent: number;
   observedPercent: number;
   deltaText: string;
   eveActive: boolean;
+  eavesdroppingDetected: boolean;
 }) {
   return (
     <div className="mt-6">
@@ -1174,7 +1177,11 @@ function QberComparison({
         <QberCard
           label={eveActive ? 'Observed (Eve on)' : 'Observed (Eve off)'}
           percent={observedPercent}
-          barClass="bg-[var(--accent-simulator)]"
+          barClass={
+            eveActive && eavesdroppingDetected
+              ? 'bg-[var(--error)]'
+              : 'bg-[var(--accent-simulator)]'
+          }
           description="QBER measured for this simulation run"
         />
       </div>
