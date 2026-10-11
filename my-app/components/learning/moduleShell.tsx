@@ -297,7 +297,7 @@ export function ModuleShell({ slug }: { slug: string }) {
               </div>
             )}
 
-            {page && (
+            {pos.kind === 'reading' && page && (
               <>
                 <section className="overflow-hidden rounded-xl border border-[#233049] bg-[#111B2E]">
                   <header className="border-b border-[#233049] px-7 py-6 sm:px-9">
