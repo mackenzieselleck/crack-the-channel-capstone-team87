@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { Ubuntu } from 'next/font/google';
+import { Parkinsans } from 'next/font/google';
 import './globals.css';
 
-const ubuntu = Ubuntu({
+const ubuntu = Parkinsans({
   subsets: ['latin'],
   weight: ['400', '500', '700'],
   variable: '--font-body',

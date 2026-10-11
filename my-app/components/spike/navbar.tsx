@@ -29,7 +29,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-[#233049] bg-[#0B1220]/90 backdrop-blur">
+    <nav className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur">
       <div className="mx-auto flex max-w-2xl items-center gap-6 px-6 py-3">
         {NAV_LINKS.map((link) => {
           const isActive = pathname === link.href;
@@ -39,7 +39,7 @@ export default function Navbar() {
               href={link.href}
               className={[
                 'font-body text-sm font-medium transition',
-                isActive ? 'text-[#E7ECF5]' : 'text-[#8B95AC] hover:text-[#E7ECF5]',
+                isActive ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary',
               ].join(' ')}
             >
               {link.label}
@@ -48,7 +48,7 @@ export default function Navbar() {
         })}
 
         <button type="button" onClick={handleLogout}
-         className="font-body text-sm font-medium text-[#8B95AC] transition hover:text-[#E7ECF5]">
+         className="ml-auto font-body text-sm font-medium text-text-secondary transition hover:text-text-primary">
           Logout
         </button>
       </div>
