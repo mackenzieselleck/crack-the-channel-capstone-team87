@@ -65,6 +65,13 @@ def run_bb84(
     Flow: preparation -> (optional Eve) -> measurement -> basis reconciliation
           (sifting) -> error estimation (QBER) -> sifted key.
 
+    Also computes baseline_qber: the QBER Alice and Bob would have measured on
+    this bit stream had nobody intercepted it. When eavesdrop = False,
+    this is just qber again (nothing was intercepted either way, so
+    there's only one measurement to look at). When eavesdrop = True, Bob's
+    no-eve measurement is re-simulated directly against Alice's original qubit.
+    On this noiseless simulator it should come out essentially 0.0 every time.
+
     returns both Alice's and Bob's bits for the portion of the sifted key,
     since key post-processing needs both sides to reconcile a shared secret key.
     """
@@ -81,27 +88,46 @@ def run_bb84(
     # Every time the quantum simulator measures a qubit in the wrong basis (mismatch), outcome is either 0 or 1.
     # To make this repeatable, assign seed for a particular mismatched measurement.
 
-    # for each of Alice's n qubits there are up to 2 measurements that might happen- 
-    # Bob's + Eve's (if listening), so at most we need 2 seeds
-    sim_seeds = [rng.randint(0, 2**31 - 1) for _ in range(2 * n)]  # e.g. n = 3 qubits sent, 2 * 3 = 6 seeds needed total
-    
+    # for each of Alice's n qubits there are up to 3 measurements that might happen-
+    # Bob's real measurement, Eve's (if listening), and Bob's counterfactual
+    # "no Eve" measurement (only taken when eavesdrop is True) used purely to
+    # compute baseline_qber below, so at most we need 3 seeds per qubit
+    sim_seeds = [rng.randint(0, 2**31 - 1) for _ in range(3 * n)]  # e.g. n = 3 qubits sent, 3 * 3 = 9 seeds needed total
+
     bob_results = []
+    bob_baseline_results = []  # what Bob would've measured with no Eve - used only for baseline_qber
     eve_bits = [] if eavesdrop else None
     for i in range(n):
         bit, basis = alice_bits[i], alice_bases[i]
         if eavesdrop:
-            eve_bit = transmit(bit, basis, eve_bases[i], seed=sim_seeds[2 * i])
+            eve_bit = transmit(bit, basis, eve_bases[i], seed=sim_seeds[3 * i])
             eve_bits.append(eve_bit)
             bit, basis = eve_bit, eve_bases[i]
-        bob_results.append(transmit(bit, basis, bob_bases[i], seed=sim_seeds[2 * i + 1]))
+        bob_results.append(transmit(bit, basis, bob_bases[i], seed=sim_seeds[3 * i + 1]))
+
+        if eavesdrop:
+            # counterfactual: Bob measuring Alice's original qubit directly, as if Eve
+            # had never intercepted it. Never fed into the real exchange above 
+            # this result exists solely to compute baseline_qber.
+            bob_baseline_results.append(
+                transmit(alice_bits[i], alice_bases[i], bob_bases[i], seed=sim_seeds[3 * i + 2])
+            )
+        else:
+            # nothing was intercepted, so Bob's real measurement already is the
+            # no-Eve measurement no need to re-simulate it a second time.
+            bob_baseline_results.append(bob_results[-1])
 
     sifted_idx = [i for i in range(n) if alice_bases[i] == bob_bases[i]]
     alice_key = [alice_bits[i] for i in sifted_idx]
     bob_key = [bob_results[i] for i in sifted_idx]
+    bob_baseline_key = [bob_baseline_results[i] for i in sifted_idx]
 
-    sample_size = len(sifted_idx) // 2  #half the bits in the sifted key will be publicly compared 
+    sample_size = len(sifted_idx) // 2  #half the bits in the sifted key will be publicly compared
     errors = sum(1 for j in range(sample_size) if alice_key[j] != bob_key[j]) #within sample size, count how many positions disagree between Alice and Bob
     qber = (errors / sample_size) if sample_size else 0.0   #turn error count into % (if sample size = 0, return 0 instead of dividing by 0)
+
+    baseline_errors = sum(1 for j in range(sample_size) if alice_key[j] != bob_baseline_key[j])
+    baseline_qber = (baseline_errors / sample_size) if sample_size else 0.0
 
     # Bits not sacrificed for QBER estimation used in key post-processing as these are still secret at this point
     alice_remaining = alice_key[sample_size:]
@@ -122,6 +148,7 @@ def run_bb84(
         "sample_size": sample_size,
         "errors": errors,
         "qber": qber,
+        "baseline_qber": baseline_qber,
         "alice_remaining": alice_remaining,
         "bob_remaining": bob_remaining,
     }

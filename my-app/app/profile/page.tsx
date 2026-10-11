@@ -1,4 +1,4 @@
-//renders user profile page 
+//renders user profile page
 
 import Link from 'next/link'
 import Navbar from '@/components/spike/navbar'
@@ -28,7 +28,7 @@ export default async function ProfilePage() {
         .single()
 
     //supabase query to get the actual badge titles/descriptions the user has earned
-    //used to render the stats and badge grid 
+    //used to render the stats and badge grid
     const { data: userBadges } = await supabase
         .from('user_badges')
         .select('earned_at, badges ( id, title, description, icon_url )')
@@ -37,99 +37,131 @@ export default async function ProfilePage() {
 
     if (!profile) {
         return (
-            <>
+            <div className="min-h-screen bg-surface">
                 <Navbar />
-                <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-4 px-6 pt-12">
-                    <p className="text-[#8B95AC]">Couldn&apos;t load your profile. Try refreshing the page.</p>
+                <main className="mx-auto flex max-w-3xl flex-col gap-4 px-6 pt-12 lg:px-10">
+                    <p className="text-text-secondary">Couldn&apos;t load your profile. Try refreshing the page.</p>
                 </main>
-            </>
+            </div>
         )
     }
 
+    const earnedBadges = (userBadges ?? []).filter((ub) => ub.badges)
+
     return (
-        <>
+        <div className="min-h-screen bg-surface">
             <Navbar />
-            <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-8 px-6 pb-40 pt-12">
-                <div className="flex items-center gap-4">
-                    {profile.avatar_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                            src={profile.avatar_url}
-                            alt=""
-                            width={64}
-                            height={64}
-                            className="h-16 w-16 rounded-full border border-[#233049] object-cover"
-                        />
-                    ) : (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#233049] bg-[#0B1220] font-body text-xl text-[#8B95AC]">
-                            {profile.first_name?.[0]?.toUpperCase() ?? '?'}
-                        </div>
-                    )}
 
-                    <div>
-                        <h1 className="font-body text-2xl font-semibold text-[#E7ECF5]">
-                            {profile.first_name} {profile.last_name}
-                        </h1>
-                        {profile.created_at && (
-                            <p className="text-sm text-[#8B95AC]">
-                                Member since {new Date(profile.created_at).toLocaleDateString()}
-                            </p>
+            <main className="mx-auto flex max-w-3xl flex-col gap-10 px-6 pb-40 pt-12 lg:px-10">
+                {/* Header: identity + primary action, same row pattern as the rest of the app's page headers */}
+                <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-4">
+                        {profile.avatar_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={profile.avatar_url}
+                                alt=""
+                                width={80}
+                                height={80}
+                                className="h-20 w-20 rounded-full border border-border object-cover"
+                            />
+                        ) : (
+                            <div className="flex h-20 w-20 items-center justify-center rounded-full border border-border bg-surface-raised font-body text-2xl text-text-secondary">
+                                {profile.first_name?.[0]?.toUpperCase() ?? '?'}
+                            </div>
                         )}
+
+                        <div>
+                            <h1 className="font-body text-2xl font-semibold text-text-primary">
+                                {profile.first_name} {profile.last_name}
+                            </h1>
+                            {profile.created_at && (
+                                <p className="mt-1 text-sm text-text-secondary">
+                                    Member since{' '}
+                                    {new Date(profile.created_at).toLocaleDateString(undefined, {
+                                        month: 'long',
+                                        year: 'numeric',
+                                    })}
+                                </p>
+                            )}
+                        </div>
                     </div>
+
+                    <Link
+                        href="/profile/edit"
+                        className="inline-flex items-center justify-center rounded-md border border-border px-5 py-2.5 font-body text-sm font-medium text-text-primary transition hover:border-border-strong sm:self-start"
+                    >
+                        Edit profile
+                    </Link>
                 </div>
 
-                <div className="flex gap-4">
-                    <div className="flex-1 rounded-xl border border-[#233049] px-4 py-3">
-                        <p className="text-sm text-[#8B95AC]">XP</p>
-                        <p className="font-body text-xl font-semibold text-[#E7ECF5]">{profile.xp ?? 0}</p>
-                    </div>
-                    <div className="flex-1 rounded-xl border border-[#233049] px-4 py-3">
-                        <p className="text-sm text-[#8B95AC]">Challenge streak</p>
-                        <p className="font-body text-xl font-semibold text-[#E7ECF5]">
-                            {profile.challenge_streak ?? 0}
-                        </p>
-                    </div>
-                </div>
+                {/* Stats */}
+                <section className="flex flex-col gap-3">
+                    <h2 className="font-body text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">
+                        Progress
+                    </h2>
 
-                <div className="flex flex-col gap-3">
-                    <h2 className="font-body text-lg font-semibold text-[#E7ECF5]">Badges</h2>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="rounded-xl border border-border bg-surface-raised px-5 py-4">
+                            <p className="text-sm text-text-secondary">XP</p>
+                            <p className="mt-1 font-body text-2xl font-semibold text-text-primary">
+                                {profile.xp ?? 0}
+                            </p>
+                        </div>
+                        <div className="rounded-xl border border-border bg-surface-raised px-5 py-4">
+                            <p className="text-sm text-text-secondary">Challenge streak</p>
+                            <p className="mt-1 font-body text-2xl font-semibold text-text-primary">
+                                {profile.challenge_streak ?? 0}
+                                <span className="ml-1 text-base font-normal text-text-secondary">
+                                    {profile.challenge_streak === 1 ? 'day' : 'days'}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </section>
 
-                    {userBadges && userBadges.length > 0 ? (
+                {/* Badges */}
+                <section className="flex flex-col gap-3">
+                    <div className="flex items-baseline justify-between">
+                        <h2 className="font-body text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">
+                            Badges
+                        </h2>
+                        <span className="text-sm text-text-secondary">{earnedBadges.length} earned</span>
+                    </div>
+
+                    {earnedBadges.length > 0 ? (
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                            {userBadges
-                                .filter((ub) => ub.badges)
-                                .map((ub) => (
-                                    <div
-                                        key={ub.badges!.id}
-                                        className="flex flex-col items-center gap-2 rounded-xl border border-[#233049] px-3 py-4 text-center"
-                                    >
-                                        {ub.badges!.icon_url ? (
-                                            // eslint-disable-next-line @next/next/no-img-element
-                                            <img src={ub.badges!.icon_url} alt="" width={40} height={40} />
-                                        ) : (
-                                            <div className="h-10 w-10 rounded-full bg-[#233049]" />
-                                        )}
-                                        <p className="font-body text-sm font-medium text-[#E7ECF5]">
-                                            {ub.badges!.title}
+                            {earnedBadges.map((ub) => (
+                                <div
+                                    key={ub.badges!.id}
+                                    className="flex flex-col items-center gap-2 rounded-xl border border-border bg-surface-raised px-3 py-5 text-center transition hover:border-border-strong"
+                                >
+                                    {ub.badges!.icon_url ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img src={ub.badges!.icon_url} alt="" width={40} height={40} />
+                                    ) : (
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/15 text-accent">
+                                            ★
+                                        </div>
+                                    )}
+                                    <p className="font-body text-sm font-medium text-text-primary">
+                                        {ub.badges!.title}
+                                    </p>
+                                    {ub.badges!.description && (
+                                        <p className="text-xs leading-5 text-text-secondary">
+                                            {ub.badges!.description}
                                         </p>
-                                        {ub.badges!.description && (
-                                            <p className="text-xs text-[#8B95AC]">{ub.badges!.description}</p>
-                                        )}
-                                    </div>
-                                ))}
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     ) : (
-                        <p className="text-[#8B95AC]">No badges earned yet. Keep learning to unlock some!</p>
+                        <div className="rounded-xl border border-dashed border-border px-5 py-6 text-center">
+                            <p className="text-text-secondary">No badges earned yet. Keep learning to unlock some!</p>
+                        </div>
                     )}
-                </div>
-
-                <Link
-                    href="/profile/edit"       
-                    className="font-body text-sm font-medium text-[#8B95AC] underline-offset-4 transition hover:text-[#E7ECF5] hover:underline"
-                >
-                    Edit profile
-                </Link>
+                </section>
             </main>
-        </>
+        </div>
     )
 }

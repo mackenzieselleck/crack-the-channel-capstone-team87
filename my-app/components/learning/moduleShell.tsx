@@ -304,7 +304,7 @@ export function ModuleShell({ slug }: { slug: string }) {
                     <div className="flex items-center justify-between gap-5">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#4C8DFF]">
-                          Part {pos.index + 1} of {mod.pages.length}
+                          Part {pos.kind === 'reading' ? pos.index + 1 : 0} of {mod.pages.length}
                         </p>
 
                         <h2 className="mt-2 text-2xl font-semibold tracking-tight">

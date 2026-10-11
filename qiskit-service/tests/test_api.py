@@ -26,6 +26,7 @@ def test_bb84_endpoint_returns_expected_response_shape():
     assert body["eavesdrop"] is False
     assert len(body["trace"]) == 5
     assert "qber" in body
+    assert "baseline_qber" in body
     assert "error_correction" in body
     assert "privacy_amplification" in body
     assert "secure_key_length" in body
