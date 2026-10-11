@@ -1,13 +1,12 @@
-'use client';
+import Link from 'next/link'
+import { LoginForm } from './login-form'
 
-import { login } from './actions';
-import { Turnstile } from '@marsidev/react-turnstile';
-import Link from 'next/link';
-import { useState } from 'react';
-
-export default function LoginPage() {
-  const [error, setError] = useState<string | null>(null);
-  const [captchaToken, setCaptchaToken] = useState('');
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string; reset?: string }>
+}) {
+  const { next, reset } = await searchParams
 
   return (
     <main className="min-h-screen bg-[#F7F9FC] text-[#06152B]">
@@ -40,11 +39,11 @@ export default function LoginPage() {
       <section className="mx-auto grid max-w-7xl gap-16 px-6 py-16 lg:grid-cols-2 lg:items-center lg:px-10 lg:py-24">
         {/* Graphic / branding side */}
         <div className="hidden lg:block">
-          <div className="flex min-h-[460px] items-center justify-center rounded-lg border border-[#B8C2CE] bg-white">
-            <div className="flex h-[360px] w-[82%] items-center justify-center border border-[#B8C2CE] bg-[#F7F9FC]">
+          <div className="flex min-h-[460px] items-center justify-center rounded-lg border border-[#AAB4C0] bg-white">
+            <div className="flex h-[360px] w-[82%] items-center justify-center border border-[#AAB4C0] bg-[#F7F9FC]">
               <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
-                <div className="absolute left-0 top-1/2 h-px w-full -rotate-[28deg] bg-[#B8C2CE]" />
-                <div className="absolute left-0 top-1/2 h-px w-full rotate-[28deg] bg-[#B8C2CE]" />
+                <div className="absolute left-0 top-1/2 h-px w-full -rotate-[28deg] bg-[#AAB4C0]" />
+                <div className="absolute left-0 top-1/2 h-px w-full rotate-[28deg] bg-[#AAB4C0]" />
 
                 <span className="relative bg-[#F7F9FC] px-4 text-xs font-medium uppercase tracking-[0.25em] text-[#7A8694]">
                   Graphic
@@ -80,95 +79,17 @@ export default function LoginPage() {
               Sign in to continue your Crack the Channel learning journey.
             </p>
 
-            <form
-              className="mt-8 space-y-6"
-              action={async (formData) => {
-                setError(null);
-
-                formData.set('captchaToken', captchaToken);
-
-                const result = await login(formData);
-
-                if (result?.error) {
-                  setError(result.error);
-                }
-              }}
-            >
-              {/* Email */}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-2 block text-sm font-medium text-[#06152B]"
-                >
-                  Email address
-                </label>
-
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  className="w-full rounded-md border border-[#AAB4C0] bg-white px-4 py-3 text-[#06152B] outline-none transition placeholder:text-[#98A2AE] focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10"
-                />
-              </div>
-
-              {/* Password */}
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <label
-                    htmlFor="password"
-                    className="text-sm font-medium text-[#06152B]"
-                  >
-                    Password
-                  </label>
-
-                  {/* Visual placeholder for future password reset */}
-                  <button
-                    type="button"
-                    className="text-sm font-medium text-[#0F62FE] hover:underline"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  required
-                  className="w-full rounded-md border border-[#AAB4C0] bg-white px-4 py-3 text-[#06152B] outline-none transition placeholder:text-[#98A2AE] focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10"
-                />
-              </div>
-
-              {/* CAPTCHA */}
-              <div>
-                <Turnstile
-                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-                  onSuccess={setCaptchaToken}
-                  onExpire={() => setCaptchaToken('')}
-                />
-              </div>
-
-              {/* Error */}
-              {error && (
-                <div
-                  role="alert"
-                  className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-                >
-                  {error}
-                </div>
-              )}
-
-              {/* Submit */}
-              <button
-                type="submit"
-                className="w-full rounded-md bg-[#0F62FE] px-6 py-3.5 font-medium text-white transition hover:bg-[#0353E9]"
+            {reset === 'success' && (
+              <div
+                role="status"
+                className="mt-6 rounded-md border border-[#ABEFC6] bg-[#ECFDF3] px-4 py-3 text-sm text-[#027A48]"
               >
-                Log in
-              </button>
-            </form>
+                Password updated. Log in with your new password.
+              </div>
+            )}
+
+            {/* `next` is validated server-side by safeNext() in the login action */}
+            <LoginForm next={typeof next === 'string' ? next : ''} />
 
             <div className="my-7 flex items-center gap-4">
               <div className="h-px flex-1 bg-[#DDE3EA]" />
@@ -195,5 +116,5 @@ export default function LoginPage() {
         </div>
       </section>
     </main>
-  );
+  )
 }

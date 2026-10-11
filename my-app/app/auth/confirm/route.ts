@@ -1,20 +1,57 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import { type EmailOtpType } from "@supabase/supabase-js"
-import { type NextRequest } from "next/server"
+import { createClient } from '@/lib/supabase/server'
+import { safeNext } from '@/lib/auth/safe-redirect'
+import type { EmailOtpType } from '@supabase/supabase-js'
+import { type NextRequest, NextResponse } from 'next/server'
 
-//route to onboarding from email confirmation link
+// only these link types are accepted
+const ALLOWED_TYPES: readonly EmailOtpType[] = [
+  'signup',
+  'email',
+  'recovery',
+
+]
+
+function isAllowedType(value: string | null): value is EmailOtpType {
+  return value !== null && (ALLOWED_TYPES as readonly string[]).includes(value)
+}
+
+// verifies Supabase email links 
 export async function GET(request: NextRequest) {
-    const { searchParams } = new URL(request.url)
-    const token_hash = searchParams.get('token_hash')
-    const type = searchParams.get('type') as EmailOtpType | null
-    const next = searchParams.get('next') ?? '/onboarding'
+  const { searchParams, origin } = new URL(request.url)
 
-    if (token_hash && type) {
-        const supabase = await createClient()
-        const { error } = await supabase.auth.verifyOtp({ type, token_hash })
-        if (!error) redirect(next)
-    }
+  const tokenHash = searchParams.get('token_hash')
+  const type = searchParams.get('type')
 
-    redirect('/error')
+  const errorUrl = new URL('/(auth)/error', origin)
+
+  if (!tokenHash || !isAllowedType(type)) {
+    errorUrl.searchParams.set('reason', 'invalid-link')
+    return NextResponse.redirect(errorUrl)
+  }
+
+  const next =
+    type === 'recovery'
+      ? '/(auth)/reset-password'
+      : safeNext(searchParams.get('next'), origin, '/(auth)/confirmed')
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.verifyOtp({
+    type,
+    token_hash: tokenHash,
+  })
+
+  if (error) {
+    console.error('[(auth)/confirm] verify failed:', error.code ?? error.name)
+    errorUrl.searchParams.set(
+      'reason',
+      type === 'recovery' ? 'expired-reset' : 'invalid-link',
+    )
+    return NextResponse.redirect(errorUrl)
+  }
+
+  const response = NextResponse.redirect(new URL(next, origin))
+  // don't leak token-bearing URL to next page or cache
+  response.headers.set('Referrer-Policy', 'no-referrer')
+  response.headers.set('Cache-Control', 'no-store')
+  return response
 }

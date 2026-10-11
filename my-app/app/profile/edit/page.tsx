@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Navbar from '@/components/spike/navbar'
-import { requireOnboarding } from '@/lib/auth/require-user'
+import { requireOnboarding } from '@/lib/auth/guards'
 import { updateProfile } from '../actions'
 
 //form for editing an existing profile

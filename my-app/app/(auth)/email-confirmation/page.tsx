@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ResendConfirmationForm } from './resend-confirmation-form';
 
 export default function CheckEmailPage() {
   return (
@@ -90,7 +91,7 @@ export default function CheckEmailPage() {
                 </p>
 
                 <p className="mt-1 text-sm leading-6 text-[#52606D]">
-                  Once verified, log in and continue to the platform.
+                   The link signs you in and takes you straight to setting up your profile.
                 </p>
               </div>
             </div>
@@ -127,23 +128,16 @@ export default function CheckEmailPage() {
 
                   <p className="mt-1 text-sm leading-6 text-[#52606D]">
                     Check your spam or junk folder and make sure you entered
-                    the correct email address.
+                    the correct email address. Still nothing? Enter your
+                    email below and we&apos;ll send a new link. Links expire,
+                    so use the most recent one.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Nonfunctional visual control */}
-            <button
-              type="button"
-              className="mt-7 w-full rounded-md border border-[#AAB4C0] bg-white px-6 py-3.5 font-medium text-[#06152B] transition hover:border-[#0F62FE] hover:text-[#0F62FE]"
-            >
-              Resend email
-            </button>
-
-            <p className="mt-3 text-xs text-[#7A8694]">
-              Resend functionality to be connected still.
-            </p>
+            {/* Resend confirmation */}
+            <ResendConfirmationForm />
 
             <div className="my-7 flex items-center gap-4">
               <div className="h-px flex-1 bg-[#DDE3EA]" />

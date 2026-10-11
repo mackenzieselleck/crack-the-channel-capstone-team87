@@ -1,14 +1,16 @@
 'use client';
 
 import { signup } from './actions';
-import { Turnstile } from '@marsidev/react-turnstile';
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState('');
+  const [pending, setPending] = useState(false);
+  const turnstileRef = useRef<TurnstileInstance>(null);
   const router = useRouter();
 
   return (
@@ -88,12 +90,23 @@ export default function SignUpPage() {
               action={async (formData) => {
                 setError(null);
 
+                // server checks again for password confirmation
+                if (formData.get('password') !== formData.get('confirmPassword')) {
+                  setError('Passwords do not match');
+                  return;
+                }
+
+                setPending(true);
                 formData.set('captchaToken', captchaToken);
 
                 const result = await signup(formData);
 
                 if (result?.error) {
                   setError(result.error);
+                  // Turnstile tokens are single-use
+                  turnstileRef.current?.reset();
+                  setCaptchaToken('');
+                  setPending(false);
                   return;
                 }
 
@@ -142,7 +155,7 @@ export default function SignUpPage() {
                 </p>
               </div>
 
-              {/* Confirm password - visual only */}
+              {/* Confirm password */}
               <div>
                 <label
                   htmlFor="confirm-password"
@@ -153,8 +166,12 @@ export default function SignUpPage() {
 
                 <input
                   id="confirm-password"
+                  name="confirmPassword"
                   type="password"
+                  autoComplete="new-password"
                   placeholder="Re-enter your password"
+                  maxLength={72}
+                  required
                   className="w-full rounded-md border border-[#AAB4C0] bg-white px-4 py-3 text-[#06152B] outline-none transition placeholder:text-[#98A2AE] focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10"
                 />
 
@@ -166,9 +183,12 @@ export default function SignUpPage() {
               {/* CAPTCHA */}
               <div>
                 <Turnstile
+                  ref={turnstileRef}
                   siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
                   onSuccess={setCaptchaToken}
                   onExpire={() => setCaptchaToken('')}
+                  onError={() => setCaptchaToken('')}
+                  options={{ theme: 'light', size: 'flexible' }}
                 />
               </div>
 
@@ -185,9 +205,10 @@ export default function SignUpPage() {
               {/* Submit */}
               <button
                 type="submit"
-                className="w-full rounded-md bg-[#0F62FE] px-6 py-3.5 font-medium text-white transition hover:bg-[#0353E9]"
+                disabled={pending || !captchaToken}
+                className="w-full rounded-md bg-[#0F62FE] px-6 py-3.5 font-medium text-white transition hover:bg-[#0353E9] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Create account
+                {pending ? 'Creating account...' : 'Create account'}
               </button>
             </form>
 

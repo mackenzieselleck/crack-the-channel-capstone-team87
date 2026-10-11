@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Navbar from '@/components/spike/navbar'
-import { requireOnboarding } from '@/lib/auth/require-user'
+import { requireOnboarding } from '@/lib/auth/guards'
 import { createClient } from '@/lib/supabase/server'
 
 type EarnedBadge = {
