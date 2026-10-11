@@ -1,6 +1,31 @@
-import Link from 'next/link';
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 
-export default function ConfirmationSuccessPage() {
+// dependent on user's session
+export const dynamic = 'force-dynamic'
+
+export default async function ConfirmationSuccessPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // reachable after /auth/confirm has verified link and set session
+  if (!user || !user.email_confirmed_at) redirect('/login')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name, last_name')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const onboarded = Boolean(
+    profile?.first_name?.trim() && profile?.last_name?.trim(),
+  )
+
+  const cta = onboarded
+    ? { href: '/learn/test-module', label: 'Continue learning' }
+    : { href: '/onboarding', label: 'Continue to onboarding' }
+
   return (
     <main className="min-h-screen bg-[#F7F9FC] text-[#06152B]">
       {/* Header */}
@@ -11,13 +36,6 @@ export default function ConfirmationSuccessPage() {
             className="text-xl font-bold tracking-tight text-[#06152B]"
           >
             Crack the Channel
-          </Link>
-
-          <Link
-            href="/login"
-            className="rounded-md border border-[#AAB4C0] px-5 py-2.5 text-sm font-medium text-[#06152B] transition hover:border-[#0F62FE] hover:text-[#0F62FE]"
-          >
-            Log in
           </Link>
         </div>
       </header>
@@ -40,8 +58,8 @@ export default function ConfirmationSuccessPage() {
             </h1>
 
             <p className="mx-auto mt-5 max-w-md leading-7 text-[#52606D]">
-              Your email has been successfully confirmed. Your Crack the
-              Channel account is now ready to continue.
+              Your email has been confirmed and you&apos;re now signed in to
+              Crack the Channel.
             </p>
 
             {/* Status box */}
@@ -57,8 +75,9 @@ export default function ConfirmationSuccessPage() {
                   </p>
 
                   <p className="mt-1 text-sm leading-6 text-[#52606D]">
-                    You can now continue setting up your learner profile and
-                    begin exploring the platform.
+                    {onboarded
+                      ? 'Your learner profile is already set up. Pick up where you left off.'
+                      : 'Next, set up your learner profile and start your quantum journey.'}
                   </p>
                 </div>
               </div>
@@ -66,22 +85,12 @@ export default function ConfirmationSuccessPage() {
 
             {/* Primary action */}
             <Link
-              href="/onboarding"
+              href={cta.href}
               className="mt-8 flex w-full items-center justify-center gap-3 rounded-md bg-[#0F62FE] px-6 py-3.5 font-medium text-white transition hover:bg-[#0353E9]"
             >
-              Continue to onboarding
+              {cta.label}
               <span aria-hidden="true">→</span>
             </Link>
-
-            <p className="mt-5 text-sm text-[#52606D]">
-              Already completed onboarding?{' '}
-              <Link
-                href="/login"
-                className="font-medium text-[#0F62FE] hover:underline"
-              >
-                Log in
-              </Link>
-            </p>
           </div>
 
           <p className="mt-6 text-center text-xs leading-5 text-[#7A8694]">
@@ -90,7 +99,7 @@ export default function ConfirmationSuccessPage() {
         </div>
       </section>
     </main>
-  );
+  )
 }
 
 function CheckIcon() {
