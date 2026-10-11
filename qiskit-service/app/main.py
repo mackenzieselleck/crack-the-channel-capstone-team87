@@ -112,6 +112,7 @@ def run(request: BB84Request) -> BB84Response:
         eavesdrop=run_result["eavesdrop"],
         sifted_key_length=len(run_result["sifted_idx"]),
         qber=run_result["qber"],
+        baseline_qber=run_result["baseline_qber"],
         sample_size=run_result["sample_size"],
         errors=run_result["errors"],
         eavesdropping_detected=run_result["qber"] > QBER_DETECTION_THRESHOLD,

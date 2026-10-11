@@ -19,7 +19,7 @@ export async function signup(formData: FormData) {
     const { error } = await supabase.auth.signUp({
         email: parsed.data.email,
         password: parsed.data.password,
-        options: { captchaToken, emailRedirectTo: '${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm'}
+        options: { captchaToken, emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`}
     })
 
     if (error) return { error: error.message }
