@@ -20,6 +20,18 @@
   --color-accent-contrast: #ffffff; /* text colour that stays readable on top of --color-accent */
   --color-danger: #dc2626;
   --color-success: #16a34a;
+
+  /* BB84 simulator theme */
+  --bg-app: #0a0a0a;
+  --bg-card: #121a2b;
+  --text-primary: #e7ecf5;
+  --text-secondary: #8b95ac;
+  --border-default: #233049;
+  --success: #4ade80;
+  --error: #f87171;
+  --accent-learning: #3b82f6;
+  --accent-simulator: #7ff5d6;
+
 }
 
 @theme inline {
