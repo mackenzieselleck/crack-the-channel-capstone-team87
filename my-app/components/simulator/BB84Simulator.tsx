@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -13,10 +13,12 @@ import {
 } from 'lucide-react';
 
 const N = 6;
+const SIMULATION_QUBITS = 200;
 
 type Role = 'alice' | 'bob' | 'eve';
 type Basis = 'rect' | 'diag';
 type Bit = 0 | 1;
+type StatusTone = 'danger' | 'warning' | 'neutral';
 
 interface AliceChoice {
   bit: Bit | null;
@@ -37,6 +39,7 @@ interface Bb84ApiResponse {
   num_qubits: number;
   eavesdrop: boolean;
   sifted_key_length: number;
+  baseline_qber: number;
   qber: number;
   sample_size: number;
   errors: number;
@@ -45,6 +48,12 @@ interface Bb84ApiResponse {
   secure_key_preview: string;
   secure_key_length: number;
   trace: ApiTraceRow[];
+}
+
+interface SimulationStatus {
+  title: string;
+  description: string;
+  tone: StatusTone;
 }
 
 const BASIS_TO_CODE: Record<Basis, number> = {
@@ -67,14 +76,12 @@ const roleInfo = {
     description:
       'Choose the bits and bases used to encode photons before sending them across the quantum channel.',
   },
-
   bob: {
     name: 'Bob',
     subtitle: 'Receiver',
     description:
-      'Receive Alice’s photons and choose a measurement basis without knowing which basis Alice used.',
+      'Receive Alice’s photons and choose measurement bases without knowing which bases Alice used.',
   },
-
   eve: {
     name: 'Eve',
     subtitle: 'Eavesdropper',
@@ -101,10 +108,112 @@ function emptyBasisChoices(): (Basis | null)[] {
   return Array.from({ length: N }, () => null);
 }
 
+/**
+ * Generate random bits using the browser's cryptographic random number
+ * generator. These fill the positions that are not shown in the UI.
+ */
+function randomBinaryValues(count: number): number[] {
+  if (count <= 0) {
+    return [];
+  }
+
+  const values = new Uint8Array(count);
+  crypto.getRandomValues(values);
+
+  return Array.from(values, (value) => value & 1);
+}
+
+/**
+ * Keep the user's six visible choices at the beginning of the input,
+ * then fill the rest of the 200-photon run with random values.
+ */
+function completeWithRandomValues(selectedValues: number[]): number[] {
+  const missingCount = Math.max(
+    0,
+    SIMULATION_QUBITS - selectedValues.length,
+  );
+
+  return [
+    ...selectedValues,
+    ...randomBinaryValues(missingCount),
+  ].slice(0, SIMULATION_QUBITS);
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isApiTraceRow(value: unknown): value is ApiTraceRow {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const row = value as Record<string, unknown>;
+
+  return (
+    isFiniteNumber(row.alice_bit) &&
+    typeof row.alice_basis === 'string' &&
+    (typeof row.eve_basis === 'string' || row.eve_basis === null) &&
+    (isFiniteNumber(row.eve_bit) || row.eve_bit === null) &&
+    typeof row.bob_basis === 'string' &&
+    isFiniteNumber(row.bob_result) &&
+    typeof row.kept === 'boolean'
+  );
+}
+
+/**
+ * Validate the response before using its fields in the UI.
+ * This also catches mismatches between the frontend and backend.
+ */
+function isBb84ApiResponse(value: unknown): value is Bb84ApiResponse {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const data = value as Record<string, unknown>;
+
+  return (
+    isFiniteNumber(data.num_qubits) &&
+    typeof data.eavesdrop === 'boolean' &&
+    isFiniteNumber(data.sifted_key_length) &&
+    isFiniteNumber(data.baseline_qber) &&
+    isFiniteNumber(data.qber) &&
+    isFiniteNumber(data.sample_size) &&
+    isFiniteNumber(data.errors) &&
+    typeof data.eavesdropping_detected === 'boolean' &&
+    typeof data.final_key_preview === 'string' &&
+    typeof data.secure_key_preview === 'string' &&
+    isFiniteNumber(data.secure_key_length) &&
+    Array.isArray(data.trace) &&
+    data.trace.every(isApiTraceRow)
+  );
+}
+
+function getApiErrorMessage(data: unknown): string | null {
+  if (typeof data !== 'object' || data === null) {
+    return null;
+  }
+
+  const record = data as Record<string, unknown>;
+
+  if (typeof record.message === 'string') {
+    return record.message;
+  }
+
+  if (typeof record.detail === 'string') {
+    return record.detail;
+  }
+
+  return null;
+}
+
+function toPercent(qber: number): number {
+  return Math.round(qber * 1000) / 10;
+}
+
 export default function BB84Simulator() {
   const [role, setRole] = useState<Role | null>(null);
   const [stage, setStage] = useState(0);
-
   const [includeEve, setIncludeEve] = useState(false);
 
   const [aliceChoices, setAliceChoices] =
@@ -116,36 +225,19 @@ export default function BB84Simulator() {
   const [eveChoices, setEveChoices] =
     useState<(Basis | null)[]>(emptyBasisChoices);
 
-  const [result, setResult] =
-    useState<Bb84ApiResponse | null>(null);
-
+  const [result, setResult] = useState<Bb84ApiResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const eveActive = role === 'eve' || includeEve;
+  const progress = ((stage + 1) / stages.length) * 100;
 
-  const eveActive =
-    role === 'eve' || includeEve;
+  const aliceComplete = aliceChoices.every(
+    (choice) => choice.bit !== null && choice.basis !== null,
+  );
 
-  const progress =
-    ((stage + 1) / stages.length) * 100;
-
-  const aliceComplete =
-    aliceChoices.every(
-      (choice) =>
-        choice.bit !== null &&
-        choice.basis !== null,
-    );
-
-  const bobComplete =
-    bobChoices.every(
-      (basis) => basis !== null,
-    );
-
-  const eveComplete =
-    eveChoices.every(
-      (basis) => basis !== null,
-    );
+  const bobComplete = bobChoices.every((basis) => basis !== null);
+  const eveComplete = eveChoices.every((basis) => basis !== null);
 
   const roleInputComplete =
     role === 'alice'
@@ -156,41 +248,54 @@ export default function BB84Simulator() {
           ? eveComplete
           : false;
 
-  const qberPercent = result
-    ? Math.round(result.qber * 1000) / 10
-    : 0;
+  const qberPercent = result ? toPercent(result.qber) : 0;
 
-  const status = useMemo(() => {
+  const status = useMemo<SimulationStatus | null>(() => {
     if (!result) {
       return null;
     }
 
+    if (result.sample_size <= 0) {
+      return {
+        title: 'Insufficient sample to assess the channel',
+        description:
+          'No bits were available for the QBER check. The simulator cannot draw a conclusion about possible interception from this run.',
+        tone: 'warning',
+      };
+    }
+
+    if (!eveActive) {
+      return {
+        title: 'Baseline run: Eve is disabled',
+        description:
+          'This run shows the channel without an eavesdropper and provides a baseline for comparison. It does not test whether an interceptor can be detected.',
+        tone: 'neutral',
+      };
+    }
+
     if (result.eavesdropping_detected) {
       return {
-        title:
-          'Possible interception detected',
-
+        title: 'Possible interception detected',
         description:
-          'Errors were detected in the sifted key. The disturbance may indicate that the quantum channel was intercepted.',
-
-        danger: true,
+          'The observed QBER triggered the simulator’s 11% alert rule. This disturbance may indicate interception, but it is not proof of who or what caused the errors.',
+        tone: 'danger',
       };
     }
 
     return {
-      title:
-        'No interception detected',
-
+      title: 'No clear evidence of interception in this sample',
       description:
-        'The sifted key did not contain enough unexpected errors to indicate an eavesdropper.',
-
-      danger: false,
+        'The observed QBER did not reach the simulator’s 11% alert threshold. A result below this threshold does not prove that the channel is free of an eavesdropper.',
+      tone: 'neutral',
     };
-  }, [result]);
+  }, [result, eveActive]);
 
-  function selectRole(
-    selectedRole: Role,
-  ) {
+  function invalidateResult() {
+    setResult(null);
+    setError(null);
+  }
+
+  function selectRole(selectedRole: Role) {
     setRole(selectedRole);
 
     if (selectedRole === 'eve') {
@@ -198,169 +303,134 @@ export default function BB84Simulator() {
     }
 
     setStage(0);
-    setResult(null);
-    setError(null);
+    invalidateResult();
   }
 
-  function updateAliceBit(
-    index: number,
-    bit: Bit,
-  ) {
+  function updateAliceBit(index: number, bit: Bit) {
     setAliceChoices((current) =>
       current.map((choice, i) =>
-        i === index
-          ? {
-              ...choice,
-              bit,
-            }
-          : choice,
+        i === index ? { ...choice, bit } : choice,
       ),
     );
+
+    invalidateResult();
   }
 
-  function updateAliceBasis(
-    index: number,
-    basis: Basis,
-  ) {
+  function updateAliceBasis(index: number, basis: Basis) {
     setAliceChoices((current) =>
       current.map((choice, i) =>
-        i === index
-          ? {
-              ...choice,
-              basis,
-            }
-          : choice,
+        i === index ? { ...choice, basis } : choice,
       ),
     );
+
+    invalidateResult();
   }
 
-  function updateBobBasis(
-    index: number,
-    basis: Basis,
-  ) {
+  function updateBobBasis(index: number, basis: Basis) {
     setBobChoices((current) =>
-      current.map((choice, i) =>
-        i === index
-          ? basis
-          : choice,
-      ),
+      current.map((choice, i) => (i === index ? basis : choice)),
     );
+
+    invalidateResult();
   }
 
-  function updateEveBasis(
-    index: number,
-    basis: Basis,
-  ) {
+  function updateEveBasis(index: number, basis: Basis) {
     setEveChoices((current) =>
-      current.map((choice, i) =>
-        i === index
-          ? basis
-          : choice,
-      ),
+      current.map((choice, i) => (i === index ? basis : choice)),
     );
+
+    invalidateResult();
   }
 
-  function buildRequestBody() {
-    if (!role) {
+  function buildRequestBody(): Record<string, unknown> | null {
+    if (!role || !roleInputComplete) {
       return null;
     }
 
-    const body: Record<
-      string,
-      unknown
-    > = {
-      num_qubits: N,
+    const body: Record<string, unknown> = {
+      num_qubits: SIMULATION_QUBITS,
       eavesdrop: eveActive,
       user_role: role,
       trace_limit: N,
     };
 
     if (role === 'alice') {
-      body.user_bits =
-        aliceChoices.map(
-          (choice) =>
-            choice.bit as Bit,
-        );
+      const selectedBits = aliceChoices.map(
+        (choice) => choice.bit as Bit,
+      );
 
-      body.user_bases =
-        aliceChoices.map(
-          (choice) =>
-            BASIS_TO_CODE[
-              choice.basis as Basis
-            ],
-        );
+      const selectedBases = aliceChoices.map(
+        (choice) => BASIS_TO_CODE[choice.basis as Basis],
+      );
+
+      body.user_bits = completeWithRandomValues(selectedBits);
+      body.user_bases = completeWithRandomValues(selectedBases);
     }
 
     if (role === 'bob') {
-      body.user_bases =
-        bobChoices.map(
-          (basis) =>
-            BASIS_TO_CODE[
-              basis as Basis
-            ],
-        );
+      const selectedBases = bobChoices.map(
+        (basis) => BASIS_TO_CODE[basis as Basis],
+      );
+
+      body.user_bases = completeWithRandomValues(selectedBases);
     }
 
     if (role === 'eve') {
-      body.user_bases =
-        eveChoices.map(
-          (basis) =>
-            BASIS_TO_CODE[
-              basis as Basis
-            ],
-        );
+      const selectedBases = eveChoices.map(
+        (basis) => BASIS_TO_CODE[basis as Basis],
+      );
+
+      body.user_bases = completeWithRandomValues(selectedBases);
     }
 
     return body;
   }
 
-  async function runSimulation() {
-    const body =
-      buildRequestBody();
+  async function runSimulation(): Promise<boolean> {
+    const body = buildRequestBody();
 
     if (!body) {
+      setError('Complete all your choices before running the simulation.');
       return false;
     }
 
     setIsLoading(true);
     setError(null);
+    setResult(null);
 
     try {
-      const response =
-        await fetch(
-          '/api/simulator',
-          {
-            method: 'POST',
+      const response = await fetch('/api/simulator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
 
-            headers: {
-              'Content-Type':
-                'application/json',
-            },
-
-            body: JSON.stringify(
-              body,
-            ),
-          },
-        );
-
-      const data =
-        await response.json();
+      const data: unknown = await response.json();
 
       if (!response.ok) {
         setError(
-          data.message ??
-            'The BB84 simulator could not run.',
+          getApiErrorMessage(data) ??
+            'The BB84 simulator could not run. Please try again.',
+        );
+
+        return false;
+      }
+
+      if (!isBb84ApiResponse(data)) {
+        setError(
+          'The simulator returned an unexpected response. Check that the frontend and backend are up to date.',
         );
 
         return false;
       }
 
       setResult(data);
-
       return true;
     } catch {
       setError(
-        'Could not connect to the BB84 simulator.',
+        'Could not connect to the BB84 simulator. Check that the backend is running and try again.',
       );
 
       return false;
@@ -374,65 +444,38 @@ export default function BB84Simulator() {
       return;
     }
 
-    /*
-      Run the Qiskit simulation
-      before entering Compare.
-    */
-    if (
-      stage === 1 &&
-      !result
-    ) {
+    // Run the simulation before entering the Compare stage.
+    if (stage === 1 && !result) {
       if (!roleInputComplete) {
         return;
       }
 
-      const successful =
-        await runSimulation();
+      const successful = await runSimulation();
 
       if (!successful) {
         return;
       }
     }
 
-    setStage((current) =>
-      Math.min(
-        current + 1,
-        stages.length - 1,
-      ),
-    );
+    setStage((current) => Math.min(current + 1, stages.length - 1));
   }
 
   function previousStage() {
-    setStage((current) =>
-      Math.max(
-        current - 1,
-        0,
-      ),
-    );
+    setStage((current) => Math.max(current - 1, 0));
   }
 
   function restart() {
     setStage(0);
-    setResult(null);
-    setError(null);
+    invalidateResult();
 
-    setAliceChoices(
-      emptyAliceChoices(),
-    );
-
-    setBobChoices(
-      emptyBasisChoices(),
-    );
-
-    setEveChoices(
-      emptyBasisChoices(),
-    );
+    setAliceChoices(emptyAliceChoices());
+    setBobChoices(emptyBasisChoices());
+    setEveChoices(emptyBasisChoices());
   }
 
   function changeRole() {
     setRole(null);
     setIncludeEve(false);
-
     restart();
   }
 
@@ -440,163 +483,96 @@ export default function BB84Simulator() {
     return (
       <RoleSelection
         includeEve={includeEve}
-        setIncludeEve={
-          setIncludeEve
-        }
-        onSelectRole={
-          selectRole
-        }
+        setIncludeEve={setIncludeEve}
+        onSelectRole={selectRole}
       />
     );
   }
 
   return (
     <div className="overflow-hidden rounded-xl border border-[var(--border-default)]">
-      <SimulatorProgress
-        stage={stage}
-        progress={progress}
-      />
+      <SimulatorProgress stage={stage} progress={progress} />
 
       <div className="grid min-h-[620px] lg:grid-cols-[330px_1fr]">
         <MissionPanel
           role={role}
           stage={stage}
           eveActive={eveActive}
-          onChangeRole={
-            changeRole
-          }
+          onChangeRole={changeRole}
         />
 
         <section className="flex min-w-0 flex-col p-6 lg:p-8">
           {stage === 0 && (
             <TransmitStage
               role={role}
-              aliceChoices={
-                aliceChoices
-              }
-              eveChoices={
-                eveChoices
-              }
-              onAliceBit={
-                updateAliceBit
-              }
-              onAliceBasis={
-                updateAliceBasis
-              }
-              onEveBasis={
-                updateEveBasis
-              }
+              aliceChoices={aliceChoices}
+              eveChoices={eveChoices}
+              onAliceBit={updateAliceBit}
+              onAliceBasis={updateAliceBasis}
+              onEveBasis={updateEveBasis}
             />
           )}
 
           {stage === 1 && (
             <MeasureStage
               role={role}
-              bobChoices={
-                bobChoices
-              }
-              onBobBasis={
-                updateBobBasis
-              }
-              inputComplete={
-                roleInputComplete
-              }
+              bobChoices={bobChoices}
+              onBobBasis={updateBobBasis}
+              inputComplete={roleInputComplete}
             />
           )}
 
-          {stage === 2 &&
-            result && (
-              <CompareStage
-                result={
-                  result
-                }
-                eveActive={
-                  eveActive
-                }
-              />
-            )}
+          {stage === 2 && result && (
+            <CompareStage result={result} eveActive={eveActive} />
+          )}
 
-          {stage === 3 &&
-            result && (
-              <AnalyseStage
-                result={
-                  result
-                }
-                qberPercent={
-                  qberPercent
-                }
-              />
-            )}
+          {stage === 3 && result && (
+            <AnalyseStage result={result} eveActive={eveActive} />
+          )}
 
-          {stage === 4 &&
-            result &&
-            status && (
-              <ResultsStage
-                result={
-                  result
-                }
-                qberPercent={
-                  qberPercent
-                }
-                status={
-                  status
-                }
-                onRestart={
-                  restart
-                }
-              />
-            )}
+          {stage === 4 && result && status && (
+            <ResultsStage
+              result={result}
+              qberPercent={qberPercent}
+              status={status}
+              eveActive={eveActive}
+              onRestart={restart}
+            />
+          )}
 
           {error && (
-            <div className="mt-6 rounded-xl border border-[var(--error)] p-4 text-sm text-[var(--error)]">
+            <div
+              role="alert"
+              className="mt-6 rounded-xl border border-[var(--error)] p-4 text-sm text-[var(--error)]"
+            >
               {error}
             </div>
           )}
 
-          {stage <
-            stages.length -
-              1 && (
+          {stage < stages.length - 1 && (
             <div className="mt-auto flex items-center justify-between border-t border-[var(--border-default)] pt-6">
               <button
                 type="button"
-                onClick={
-                  previousStage
-                }
-                disabled={
-                  stage === 0
-                }
+                onClick={previousStage}
+                disabled={stage === 0 || isLoading}
                 className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-[var(--text-secondary)] transition hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-30"
               >
-                <ArrowLeft
-                  size={16}
-                />
-
+                <ArrowLeft size={16} />
                 Back
               </button>
 
               <button
                 type="button"
-                onClick={
-                  nextStage
-                }
+                onClick={nextStage}
                 disabled={
                   isLoading ||
-                  (stage === 1 &&
-                    !roleInputComplete)
+                  (stage === 1 && !roleInputComplete)
                 }
                 className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent-simulator)] px-5 py-2.5 text-sm font-semibold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {isLoading
-                  ? 'Running Qiskit...'
-                  : 'Continue'}
+                {isLoading ? 'Running Qiskit...' : 'Continue'}
 
-                {!isLoading && (
-                  <ArrowRight
-                    size={
-                      16
-                    }
-                  />
-                )}
+                {!isLoading && <ArrowRight size={16} />}
               </button>
             </div>
           )}
@@ -612,14 +588,8 @@ export default function BB84Simulator() {
 
 interface RoleSelectionProps {
   includeEve: boolean;
-
-  setIncludeEve: (
-    enabled: boolean,
-  ) => void;
-
-  onSelectRole: (
-    role: Role,
-  ) => void;
+  setIncludeEve: (enabled: boolean) => void;
+  onSelectRole: (role: Role) => void;
 }
 
 function RoleSelection({
@@ -639,60 +609,36 @@ function RoleSelection({
         </h2>
 
         <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--text-secondary)]">
-          You control one
-          participant in the
-          BB84 exchange. The
-          remaining participants
-          are controlled by the
-          simulator.
+          You control one participant in a 200-photon BB84 exchange. Six
+          example photons are shown for hands-on choices, while the remaining
+          inputs are generated randomly.
         </p>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {(
-            Object.keys(
-              roleInfo,
-            ) as Role[]
-          ).map((role) => {
-            const info =
-              roleInfo[role];
+          {(Object.keys(roleInfo) as Role[]).map((role) => {
+            const info = roleInfo[role];
 
             return (
               <button
-                key={
-                  role
-                }
+                key={role}
                 type="button"
-                onClick={() =>
-                  onSelectRole(
-                    role,
-                  )
-                }
+                onClick={() => onSelectRole(role)}
                 className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-5 text-left transition hover:border-[var(--accent-simulator)]"
               >
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full border border-[var(--accent-simulator)] text-sm font-bold text-[var(--accent-simulator)]">
-                  {
-                    info
-                      .name[0]
-                  }
+                  {info.name[0]}
                 </div>
 
                 <p className="text-xs uppercase tracking-widest text-[var(--text-secondary)]">
-                  {
-                    info.subtitle
-                  }
+                  {info.subtitle}
                 </p>
 
                 <h3 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">
-                  Play as{' '}
-                  {
-                    info.name
-                  }
+                  Play as {info.name}
                 </h3>
 
                 <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">
-                  {
-                    info.description
-                  }
+                  {info.description}
                 </p>
               </button>
             );
@@ -702,32 +648,18 @@ function RoleSelection({
         <label className="mt-6 flex cursor-pointer items-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-4 transition hover:border-[var(--text-secondary)]">
           <input
             type="checkbox"
-            checked={
-              includeEve
-            }
-            onChange={(
-              event,
-            ) =>
-              setIncludeEve(
-                event.target
-                  .checked,
-              )
-            }
+            checked={includeEve}
+            onChange={(event) => setIncludeEve(event.target.checked)}
             className="h-4 w-4 accent-[var(--accent-simulator)]"
           />
 
           <div>
             <p className="text-sm font-medium text-[var(--text-primary)]">
-              Include an
-              eavesdropper
+              Include an eavesdropper
             </p>
 
             <p className="mt-1 text-xs text-[var(--text-secondary)]">
-              Eve will
-              intercept and
-              resend photons
-              during the
-              exchange.
+              Eve will intercept and resend photons during the exchange.
             </p>
           </div>
         </label>
@@ -755,45 +687,30 @@ function SimulatorProgress({
         </span>
 
         <span className="text-xs font-semibold text-[var(--accent-simulator)]">
-          {Math.round(
-            progress,
-          )}
-          %
+          {Math.round(progress)}%
         </span>
       </div>
 
       <div className="h-2 overflow-hidden rounded-full bg-[var(--border-default)]">
         <div
           className="h-full rounded-full bg-[var(--accent-simulator)] transition-all duration-300"
-          style={{
-            width: `${progress}%`,
-          }}
+          style={{ width: `${progress}%` }}
         />
       </div>
 
       <div className="mt-4 hidden grid-cols-5 gap-2 md:grid">
-        {stages.map(
-          (
-            label,
-            index,
-          ) => (
-            <div
-              key={
-                label
-              }
-              className={
-                index <= stage
-                  ? 'text-xs font-medium text-[var(--text-primary)]'
-                  : 'text-xs text-[var(--text-secondary)] opacity-50'
-              }
-            >
-              {index +
-                1}
-              .{' '}
-              {label}
-            </div>
-          ),
-        )}
+        {stages.map((label, index) => (
+          <div
+            key={label}
+            className={
+              index <= stage
+                ? 'text-xs font-medium text-[var(--text-primary)]'
+                : 'text-xs text-[var(--text-secondary)] opacity-50'
+            }
+          >
+            {index + 1}. {label}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -816,13 +733,9 @@ function MissionPanel({
 }) {
   const descriptions = [
     'Prepare the photons that will travel through the quantum channel.',
-
     'Measure the incoming photons without knowing the sender’s basis.',
-
     'Reveal the bases used and identify which positions can be kept.',
-
-    'Inspect the error rate and determine whether the channel may have been disturbed.',
-
+    'Compare the baseline and observed error rates to assess possible channel disturbance.',
     'Review the final outcome of the BB84 exchange.',
   ];
 
@@ -837,11 +750,7 @@ function MissionPanel({
       </h2>
 
       <p className="mt-4 text-sm leading-6 text-[var(--text-secondary)]">
-        {
-          descriptions[
-            stage
-          ]
-        }
+        {descriptions[stage]}
       </p>
 
       <div className="mt-7 rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-4">
@@ -850,20 +759,11 @@ function MissionPanel({
         </p>
 
         <p className="mt-1 font-semibold text-[var(--text-primary)]">
-          {
-            roleInfo[
-              role
-            ].name
-          }
+          {roleInfo[role].name}
         </p>
 
         <p className="mt-2 text-xs leading-5 text-[var(--text-secondary)]">
-          {
-            roleInfo[
-              role
-            ]
-              .description
-          }
+          {roleInfo[role].description}
         </p>
       </div>
 
@@ -880,10 +780,7 @@ function MissionPanel({
             </p>
 
             <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)]">
-              Photons may be
-              intercepted
-              before reaching
-              Bob.
+              Photons may be intercepted before reaching Bob.
             </p>
           </div>
         </div>
@@ -891,9 +788,7 @@ function MissionPanel({
 
       <button
         type="button"
-        onClick={
-          onChangeRole
-        }
+        onClick={onChangeRole}
         className="mt-6 text-xs font-medium text-[var(--text-secondary)] underline-offset-4 transition hover:text-[var(--text-primary)] hover:underline"
       >
         Change role
@@ -915,29 +810,11 @@ function TransmitStage({
   onEveBasis,
 }: {
   role: Role;
-
-  aliceChoices:
-    AliceChoice[];
-
-  eveChoices: (
-    | Basis
-    | null
-  )[];
-
-  onAliceBit: (
-    index: number,
-    bit: Bit,
-  ) => void;
-
-  onAliceBasis: (
-    index: number,
-    basis: Basis,
-  ) => void;
-
-  onEveBasis: (
-    index: number,
-    basis: Basis,
-  ) => void;
+  aliceChoices: AliceChoice[];
+  eveChoices: (Basis | null)[];
+  onAliceBit: (index: number, bit: Bit) => void;
+  onAliceBasis: (index: number, basis: Basis) => void;
+  onEveBasis: (index: number, basis: Basis) => void;
 }) {
   if (role === 'alice') {
     return (
@@ -945,44 +822,19 @@ function TransmitStage({
         <StageHeading
           eyebrow="Transmitter Console — Agent Alice"
           title="Encode the photons"
-          description="Choose one bit and one basis for every photon. Bob cannot see your choices while the photons are travelling."
+          description="Choose one bit and one basis for each of the six displayed photons. These choices fill the first six positions of the 200-photon run; the remaining inputs are generated randomly."
         />
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {aliceChoices.map(
-            (
-              choice,
-              index,
-            ) => (
-              <PhotonChoiceCard
-                key={
-                  index
-                }
-                index={
-                  index
-                }
-                choice={
-                  choice
-                }
-                onBit={(
-                  bit,
-                ) =>
-                  onAliceBit(
-                    index,
-                    bit,
-                  )
-                }
-                onBasis={(
-                  basis,
-                ) =>
-                  onAliceBasis(
-                    index,
-                    basis,
-                  )
-                }
-              />
-            ),
-          )}
+          {aliceChoices.map((choice, index) => (
+            <PhotonChoiceCard
+              key={index}
+              index={index}
+              choice={choice}
+              onBit={(bit) => onAliceBit(index, bit)}
+              onBasis={(basis) => onAliceBasis(index, basis)}
+            />
+          ))}
         </div>
       </div>
     );
@@ -994,37 +846,19 @@ function TransmitStage({
         <StageHeading
           eyebrow="Channel Interceptor — Agent Eve"
           title="Intercept the photons"
-          description="Choose the basis you will use to measure each photon before resending it to Bob."
+          description="Choose the measurement basis for each of the six displayed photons. Eve’s bases for the remaining photons are generated randomly."
         />
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {eveChoices.map(
-            (
-              basis,
-              index,
-            ) => (
-              <BasisCard
-                key={
-                  index
-                }
-                index={
-                  index
-                }
-                basis={
-                  basis
-                }
-                title="Intercepted photon"
-                onBasis={(
-                  value,
-                ) =>
-                  onEveBasis(
-                    index,
-                    value,
-                  )
-                }
-              />
-            ),
-          )}
+          {eveChoices.map((basis, index) => (
+            <BasisCard
+              key={index}
+              index={index}
+              basis={basis}
+              title="Intercepted photon"
+              onBasis={(value) => onEveBasis(index, value)}
+            />
+          ))}
         </div>
       </div>
     );
@@ -1035,7 +869,7 @@ function TransmitStage({
       <StageHeading
         eyebrow="Quantum Channel"
         title="Alice is transmitting"
-        description="Alice is preparing six photons using randomly generated bits and bases. Her choices remain hidden from you."
+        description="Alice is preparing a 200-photon run using randomly generated bits and bases. The six markers below represent example photons; Alice’s choices remain hidden from you."
       />
 
       <HiddenPhotonRow />
@@ -1054,17 +888,8 @@ function MeasureStage({
   inputComplete,
 }: {
   role: Role;
-
-  bobChoices: (
-    | Basis
-    | null
-  )[];
-
-  onBobBasis: (
-    index: number,
-    basis: Basis,
-  ) => void;
-
+  bobChoices: (Basis | null)[];
+  onBobBasis: (index: number, basis: Basis) => void;
   inputComplete: boolean;
 }) {
   if (role === 'bob') {
@@ -1073,37 +898,19 @@ function MeasureStage({
         <StageHeading
           eyebrow="Receiver Console — Agent Bob"
           title="Measure the photons"
-          description="You do not know which bases Alice used. Choose either the rectilinear or diagonal basis for each photon."
+          description="Choose a measurement basis for each of the six displayed photons. The remaining measurement bases in the 200-photon run are generated randomly."
         />
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {bobChoices.map(
-            (
-              basis,
-              index,
-            ) => (
-              <BasisCard
-                key={
-                  index
-                }
-                index={
-                  index
-                }
-                basis={
-                  basis
-                }
-                title="Incoming photon"
-                onBasis={(
-                  value,
-                ) =>
-                  onBobBasis(
-                    index,
-                    value,
-                  )
-                }
-              />
-            ),
-          )}
+          {bobChoices.map((basis, index) => (
+            <BasisCard
+              key={index}
+              index={index}
+              basis={basis}
+              title="Incoming photon"
+              onBasis={(value) => onBobBasis(index, value)}
+            />
+          ))}
         </div>
       </div>
     );
@@ -1114,7 +921,7 @@ function MeasureStage({
       <StageHeading
         eyebrow="Receiver Console — Agent Bob"
         title="Bob is measuring"
-        description="Bob does not know Alice’s bases. The simulator will choose his measurement bases before the results are compared."
+        description="Bob does not know Alice’s bases. The simulator generates Bob’s measurement bases and compares the results with Alice’s choices."
       />
 
       <HiddenPhotonRow />
@@ -1122,7 +929,7 @@ function MeasureStage({
       <div className="mt-8 rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-5">
         <p className="text-sm text-[var(--text-secondary)]">
           {inputComplete
-            ? 'Your choices are complete. Continue to run the Qiskit simulation.'
+            ? 'Your choices are complete. Continue to run the 200-photon Qiskit simulation.'
             : 'Complete your choices before continuing.'}
         </p>
       </div>
@@ -1146,132 +953,83 @@ function CompareStage({
       <StageHeading
         eyebrow="Basis Comparison"
         title="Which photons can be kept?"
-        description="Alice and Bob publicly compare their bases. Positions using different bases are discarded."
+        description="Alice and Bob compare their bases. Positions where their bases match can be kept for the sifted key; positions where they differ are discarded."
       />
 
-      <div className="mt-8 overflow-x-auto rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] px-5">
+      <p className="mt-4 text-xs leading-5 text-[var(--text-secondary)]">
+        Showing {result.trace.length} example photon
+        {result.trace.length === 1 ? '' : 's'} from a{' '}
+        {result.num_qubits}-photon simulation. The QBER check uses a sample
+        from the larger run, not just the rows displayed here.
+      </p>
+
+      <div className="mt-4 overflow-x-auto rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] px-5">
         <table className="w-full min-w-[700px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-[var(--border-default)] text-left text-xs uppercase tracking-wider text-[var(--text-secondary)]">
-              <th className="py-4">
-                Packet
-              </th>
-
-              <th className="py-4">
-                Alice bit
-              </th>
-
-              <th className="py-4">
-                Alice basis
-              </th>
-
-              {eveActive && (
-                <th className="py-4">
-                  Eve basis
-                </th>
-              )}
-
-              <th className="py-4">
-                Bob basis
-              </th>
-
-              <th className="py-4">
-                Bob result
-              </th>
-
-              <th className="py-4">
-                Decision
-              </th>
+              <th className="py-4">Packet</th>
+              <th className="py-4">Alice bit</th>
+              <th className="py-4">Alice basis</th>
+              {eveActive && <th className="py-4">Eve basis</th>}
+              <th className="py-4">Bob basis</th>
+              <th className="py-4">Bob result</th>
+              <th className="py-4">Decision</th>
             </tr>
           </thead>
 
           <tbody>
-            {result.trace.map(
-              (
-                row,
-                index,
-              ) => (
-                <tr
-                  key={
-                    index
-                  }
-                  className="border-b border-[var(--border-default)] last:border-b-0"
-                >
-                  <td className="py-4 text-[var(--text-primary)]">
-                    {index +
-                      1}
-                  </td>
+            {result.trace.map((row, index) => (
+              <tr
+                key={index}
+                className="border-b border-[var(--border-default)] last:border-b-0"
+              >
+                <td className="py-4 text-[var(--text-primary)]">
+                  {index + 1}
+                </td>
 
-                  <td className="text-[var(--text-primary)]">
-                    {
-                      row.alice_bit
-                    }
-                  </td>
+                <td className="text-[var(--text-primary)]">
+                  {row.alice_bit}
+                </td>
 
+                <td>
+                  <BasisBadge basis={row.alice_basis} />
+                </td>
+
+                {eveActive && (
                   <td>
-                    <BasisBadge
-                      basis={
-                        row.alice_basis
-                      }
-                    />
-                  </td>
-
-                  {eveActive && (
-                    <td>
-                      {row.eve_basis ? (
-                        <BasisBadge
-                          basis={
-                            row.eve_basis
-                          }
-                        />
-                      ) : (
-                        <span className="text-[var(--text-secondary)]">
-                          —
-                        </span>
-                      )}
-                    </td>
-                  )}
-
-                  <td>
-                    <BasisBadge
-                      basis={
-                        row.bob_basis
-                      }
-                    />
-                  </td>
-
-                  <td className="text-[var(--text-primary)]">
-                    {
-                      row.bob_result
-                    }
-                  </td>
-
-                  <td>
-                    {row.kept ? (
-                      <span className="inline-flex items-center gap-1.5 font-medium text-[var(--success)]">
-                        <Check
-                          size={
-                            15
-                          }
-                        />
-
-                        Keep
-                      </span>
+                    {row.eve_basis ? (
+                      <BasisBadge basis={row.eve_basis} />
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 text-[var(--text-secondary)]">
-                        <X
-                          size={
-                            15
-                          }
-                        />
-
-                        Discard
+                      <span className="text-[var(--text-secondary)]">
+                        —
                       </span>
                     )}
                   </td>
-                </tr>
-              ),
-            )}
+                )}
+
+                <td>
+                  <BasisBadge basis={row.bob_basis} />
+                </td>
+
+                <td className="text-[var(--text-primary)]">
+                  {row.bob_result}
+                </td>
+
+                <td>
+                  {row.kept ? (
+                    <span className="inline-flex items-center gap-1.5 font-medium text-[var(--success)]">
+                      <Check size={15} />
+                      Keep
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-[var(--text-secondary)]">
+                      <X size={15} />
+                      Discard
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -1285,20 +1043,33 @@ function CompareStage({
 
 function AnalyseStage({
   result,
-  qberPercent,
+  eveActive,
 }: {
   result: Bb84ApiResponse;
-  qberPercent: number;
+  eveActive: boolean;
 }) {
+  const qberPercent = toPercent(result.qber);
+  const baselinePercent = toPercent(result.baseline_qber);
+  const delta = Math.round(
+    (result.qber - result.baseline_qber) * 1000,
+  ) / 10;
+
+  const deltaText = `${delta > 0 ? '+' : ''}${delta.toFixed(1)} percentage points`;
+
   return (
     <div>
       <StageHeading
         eyebrow="Security Check"
         title="Analyse the quantum channel"
-        description="Errors in the sifted key can reveal disturbance introduced while the photons were travelling."
+        description="Compare the no-Eve baseline with the observed error rate. Interception can disturb photon measurements and increase the quantum bit error rate (QBER)."
       />
 
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Metric
+          label="Photons simulated"
+          value={String(result.num_qubits)}
+        />
+
         <Metric
           label="Sifted key"
           value={`${result.sifted_key_length} bits`}
@@ -1306,53 +1077,160 @@ function AnalyseStage({
 
         <Metric
           label="Errors detected"
-          value={String(
-            result.errors,
-          )}
+          value={String(result.errors)}
         />
 
         <Metric
-          label="QBER"
-          value={`${qberPercent}%`}
+          label="QBER sample"
+          value={`${result.sample_size} bits`}
         />
       </div>
 
-      <div className="mt-6 rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-5">
-        <div className="mb-3 flex justify-between text-sm">
-          <span className="text-[var(--text-secondary)]">
-            Quantum bit error rate
-          </span>
+      <QberComparison
+        baselinePercent={baselinePercent}
+        observedPercent={qberPercent}
+        deltaText={deltaText}
+        eveActive={eveActive}
+      />
 
-          <span className="font-semibold text-[var(--text-primary)]">
-            {qberPercent}%
-          </span>
+      {result.sample_size <= 0 ? (
+        <div className="mt-6 rounded-xl border border-[var(--border-default)] p-5">
+          <p className="font-medium text-[var(--text-primary)]">
+            QBER is inconclusive
+          </p>
+          <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+            The simulator did not have any bits available for its QBER sample.
+            A zero QBER value in this situation should not be interpreted as
+            proof that the channel is secure.
+          </p>
         </div>
+      ) : (
+        <div className="mt-6 rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-5">
+          <div className="mb-3 flex justify-between gap-4 text-sm">
+            <span className="text-[var(--text-secondary)]">
+              Observed quantum bit error rate
+            </span>
+            <span className="font-semibold text-[var(--text-primary)]">
+              {qberPercent.toFixed(1)}%
+            </span>
+          </div>
 
-        <div className="h-3 overflow-hidden rounded-full bg-[var(--border-default)]">
-          <div
-            className={
-              result.eavesdropping_detected
-                ? 'h-full rounded-full bg-[var(--error)] transition-all'
-                : 'h-full rounded-full bg-[var(--accent-simulator)] transition-all'
-            }
-            style={{
-              width: `${Math.min(
-                qberPercent,
-                100,
-              )}%`,
-            }}
-          />
+          <div className="h-3 overflow-hidden rounded-full bg-[var(--border-default)]">
+            <div
+              className={
+                result.eavesdropping_detected && eveActive
+                  ? 'h-full rounded-full bg-[var(--error)] transition-all'
+                  : 'h-full rounded-full bg-[var(--accent-simulator)] transition-all'
+              }
+              style={{
+                width: `${Math.min(Math.max(qberPercent, 0), 100)}%`,
+              }}
+            />
+          </div>
+
+          <p className="mt-4 text-xs leading-5 text-[var(--text-secondary)]">
+            The simulator uses an 11% alert threshold. This is a learning
+            aid, not a universal security guarantee. A high QBER can indicate
+            disturbance, while a low QBER does not prove that no
+            eavesdropping occurred.
+          </p>
         </div>
+      )}
+    </div>
+  );
+}
 
-        <p className="mt-4 text-xs leading-5 text-[var(--text-secondary)]">
-          QBER measures the
-          percentage of errors
-          in the sampled key. A
-          disturbance in the
-          quantum channel can
-          increase this value.
+function QberComparison({
+  baselinePercent,
+  observedPercent,
+  deltaText,
+  eveActive,
+}: {
+  baselinePercent: number;
+  observedPercent: number;
+  deltaText: string;
+  eveActive: boolean;
+}) {
+  return (
+    <div className="mt-6">
+      <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+        Baseline vs observed QBER
+      </h3>
+
+      <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+        The baseline is the estimated QBER for the same exchange without
+        Eve. The observed value comes from the configured run
+        {eveActive ? ' with Eve active' : ' with Eve disabled'}.
+      </p>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <QberCard
+          label="Baseline (Eve off)"
+          percent={baselinePercent}
+          barClass="bg-[var(--accent-learning)]"
+          description="Counterfactual no-eavesdropper baseline"
+        />
+
+        <QberCard
+          label={eveActive ? 'Observed (Eve on)' : 'Observed (Eve off)'}
+          percent={observedPercent}
+          barClass="bg-[var(--accent-simulator)]"
+          description="QBER measured for this simulation run"
+        />
+      </div>
+
+      <div className="mt-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-5">
+        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+          Change from baseline
+        </p>
+
+        <p className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">
+          {deltaText}
+        </p>
+
+        <p className="mt-2 text-xs leading-5 text-[var(--text-secondary)]">
+          {eveActive
+            ? 'A positive difference means the observed QBER is higher than the no-Eve baseline. The amount can vary between runs because the photon bases and measurements are random.'
+            : 'Eve is disabled, so this run is intended to provide a baseline rather than test interception.'}
         </p>
       </div>
+    </div>
+  );
+}
+
+function QberCard({
+  label,
+  percent,
+  barClass,
+  description,
+}: {
+  label: string;
+  percent: number;
+  barClass: string;
+  description: string;
+}) {
+  const boundedPercent = Math.min(Math.max(percent, 0), 100);
+
+  return (
+    <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-5">
+      <p className="text-sm font-medium text-[var(--text-secondary)]">
+        {label}
+      </p>
+
+      <p className="mt-2 text-3xl font-semibold text-[var(--text-primary)]">
+        {percent.toFixed(1)}%
+      </p>
+
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-[var(--border-default)]">
+        <div
+          className={`h-full rounded-full transition-all ${barClass}`}
+          style={{ width: `${boundedPercent}%` }}
+        />
+      </div>
+
+      <p className="mt-3 text-xs leading-5 text-[var(--text-secondary)]">
+        {description}
+      </p>
     </div>
   );
 }
@@ -1365,109 +1243,130 @@ function ResultsStage({
   result,
   qberPercent,
   status,
+  eveActive,
   onRestart,
 }: {
   result: Bb84ApiResponse;
-
   qberPercent: number;
-
-  status: {
-    title: string;
-    description: string;
-    danger: boolean;
-  };
-
+  status: SimulationStatus;
+  eveActive: boolean;
   onRestart: () => void;
 }) {
+  const canShowKeyPreview =
+    result.sample_size > 0 &&
+    !(eveActive && result.eavesdropping_detected);
+
+  const statusBorderClass =
+    status.tone === 'danger'
+      ? 'border-[var(--error)]'
+      : status.tone === 'warning'
+        ? 'border-[var(--accent-simulator)]'
+        : 'border-[var(--border-default)]';
+
+  const statusIconClass =
+    status.tone === 'danger'
+      ? 'text-[var(--error)]'
+      : status.tone === 'warning'
+        ? 'text-[var(--accent-simulator)]'
+        : 'text-[var(--text-secondary)]';
+
   return (
     <div>
       <StageHeading
         eyebrow="Mission Complete"
         title="Key exchange result"
-        description="Review what happened during the BB84 exchange."
+        description="Review the simulation outcome and what the error rate can tell you about the channel."
       />
 
-      <div
-        className={`mt-8 rounded-xl border p-6 ${
-          status.danger
-            ? 'border-[var(--error)]'
-            : 'border-[var(--success)]'
-        }`}
-      >
+      <div className={`mt-8 rounded-xl border p-6 ${statusBorderClass}`}>
         <div className="flex gap-4">
-          {status.danger ? (
+          {status.tone === 'neutral' && !eveActive ? (
+            <Eye className={`shrink-0 ${statusIconClass}`} size={26} />
+          ) : status.tone === 'danger' || status.tone === 'warning' ? (
             <TriangleAlert
-              className="shrink-0 text-[var(--error)]"
+              className={`shrink-0 ${statusIconClass}`}
               size={26}
             />
           ) : (
             <ShieldCheck
-              className="shrink-0 text-[var(--success)]"
+              className={`shrink-0 ${statusIconClass}`}
               size={26}
             />
           )}
 
           <div>
             <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-              {
-                status.title
-              }
+              {status.title}
             </h3>
 
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
-              {
-                status.description
-              }
+              {status.description}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Metric
           label="Photons sent"
-          value={String(
-            result.num_qubits,
-          )}
+          value={String(result.num_qubits)}
         />
 
         <Metric
-          label="Bits kept"
-          value={String(
-            result.sifted_key_length,
-          )}
+          label="Bits sifted"
+          value={String(result.sifted_key_length)}
         />
 
         <Metric
           label="Errors"
-          value={String(
-            result.errors,
-          )}
+          value={String(result.errors)}
         />
 
         <Metric
           label="QBER"
-          value={`${qberPercent}%`}
+          value={`${qberPercent.toFixed(1)}%`}
+        />
+
+        <Metric
+          label="QBER sample"
+          value={`${result.sample_size} bits`}
         />
       </div>
 
       <div className="mt-6 rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-5">
         <p className="text-xs uppercase tracking-wider text-[var(--text-secondary)]">
-          Secure key
+          Simulated key preview
         </p>
 
-        <p className="mt-2 break-all font-mono text-lg tracking-[0.15em] text-[var(--text-primary)]">
-          {result.secure_key_preview ||
-            'No secure key generated'}
-        </p>
+        {canShowKeyPreview ? (
+          <>
+            <p className="mt-2 break-all font-mono text-lg tracking-[0.15em] text-[var(--text-primary)]">
+              {result.secure_key_preview || 'No key preview available'}
+            </p>
 
-        <p className="mt-2 text-xs text-[var(--text-secondary)]">
-          Secure key length:{' '}
-          {
-            result.secure_key_length
-          }{' '}
-          bits
-        </p>
+            <p className="mt-2 text-xs text-[var(--text-secondary)]">
+              Simulated key length: {result.secure_key_length} bits
+            </p>
+
+            <p className="mt-3 text-xs leading-5 text-[var(--text-secondary)]">
+              This is illustrative output from the simulator, not a
+              guarantee of real-world security. A QBER result below the
+              alert threshold does not prove the key is secure.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="mt-2 text-sm font-medium text-[var(--text-primary)]">
+              Key preview withheld
+            </p>
+
+            <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+              {result.sample_size <= 0
+                ? 'There was no usable QBER sample, so this run cannot establish whether the exchange is safe.'
+                : 'The QBER alert was triggered while Eve was active. Do not treat the generated key as secure.'}
+            </p>
+          </>
+        )}
       </div>
 
       <button
@@ -1475,10 +1374,7 @@ function ResultsStage({
         onClick={onRestart}
         className="mt-6 inline-flex items-center gap-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-card)] px-4 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)]"
       >
-        <RotateCcw
-          size={16}
-        />
-
+        <RotateCcw size={16} />
         Run again
       </button>
     </div>
@@ -1522,16 +1418,9 @@ function PhotonChoiceCard({
   onBasis,
 }: {
   index: number;
-
   choice: AliceChoice;
-
-  onBit: (
-    bit: Bit,
-  ) => void;
-
-  onBasis: (
-    basis: Basis,
-  ) => void;
+  onBit: (bit: Bit) => void;
+  onBasis: (basis: Basis) => void;
 }) {
   return (
     <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-4">
@@ -1544,18 +1433,11 @@ function PhotonChoiceCard({
       </p>
 
       <div className="grid grid-cols-2 gap-2">
-        {(
-          [0, 1] as Bit[]
-        ).map((bit) => (
+        {([0, 1] as Bit[]).map((bit) => (
           <ChoiceButton
             key={bit}
-            selected={
-              choice.bit ===
-              bit
-            }
-            onClick={() =>
-              onBit(bit)
-            }
+            selected={choice.bit === bit}
+            onClick={() => onBit(bit)}
           >
             {bit}
           </ChoiceButton>
@@ -1568,29 +1450,15 @@ function PhotonChoiceCard({
 
       <div className="grid grid-cols-2 gap-2">
         <ChoiceButton
-          selected={
-            choice.basis ===
-            'rect'
-          }
-          onClick={() =>
-            onBasis(
-              'rect',
-            )
-          }
+          selected={choice.basis === 'rect'}
+          onClick={() => onBasis('rect')}
         >
           + Straight
         </ChoiceButton>
 
         <ChoiceButton
-          selected={
-            choice.basis ===
-            'diag'
-          }
-          onClick={() =>
-            onBasis(
-              'diag',
-            )
-          }
+          selected={choice.basis === 'diag'}
+          onClick={() => onBasis('diag')}
         >
           × Diagonal
         </ChoiceButton>
@@ -1606,16 +1474,9 @@ function BasisCard({
   onBasis,
 }: {
   index: number;
-
-  basis:
-    | Basis
-    | null;
-
+  basis: Basis | null;
   title: string;
-
-  onBasis: (
-    basis: Basis,
-  ) => void;
+  onBasis: (basis: Basis) => void;
 }) {
   return (
     <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-4">
@@ -1629,27 +1490,15 @@ function BasisCard({
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         <ChoiceButton
-          selected={
-            basis === 'rect'
-          }
-          onClick={() =>
-            onBasis(
-              'rect',
-            )
-          }
+          selected={basis === 'rect'}
+          onClick={() => onBasis('rect')}
         >
           + Straight
         </ChoiceButton>
 
         <ChoiceButton
-          selected={
-            basis === 'diag'
-          }
-          onClick={() =>
-            onBasis(
-              'diag',
-            )
-          }
+          selected={basis === 'diag'}
+          onClick={() => onBasis('diag')}
         >
           × Diagonal
         </ChoiceButton>
@@ -1664,11 +1513,8 @@ function ChoiceButton({
   children,
 }: {
   selected: boolean;
-
   onClick: () => void;
-
-  children:
-    React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <button
@@ -1689,45 +1535,30 @@ function ChoiceButton({
 function HiddenPhotonRow() {
   return (
     <div className="mt-8 grid grid-cols-3 gap-3 sm:grid-cols-6">
-      {Array.from(
-        {
-          length: N,
-        },
-        (_, index) => (
-          <div
-            key={
-              index
-            }
-            className="flex aspect-square items-center justify-center rounded-xl border border-dashed border-[var(--border-default)] bg-[var(--bg-card)]"
-          >
-            <div className="text-center">
-              <div className="mx-auto h-3 w-3 rounded-full bg-[var(--text-secondary)]" />
+      {Array.from({ length: N }, (_, index) => (
+        <div
+          key={index}
+          className="flex aspect-square items-center justify-center rounded-xl border border-dashed border-[var(--border-default)] bg-[var(--bg-card)]"
+        >
+          <div className="text-center">
+            <div className="mx-auto h-3 w-3 rounded-full bg-[var(--text-secondary)]" />
 
-              <p className="mt-2 text-[10px] text-[var(--text-secondary)]">
-                {index +
-                  1}
-              </p>
-            </div>
+            <p className="mt-2 text-[10px] text-[var(--text-secondary)]">
+              {index + 1}
+            </p>
           </div>
-        ),
-      )}
+        </div>
+      ))}
     </div>
   );
 }
 
-function BasisBadge({
-  basis,
-}: {
-  basis: string;
-}) {
-  const straight =
-    basis === '+';
+function BasisBadge({ basis }: { basis: string }) {
+  const straight = basis === '+';
 
   return (
     <span className="inline-flex min-w-20 items-center justify-center rounded-md border border-[var(--border-default)] px-2 py-1 text-xs text-[var(--text-secondary)]">
-      {straight
-        ? '+ Straight'
-        : '× Diagonal'}
+      {straight ? '+ Straight' : '× Diagonal'}
     </span>
   );
 }
