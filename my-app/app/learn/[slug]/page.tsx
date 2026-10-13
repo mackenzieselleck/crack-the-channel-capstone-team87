@@ -1,5 +1,5 @@
 import { ModuleShell } from '@/components/learning/moduleShell';
-import { requireOnboarding } from '@/lib/auth/require-user';
+import { requireOnboarding } from '@/lib/auth/guards';
 
 export default async function LearnPage({ params }: { params: Promise<{ slug: string }> }) {
   //this route is outside the (protected) group, so it isn't guarded by that group's layout,
