@@ -8,5 +8,5 @@ export default async function LearnPage({ params }: { params: Promise<{ slug: st
   //module content is fetched and rendered 
   await requireOnboarding();
   const { slug } = await params;
-  return <ModuleShell slug={slug} />;
+  return <ModuleShell slug={slug} />
 }

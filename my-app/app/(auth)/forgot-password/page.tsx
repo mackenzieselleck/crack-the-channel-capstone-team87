@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
               onSuccess={setCaptchaToken}
               onExpire={() => setCaptchaToken('')}
               onError={() => setCaptchaToken('')}
-              options={{ theme: 'light' }}
+              options={{ theme: 'light', size: 'flexible' }}
             />
             <input type="hidden" name="captchaToken" value={captchaToken} />
 
