@@ -29,12 +29,6 @@ export default function Home() {
                 Simulate
               </a>
 
-              <a
-                href="#about"
-                className="text-sm font-medium text-[#52606D] transition hover:text-[#0F62FE]"
-              >
-                About
-              </a>
             </div>
 
             <Link
