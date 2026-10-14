@@ -12,7 +12,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
-from challenges import REGISTRY
+from . import REGISTRY
 
 # Shared secret known only to this service and Next.js server
 INTERNAL_KEY = os.environ.get("INTERNAL_API_KEY", "")
