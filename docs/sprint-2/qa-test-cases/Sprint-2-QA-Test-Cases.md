@@ -205,10 +205,10 @@ The learning requirements emphasise beginner-first content, progressive learning
 |PROG-03|Resume<br>progress|Complete activity → log<br>out→login again|Previous progress is retained|Not Run|
 |PROG-04|Level display|Complete required<br>progression activity|Current level is displayed<br>correctly|Not Run|
 |PROG-05|Level<br>progression|Complete defined<br>activities|Learner progresses when<br>criteria are met|Not Run|
-|PROG-06|Module<br>completion XP|Complete the applicable<br>module assessment with<br>at least 70% and satisfy<br>module completion<br>criteria.|Defined module-completion<br>XP is awarded where<br>applicable and recorded<br>against the learner's progress.|Not Run|
+|PROG-06|Module<br>completion XP|Complete the applicable<br>module assessment with<br>at least 70% and satisfy<br>module completion<br>criteria.|Defined module-completion<br>XP is awarded where<br>applicable and recorded<br>against the learner's progress.|Pass<br>(automated)|
 |PROG-07|XP persistence|Earn XP → log out → log<br>in|XP remains associated with<br>learner|Not Run|
-|PROG-08|Repeat<br>interaction|Repeat non-meaningful<br>action|System does not incorrectly<br>award unlimited XP where<br>prevention is implemented|Not Run|
-|PROG-09|Module<br>achievement<br>threshold|Complete the applicable<br>module assessment. Test<br>scores below 70%, exactly<br>70%, and above 70%.|A module achievement/badge<br>is awarded only when the<br>learner achieves at least 70%<br>and satisfies the defined<br>achievement criteria.|Not Run|
+|PROG-08|Repeat<br>interaction|Repeat non-meaningful<br>action|System does not incorrectly<br>award unlimited XP where<br>prevention is implemented|Pass<br>(automated)|
+|PROG-09|Module<br>achievement<br>threshold|Complete the applicable<br>module assessment. Test<br>scores below 70%, exactly<br>70%, and above 70%.|A module achievement/badge<br>is awarded only when the<br>learner achieves at least 70%<br>and satisfies the defined<br>achievement criteria.|Pass<br>(automated)|
 |PROG-10|Badge<br>confirmation|Earn Badge|Visible confirmation is<br>provided|Not Run|
 |PROG-11|Badge<br>persistence|Earn badge → log out →<br>login|Earned badge remains visible<br>in learner profile|Not Run|
 |PROG-12|Dashboard<br>progression|Open learner dashboard|Level, completed activity,<br>challenge progress and<br>achievements are visible|Not Run|

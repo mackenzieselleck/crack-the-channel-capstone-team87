@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:db": "supabase test db"
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.6.1",
