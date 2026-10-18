@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:db": "supabase test db"
+    "test:watch": "vitest",
+    "test:report": "cross-env VITEST_REPORT=1 vitest run",
+    "test:coverage": "cross-env VITEST_REPORT=1 vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:report": "playwright show-report reports/e2e/html"
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.6.1",
@@ -25,11 +29,14 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/coverage-v8": "^3.2.7",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "^16.4.0",
     "supabase": "^2.116.0",
