@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { href: '/simulator', label: 'Simulator' },
   { href: '/learn', label: 'Learning' },
   { href: '/profile', label: 'Profile' },
+  { href: '/daily-challenge', label: 'Daily Challenge' },
 ];
 
 export default function Navbar() {
@@ -32,7 +33,7 @@ export default function Navbar() {
     <nav className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur">
       <div className="mx-auto flex max-w-2xl items-center gap-6 px-6 py-3">
         {NAV_LINKS.map((link) => {
-          const isActive = pathname === link.href;
+          const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
           return (
             <Link
               key={link.href}
