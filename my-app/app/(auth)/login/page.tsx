@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { LoginForm } from './login-form'
+import { LoginForm } from './loginForm'
 
 export default async function LoginPage({
   searchParams,

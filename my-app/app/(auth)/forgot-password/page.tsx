@@ -6,7 +6,7 @@ import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 import {
   requestPasswordReset,
   type ActionState,
-} from '@/app/(auth)/password-reset-actions'
+} from '@/app/(auth)/passwordResetActions'
 
 const initialState: ActionState = {}
 
