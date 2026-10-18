@@ -1,7 +1,6 @@
 //renders user profile page
 
 import Link from 'next/link'
-import Navbar from '@/components/spike/navbar'
 import { requireOnboarding } from '@/lib/auth/guards'
 import { createClient } from '@/lib/supabase/server'
 
@@ -38,7 +37,6 @@ export default async function ProfilePage() {
     if (!profile) {
         return (
             <div className="min-h-screen bg-surface">
-                <Navbar />
                 <main className="mx-auto flex max-w-3xl flex-col gap-4 px-6 pt-12 lg:px-10">
                     <p className="text-text-secondary">Couldn&apos;t load your profile. Try refreshing the page.</p>
                 </main>
@@ -50,7 +48,6 @@ export default async function ProfilePage() {
 
     return (
         <div className="min-h-screen bg-surface">
-            <Navbar />
 
             <main className="mx-auto flex max-w-3xl flex-col gap-10 px-6 pb-40 pt-12 lg:px-10">
                 {/* Header: identity + primary action, same row pattern as the rest of the app's page headers */}
