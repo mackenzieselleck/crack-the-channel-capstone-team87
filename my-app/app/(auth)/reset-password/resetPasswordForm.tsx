@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import {
   updatePassword,
   type ActionState,
-} from '@/app/(auth)/password-reset-actions'
+} from '@/app/(auth)/passwordResetActions'
 
 const initialState: ActionState = {}
 

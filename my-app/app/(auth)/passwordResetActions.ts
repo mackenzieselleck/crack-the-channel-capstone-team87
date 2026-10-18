@@ -5,8 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import {
   forgotPasswordSchema,
   resetPasswordSchema,
-} from '@/lib/validation/password-reset'
-import { hasValidRecoverySession } from '@/lib/auth/recovery-session'
+} from '@/lib/validation/passwordReset'
+import { hasValidRecoverySession } from '@/lib/auth/recoverySession'
 
 export type ActionState = {
   error?: string

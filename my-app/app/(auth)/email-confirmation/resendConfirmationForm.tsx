@@ -5,7 +5,7 @@ import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 import {
   resendConfirmation,
   type ResendState,
-} from '@/app/(auth)/resend-actions'
+} from '@/app/(auth)/resendActions'
 
 // match Supabase's default cooldown
 const COOLDOWN_SECONDS = 60

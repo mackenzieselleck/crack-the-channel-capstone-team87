@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { forgotPasswordSchema } from '@/lib/validation/password-reset'
+import { forgotPasswordSchema } from '@/lib/validation/passwordReset'
 
 export type ResendState = {
   error?: string
