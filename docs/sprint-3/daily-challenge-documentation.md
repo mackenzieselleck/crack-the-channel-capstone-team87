@@ -2,7 +2,7 @@
 
 **Project:** Crack the Channel
 **Component:** Daily Challenge feature
-**Status:** The Python Microservice starter code is implemented and tested (37 passing tests). The TypeScript server code type-checks but **has not been run against live services** and doesn't have a frontend yet.
+**Status (18-10-2026):** Feature complete for MVP. Frontend, LLM selection, rate limiting and server tracked hints added. The Python service passes its 37 tests.
 
 ---
 
@@ -21,6 +21,7 @@
 11. [Whats not covered](#11-whats-not-covered)
 12. [Remaining work](#12-remaining-work)
 13. [Hosting notes](#13-hosting-notes)
+14. [Update 18-10-2026: frontend, LLM and rate limiting](#14-update-18-10-2026-frontend-llm-and-rate-limiting)
 
 ---
 
@@ -365,3 +366,70 @@ npm i openai zod@^4 @supabase/supabase-js
 ## 13. Hosting notes
 
 **Render**: Simple and portable, however lower tiers sleep when idle, so the first request after inactivity will be slow. This matters because challenges are generated and graded while the user waits. Mitigate with an always on instance, a keep warm ping, and implement a "checking your answer…" UI state.
+
+
+## 14. Update 18-10-2026: frontend, LLM and rate limiting
+
+### 14.1 What was added
+| Area | Summary |
+|---|---|
+| LLM | **gpt-oss-20b on Groq** Strict JSON schema output with a provider safe schema, `reasoning_effort: low`, provider 429s fail fast to the fallback. Long tables in `prompt_data` are summarised before they reach the model (`summariseForLlm`). |
+| Rate limiting | Postgres fixed window counters (`rate_limits` + `rate_limit_hit`). Per user route limits return 429 with `Retry-After`. An LLM budget (per user, per minute, per day) falls back to templated text instead of failing. |
+| Hints | Revealed one at a time by `POST /api/challenge/hint` and counted on server. XP uses the server count. |
+| Frontend | Hub with streak/XP and three tier cards. Challenge page with data panels and an input for every `input_kind`. KaTeX maths for math based questions. Hint panel with hint unlocks that track XP loss. Fullscreen grading spinner with progress messages. Result page with feedback, XP, streak, attempts, worked solution, retry / next tier. Corner reminder popup for challenge on all content pages. All styled in similar fashion to learning module. |
+| Fixes to existing code | Feedback prompt no longer sends `leakTerms` to the LLM. Word answers (`KEY`, `EVE`, …) are leak checked as whole words, so hints aren't completely rejected. Normalisation worked solutions no longer put English inside LaTeX, and the gate solution reads "1 gate" / "no gates: everything cancels". "No attempts left" is 409 (429 is reserved for rate limits). Only today's challenge can be submitted (410 otherwise). |
+
+### 14.2 API contract (all routes require the Supabase session cookie)
+| Route | Returns |
+|---|---|
+| `GET /api/challenge/status` | `{ date, completedToday, tiers[3], streak }`. Never generates or calls the LLM. Used by the hub and the pop up. |
+| `GET /api/challenge/today?difficulty=1-3` | `{ challenge, progress }`. Generates on first request. `progress` holds attempts, revealed hints, the last attempt's feedback and XP, and the worked solution once earned. |
+| `POST /api/challenge/hint` `{challengeId, index}` | `{ hints, hintsTotal }`. Index must be the next hint, repeats are free. |
+| `POST /api/challenge/submit` `{challengeId, submission}` | `{ correct, feedback, attemptsUsed, attemptsLeft, workedSolution, xpAwarded, streak }`. `hintsUsed` is no longer accepted. |
+
+Shared types live in `web/lib/daily-challenge/types.ts`, so the frontend and routes can't drift apart.
+
+### 14.3 New and changed files
+```
+web/lib/daily-challenge/llm.ts         (changed) model defaults, provider-safe schema, reasoning effort, word leak matching
+web/lib/daily-challenge/prompts.ts           (changed) summariseForLlm, useLlm flag, feedback prompt excludes answers
+web/lib/daily-challenge/moduleMcq.ts         (changed) useLlm flag
+web/lib/daily-challenge/rateLimit.ts         (new) limitRoute + llmAllowed
+web/lib/daily-challenge/types.ts             (new) client-safe shared types and XP helpers
+web/lib/daily-challenge/progress.ts          (new) progress + streak loaders
+web/lib/daily-challenge/client.ts            (new) API client, errors, answer drafts
+web/app/api/challenge/today        (changed) new response shape, rate limit, LLM budget, orphan cleanup
+web/app/api/challenge/submit       (changed) server hint count, stored feedback/XP, 409 on collision
+web/app/api/challenge/hint         (new)
+web/app/api/challenge/status       (new)
+web/app/daily-challenge/page.tsx                 hub (all three pages are wrapped in RequireLogin)
+web/app/daily-challenge/[tier]/page.tsx          challenge
+web/app/daily-challenge/[tier]/result/page.tsx   result
+web/components/daily-challenge/*   challengeHub, challengeView, resultView, answerInput, challengeData,
+                                   circuitDiagram, hintPanel, mathText, loading, dailyChallengePopup, ui
+supabase/migrations/daily_challenge_rate_limits_and_hints.sql
+supabase/migrations/daily_challenge_service_role_grant_fix.sql
+```
+
+### 14.4 Environment variables (additions)
+| Variable | Value | Notes |
+|---|---|---|
+| `LLM_BASE_URL` | `https://api.groq.com/openai/v1` | |
+| `LLM_API_KEY` | Groq API key | Ask Mackenzie for variable |
+| `LLM_MODEL` | `openai/gpt-oss-20b` | |
+| `LLM_JSON_MODE` | `json_schema` | |
+| `LLM_REASONING_EFFORT` | `low` | Leave unset for non-reasoning models |
+| `LLM_USER_PER_HOUR` / `LLM_GLOBAL_PER_MIN` / `LLM_GLOBAL_PER_DAY` | `20` / `25` / `900` | Kept under provider's limits |
+
+### 14.5 Behaviour notes for testers
+- The corner popup shows on logged-in content pages until the user **solves at least one tier** that day. "Later" minimises it to a smaller circular popup and × hides it for the rest of the day. If the session has ended, the status call returns 401 and the pop-up stays hidden.
+- A day is measured in Melbourne time.
+- If a session ends while a Daily Challenge page is open, the next API call returns 401 and the page refreshes, so the login wall redirects as on any other protected page.
+- For the abort decision (BB84 tier 1), the optional QBER field counts: if entered, it must be within 1 percentage point of it
+- LLM written text (titles, scenarios, hints, feedback) is always rendered as plain text. Only generator written maths goes through KaTeX (with `trust: false`).
+
+### 14.6 Remaining backlog (updated)
+- **P0:** smoke test against live Supabase and Groq, unit tests, edge tests
+- **P1:** logging of fallback usage
+- **P2:** unchanged (tutor agent, boss challenges, leaderboards, LLM evaluation report).
+
