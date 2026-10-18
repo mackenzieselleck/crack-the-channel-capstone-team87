@@ -17,30 +17,43 @@ export function ResendConfirmationForm() {
   const turnstileRef = useRef<TurnstileInstance>(null)
 
   const [state, formAction, pending] = useActionState(
-    async (prev: ResendState, formData: FormData) => {
-      const result = await resendConfirmation(prev, formData)
-      // Turnstile tokens are single-usse
-      turnstileRef.current?.reset()
-      setCaptchaToken('')
-      return result
-    },
-    initialState,
-  )
+  async (prev: ResendState, formData: FormData) => {
+    const result = await resendConfirmation(prev, formData)
+
+    // Turnstile tokens are single-use
+    turnstileRef.current?.reset()
+    setCaptchaToken('')
+
+    // Start the cooldown only after a successful send.
+    if (result.sentAt) {
+      setSecondsLeft(COOLDOWN_SECONDS)
+    }
+
+    return result
+  },
+  initialState,
+)
 
   // start cooldown after each successful send
   useEffect(() => {
-    if (!state.sentAt) return
-    setSecondsLeft(COOLDOWN_SECONDS)
-    const timer = setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          clearInterval(timer)
-          return 0
-        }
-        return s - 1
-      })
+  if (!state.sentAt) return
+
+    const timer = window.setInterval(() => {
+      const remaining = Math.max(
+        0,
+        Math.ceil(
+          (state.sentAt! + COOLDOWN_SECONDS * 1000 - Date.now()) / 1000
+        )
+      )
+
+      setSecondsLeft(remaining)
+
+      if (remaining === 0) {
+        window.clearInterval(timer)
+      }
     }, 1000)
-    return () => clearInterval(timer)
+
+    return () => window.clearInterval(timer)
   }, [state.sentAt])
 
   const disabled = pending || !captchaToken || secondsLeft > 0
@@ -50,7 +63,7 @@ export function ResendConfirmationForm() {
       <div>
         <label
           htmlFor="resend-email"
-          className="text-sm font-medium text-[#06152B]"
+          className="text-sm font-medium text-text-primary"
         >
           Email address
         </label>
@@ -60,7 +73,7 @@ export function ResendConfirmationForm() {
           type="email"
           autoComplete="email"
           required
-          className="mt-1 w-full rounded-md border border-[#AAB4C0] bg-white px-3 py-2.5 text-sm text-[#06152B] outline-none transition focus:border-[#0F62FE]"
+          className="mt-1 w-full rounded-md border border-border-strong bg-surface-raised px-3 py-2.5 text-sm text-text-primary outline-none transition focus:border-accent"
         />
       </div>
 
@@ -70,18 +83,18 @@ export function ResendConfirmationForm() {
         onSuccess={setCaptchaToken}
         onExpire={() => setCaptchaToken('')}
         onError={() => setCaptchaToken('')}
-        options={{ theme: 'light', size: 'flexible' }}
+        options={{ theme: 'auto', size: 'flexible' }}
       />
       <input type="hidden" name="captchaToken" value={captchaToken} />
 
       {state.error && (
-        <p role="alert" className="text-sm text-[#B42318]">
+        <p role="alert" className="text-sm text-danger">
           {state.error}
         </p>
       )}
 
       {state.message && !state.error && (
-        <p role="status" className="text-sm text-[#027A48]">
+        <p role="status" className="text-sm text-success">
           {state.message}
         </p>
       )}
@@ -89,7 +102,7 @@ export function ResendConfirmationForm() {
       <button
         type="submit"
         disabled={disabled}
-        className="w-full rounded-md border border-[#AAB4C0] bg-white px-6 py-3.5 font-medium text-[#06152B] transition hover:border-[#0F62FE] hover:text-[#0F62FE] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-[#AAB4C0] disabled:hover:text-[#06152B]"
+        className="w-full rounded-md border border-border-strong bg-surface-raised px-6 py-3.5 font-medium text-text-primary transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-border-strong disabled:hover:text-text-primary"
       >
         {pending
           ? 'Sending...'
