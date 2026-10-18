@@ -1,6 +1,6 @@
 // prevents open redirects from user-controlled `next` parameters
 
-export const DEFAULT_REDIRECT = '/learn/test-module'
+export const DEFAULT_REDIRECT = '/learn/testModule'
 
 export function safeNext(
   nextParam: string | null | undefined,
