@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { loginSchema } from '@/lib/validation/auth'
-import { safeNext } from '@/lib/auth/safe-redirect'
+import { safeNext } from '@/lib/auth/safeRedirect'
 
 export type LoginState = {
   error?: string

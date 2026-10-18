@@ -1,13 +1,17 @@
-// POST /api/challenge/submit
 // user submits answer -> grading is done by Python service
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { writeFeedback } from "@/lib/daily_challenges/prompts";
-import { gradeModuleMcq } from "@/lib/daily_challenges/moduleMcq";
-import { createAdminClient, createClient, MAX_ATTEMPTS, MODULE_MCQ, qiskit } from "@/lib/supabase/server";
+import { writeFeedback } from "@/lib/daily-challenge/prompts";
+import { gradeModuleMcq } from "@/lib/daily-challenge/moduleMcq";
+import { createAdminClient, createClient, MAX_ATTEMPTS, MODULE_MCQ, qiskit, melbourneDate } from "@/lib/supabase/server";
+import { limitRoute, llmAllowed } from "@/lib/daily-challenge/rateLimit";
+import { loadStreak } from "@/lib/daily-challenge/progress";
+import type { SubmitResponse } from "@/lib/daily-challenge/types";
 
-// size limited, shape checked request body
-// `submission` must match exactly one answer format below, one per input_kind:
+// grading plus feedback can take a while
+export const maxDuration = 60;
+
+// submission must match exactly one answer format per input type
 const Body = z.object({
   challengeId: z.string().uuid(),
   hintsUsed: z.number().int().min(0).max(3).default(0),
@@ -24,23 +28,27 @@ const Body = z.object({
 
 export async function POST(req: NextRequest) {
   // ---- Authenticate: read the signed in user from their session cookie
-  // getUser() verifies session with Supabase rather than trusting cookie alone
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "sign in required" }, { status: 401 });
   const userId = user.id;
+  const limited = await limitRoute(userId, "submit");
+  if (limited) return limited;
   // admin client for server only answers table
   const admin = createAdminClient();
 
   // ---- Validate request body
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "invalid submission" }, { status: 400 });
-  const { challengeId, submission, hintsUsed } = parsed.data;
+  const { challengeId, submission } = parsed.data;
 
   // challenges are per user, so challenge must belong to caller
   const { data: ch } = await admin.from("daily_challenges")
-    .select("id,type,difficulty,date").eq("id", challengeId).eq("user_id", userId).maybeSingle();
+    .select("id,type,difficulty,date,hints_revealed").eq("id", challengeId).eq("user_id", userId).maybeSingle();
   if (!ch) return NextResponse.json({ error: "not found" }, { status: 404 });
+  // Only today's challenges can be answered
+  if (ch.date !== melbourneDate()) return NextResponse.json({ error: "This challenge has expired. Today's is ready for you." }, { status: 410 });
+
 
   // ---- Check previous attempts: stop if already solved or out of attempts
   const { data: prior } = await admin.from("challenge_attempts")
@@ -63,7 +71,7 @@ export async function POST(req: NextRequest) {
       : await qiskit<Grade>("/challenges/grade", { type: ch.type, answer: secret.answer, submission });
   } catch {
     // don't consume an attempt if grading is unavailable
-    return NextResponse.json({ error: "grading unavailable, try again shortly" }, { status: 503 });
+    return NextResponse.json({ error: "Grading unavailable, try again shortly" }, { status: 503 });
   }
 
   // ---- Feedback: LLM rephrases grader's explanation
@@ -71,42 +79,43 @@ export async function POST(req: NextRequest) {
   const feedback = await writeFeedback({
     type: ch.type, correct: grade.correct, mistake_tag: grade.mistake_tag,
     explanation: grade.explanation, attemptsLeft, leakTerms: secret.leak_terms ?? [],
+    useLlm: await llmAllowed(userId),
   });
 
-  // ---- Record attempt (the mistake tag is kept for analytics)
-  const { error: attemptError } = await admin.from("challenge_attempts").insert({
+  // ---- Record attempt
+  const hintsUsed = ch.hints_revealed ?? 0;
+  const { data: attempt, error: insertError } = await admin.from("challenge_attempts").insert({
     user_id: userId, challenge_id: challengeId, attempt_no: attemptNo,
-    submission, correct: grade.correct, mistake_tag: grade.mistake_tag, hints_used: hintsUsed,
-  });
-  // duplicate attempt number means the same answer was submitted twice at once
-  // (e.g. a double click). Stop here so XP isn't awarded twice
-  if (attemptError) {
-    return NextResponse.json({ error: "submission already being processed" }, { status: 409 });
+    submission, correct: grade.correct, mistake_tag: grade.mistake_tag, hints_used: hintsUsed, feedback,
+   }).select("id").single();
+  if (insertError) {
+    // 23505 = unique violation: a second submission for the same attempt number arrived at once
+    if (insertError.code === "23505") return NextResponse.json({ error: "That answer is already being checked." }, { status: 409 });
+    return NextResponse.json({ error: "server error" }, { status: 500 });
   }
 
-  // ---- On a correct answer, award XP and update streak
-  // record_daily_solve validates its inputs, uses the Melbourne date, and returns what was awarded
-  let reward: { xpAwarded: number; streak: number; bestStreak: number } | null = null;
+  // ---- On correct answer award XP and update streak
+ let xpAwarded: number | null = null;
   if (grade.correct) {
-    const { data, error } = await admin.rpc("record_daily_solve", {
-      p_user_id: userId,
-      p_tier: ch.difficulty,
-      p_hints_used: hintsUsed,
-      p_attempt: attemptNo,
+    const { data: solve, error: solveError } = await admin.rpc("record_daily_solve", {
+      p_user_id: userId, p_tier: ch.difficulty, p_hints_used: hintsUsed, p_attempt: attemptNo,
     });
-    // answer is still correct if this fails, log it so missing XP can be investigated
-    if (error) console.error("record_daily_solve failed", error);
-    else reward = data;
+    if (solveError) console.error("[daily-challenge] record_daily_solve failed:", solveError.code);
+    const gained = (solve as { xpAwarded?: unknown } | null)?.xpAwarded;
+    xpAwarded = typeof gained === "number" ? gained : null;
+    if (xpAwarded !== null) await admin.from("challenge_attempts").update({ xp_awarded: xpAwarded }).eq("id", attempt.id);
   }
 
   // ---- Respond: worked solution is only revealed once solved or out of attempts
   const reveal = grade.correct || attemptsLeft === 0;
-  return NextResponse.json({
+  const body: SubmitResponse = {
     correct: grade.correct,
-    mistakeTag: grade.mistake_tag,     // useful for analytics + usability testing
     feedback,
+    attemptsUsed: attemptNo,
     attemptsLeft,
     workedSolution: reveal ? secret.worked_solution : null,
-    reward,                            // { xpAwarded, streak, bestStreak } on a correct answer, else null
-  });
+    xpAwarded,
+    streak: grade.correct ? await loadStreak(admin, userId, ch.date) : null,
+  };
+  return NextResponse.json(body);
 }

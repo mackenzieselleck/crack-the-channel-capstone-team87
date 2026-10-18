@@ -6,7 +6,7 @@ import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 import {
   requestPasswordReset,
   type ActionState,
-} from '@/app/(auth)/password-reset-actions'
+} from '@/app/(auth)/passwordResetActions'
 
 const initialState: ActionState = {}
 
@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
               onSuccess={setCaptchaToken}
               onExpire={() => setCaptchaToken('')}
               onError={() => setCaptchaToken('')}
-              options={{ theme: 'auto' }}
+              options={{ theme: 'auto', size: 'flexible' }}
             />
             <input type="hidden" name="captchaToken" value={captchaToken} />
 
