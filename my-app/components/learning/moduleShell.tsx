@@ -9,9 +9,21 @@ import {
   ClipboardCheck,
   Lock,
 } from 'lucide-react';
-
+import Link from 'next/link';
 import { useModule } from '@/lib/learning/useModule';
 import { Quiz } from './quiz';
+
+function BackToModules() {
+  return (
+    <Link
+      href="/learn"
+      className="inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-[#8B95AC] transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F62FE]/60"
+    >
+      <ChevronLeft size={16} aria-hidden="true" />
+      All modules
+    </Link>
+  );
+}
 
 export function ProgressBar({ percent }: { percent: number }) {
   return (
@@ -79,6 +91,9 @@ export function ModuleShell({ slug }: { slug: string }) {
   if (!mod) {
     return (
       <main className="min-h-screen bg-[#0B1220] px-6 py-16 text-[#E7ECF5]">
+        <div className="mx-auto mb-6 max-w-3xl">
+          <BackToModules />
+        </div>
         <div className="mx-auto max-w-3xl rounded-xl border border-[#F87171]/30 bg-[#F87171]/10 p-6">
           <p className="font-semibold text-[#FCA5A5]">
             Unable to load this module
@@ -103,6 +118,7 @@ export function ModuleShell({ slug }: { slug: string }) {
       <div className="mx-auto max-w-6xl">
         {/* Module orientation */}
         <header className="border-b border-[#233049] pb-8">
+          <BackToModules />
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#4C8DFF]">
             Learning module
           </p>

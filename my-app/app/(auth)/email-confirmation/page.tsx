@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ResendConfirmationForm } from './resend-confirmation-form';
+import { ResendConfirmationForm } from './resendConfirmationForm';
 
 export default function CheckEmailPage() {
   return (

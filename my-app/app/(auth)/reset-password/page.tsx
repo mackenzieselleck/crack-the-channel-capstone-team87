@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { hasValidRecoverySession } from '@/lib/auth/recovery-session'
-import { ResetPasswordForm } from './reset-password-form'
+import { hasValidRecoverySession } from '@/lib/auth/recoverySession'
+import { ResetPasswordForm } from './resetPasswordForm'
 
 // dependent on user's session
 export const dynamic = 'force-dynamic'
