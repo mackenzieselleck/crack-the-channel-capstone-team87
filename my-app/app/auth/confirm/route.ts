@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { safeNext } from '@/lib/auth/safe-redirect'
+import { safeNext } from '@/lib/auth/safeRedirect'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { type NextRequest, NextResponse } from 'next/server'
 
