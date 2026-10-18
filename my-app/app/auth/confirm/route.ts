@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { safeNext } from '@/lib/auth/safe-redirect'
+import { safeNext } from '@/lib/auth/safeRedirect'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   const tokenHash = searchParams.get('token_hash')
   const type = searchParams.get('type')
 
-  const errorUrl = new URL('/(auth)/error', origin)
+  const errorUrl = new URL('/auth/error', origin)
 
   if (!tokenHash || !isAllowedType(type)) {
     errorUrl.searchParams.set('reason', 'invalid-link')
@@ -31,8 +31,8 @@ export async function GET(request: NextRequest) {
 
   const next =
     type === 'recovery'
-      ? '/(auth)/reset-password'
-      : safeNext(searchParams.get('next'), origin, '/(auth)/confirmed')
+      ? '/reset-password'
+      : safeNext(searchParams.get('next'), origin, '/confirmed')
 
   const supabase = await createClient()
   const { error } = await supabase.auth.verifyOtp({
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
   })
 
   if (error) {
-    console.error('[(auth)/confirm] verify failed:', error.code ?? error.name)
+    console.error('[(/confirm] verify failed:', error.code ?? error.name)
     errorUrl.searchParams.set(
       'reason',
       type === 'recovery' ? 'expired-reset' : 'invalid-link',
