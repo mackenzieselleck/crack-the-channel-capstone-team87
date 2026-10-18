@@ -95,7 +95,7 @@ sequenceDiagram
     Note over Next: module_mcq is graded directly in Next.js
     Next->>LLM: rephrase explanation (no new facts)
     LLM-->>Next: feedback (fallback: grader's explanation)
-    Next->>DB: insert attempt; if correct → record_daily_solve (XP, streak)
+    Next->>DB: insert attempt, if correct → record_daily_solve (XP, streak)
     Next-->>User: correct, feedback, attemptsLeft, worked solution (if solved or out of attempts)
 ```
 Diagrams made with Mermaid
