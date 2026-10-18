@@ -48,9 +48,9 @@
   --error: var(--color-danger);
 
   --accent-learning: var(--color-accent);
-  --accent-simulator: #0f766e;
+  --accent-simulator: var(--color-accent);
 
-  --simulator-accent-contrast: #ffffff;
+  --simulator-accent-contrast: var(--color-accent-contrast);
 }
 
 /*
@@ -135,8 +135,8 @@ html[data-theme="dark"] {
       to be overridden here.
     */
 
-    --accent-simulator: #7ff5d6;
-    --simulator-accent-contrast: #0a0a0a;
+    --accent-simulator: var(--color-accent);
+    --simulator-accent-contrast: var(--color-accent-contrast);
   }
 
 /*

@@ -8,7 +8,7 @@ import type { ApiFailure } from '@/lib/daily-challenge/client';
 
 export function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-screen bg-[#0B1220] px-6 pb-24 pt-10 text-[#E7ECF5]">
+    <main className="min-h-screen bg-surface px-6 pb-24 pt-10 text-text-primary">
       <div className="mx-auto max-w-6xl">{children}</div>
     </main>
   );
@@ -16,7 +16,7 @@ export function PageShell({ children }: { children: React.ReactNode }) {
 
 export function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#4C8DFF]">{children}</p>
+    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">{children}</p>
   );
 }
 
@@ -30,17 +30,17 @@ export function ErrorCard({
   onRetry?: () => void;
 }) {
   return (
-    <div role="alert" className="rounded-xl border border-[#F87171]/30 bg-[#F87171]/10 p-6">
+    <div role="alert" className="rounded-xl border border-danger/30 bg-danger/10 p-6">
       <div className="flex items-start gap-3">
-        <AlertTriangle size={18} className="mt-0.5 shrink-0 text-[#FCA5A5]" aria-hidden="true" />
+        <AlertTriangle size={18} className="mt-0.5 shrink-0 text-danger" aria-hidden="true" />
         <div>
-          <p className="font-semibold text-[#FCA5A5]">{title}</p>
-          <p className="mt-2 text-sm leading-6 text-[#C5CDD9]">{message}</p>
+          <p className="font-semibold text-danger">{title}</p>
+          <p className="mt-2 text-sm leading-6 text-text-secondary">{message}</p>
           {onRetry && (
             <button
               type="button"
               onClick={onRetry}
-              className="mt-4 rounded-md border border-[#34425A] px-4 py-2 text-sm font-medium text-[#C5CDD9] transition hover:border-[#8B95AC] hover:text-white"
+              className="mt-4 rounded-md border border-border-strong px-4 py-2 text-sm font-medium text-text-secondary transition hover:border-border-strong hover:text-text-primary"
             >
               Try again
             </button>
@@ -72,10 +72,10 @@ export function AttemptDots({ used, max, solved }: { used: number; max: number; 
             className={[
               'h-2.5 w-2.5 rounded-full border',
               winning
-                ? 'border-[#4ADE80] bg-[#4ADE80]'
+                ? 'border-success bg-success'
                 : filled
-                  ? 'border-[#F87171]/70 bg-[#F87171]/70'
-                  : 'border-[#34425A] bg-transparent',
+                  ? 'border-danger/70 bg-danger/70'
+                  : 'border-border-strong bg-transparent',
             ].join(' ')}
           />
         );
@@ -85,6 +85,6 @@ export function AttemptDots({ used, max, solved }: { used: number; max: number; 
 }
 
 export const primaryButton =
-  'inline-flex items-center justify-center gap-2 rounded-md bg-[#0F62FE] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#0353E9] disabled:cursor-not-allowed disabled:opacity-50';
+  'inline-flex items-center justify-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-50';
 export const secondaryButton =
-  'inline-flex items-center justify-center gap-2 rounded-md border border-[#34425A] px-5 py-3 text-sm font-medium text-[#C5CDD9] transition hover:border-[#8B95AC] hover:text-white disabled:cursor-not-allowed disabled:opacity-30';
+  'inline-flex items-center justify-center gap-2 rounded-md border border-border-strong px-5 py-3 text-sm font-medium text-text-secondary transition hover:border-border-strong hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30';

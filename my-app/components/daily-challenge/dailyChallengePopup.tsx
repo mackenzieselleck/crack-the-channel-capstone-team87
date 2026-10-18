@@ -96,11 +96,11 @@ function Popup() {
           href="/daily-challenge"
           aria-label={label}
           title={label}
-          className="relative flex h-14 w-14 animate-[dc-mini-in_200ms_ease-out] items-center justify-center rounded-full border border-[#233049] bg-[#111B2E] shadow-2xl shadow-black/50 transition hover:border-[#4C8DFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F62FE]/60 motion-reduce:animate-none"
+          className="relative flex h-14 w-14 animate-[dc-mini-in_200ms_ease-out] items-center justify-center rounded-full border border-border bg-surface-raised shadow-2xl shadow-black/50 transition hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 motion-reduce:animate-none"
         >
-          {streak > 0 ? <Flame size={24} className="text-[#FBBF24]" aria-hidden="true" /> : <Swords size={22} className="text-[#4C8DFF]" aria-hidden="true" />}
+          {streak > 0 ? <Flame size={24} className="text-warning" aria-hidden="true" /> : <Swords size={22} className="text-accent" aria-hidden="true" />}
           {streak > 0 && (
-            <span aria-hidden="true" className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-[#0F62FE] px-1.5 text-xs font-bold text-white">
+            <span aria-hidden="true" className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-bold text-accent-contrast">
               {streak}
             </span>
           )}
@@ -109,7 +109,7 @@ function Popup() {
           type="button"
           onClick={() => change('hidden')}
           aria-label="Hide daily challenge reminder until tomorrow"
-          className="absolute -left-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-[#34425A] bg-[#0D1728] text-[#8B95AC] opacity-0 transition hover:text-white focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
+          className="absolute -left-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-border-strong bg-surface text-text-secondary opacity-0 transition hover:text-text-primary focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
         >
           <X size={12} aria-hidden="true" />
         </button>
@@ -120,24 +120,24 @@ function Popup() {
   return (
     <aside
       aria-labelledby="daily-popup-title"
-      className="fixed bottom-4 right-4 z-40 w-[calc(100vw-2rem)] max-w-sm animate-[dc-popup-in_300ms_ease-out] rounded-xl border border-[#233049] bg-[#111B2E] p-5 text-[#E7ECF5] shadow-2xl shadow-black/50 motion-reduce:animate-none sm:bottom-6 sm:right-6"
+      className="fixed bottom-4 right-4 z-40 w-[calc(100vw-2rem)] max-w-sm animate-[dc-popup-in_300ms_ease-out] rounded-xl border border-border bg-surface-raised p-5 text-text-primary shadow-2xl shadow-black/50 motion-reduce:animate-none sm:bottom-6 sm:right-6"
     >
       <style>{`@keyframes dc-popup-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }`}</style>
       <button
         type="button"
         onClick={() => change('hidden')}
         aria-label="Hide until tomorrow"
-        className="absolute right-3 top-3 rounded-md p-1.5 text-[#8B95AC] transition hover:bg-[#1A263A] hover:text-white"
+        className="absolute right-3 top-3 rounded-md p-1.5 text-text-secondary transition hover:bg-border hover:text-text-primary"
       >
         <X size={16} aria-hidden="true" />
       </button>
 
       <div className="flex items-start gap-4 pr-6">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#0F62FE]/15 text-[#4C8DFF]">
-          {streak > 0 ? <Flame size={20} className="text-[#FBBF24]" aria-hidden="true" /> : <Swords size={20} aria-hidden="true" />}
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/15 text-accent">
+          {streak > 0 ? <Flame size={20} className="text-warning" aria-hidden="true" /> : <Swords size={20} aria-hidden="true" />}
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#4C8DFF]">Daily challenge</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Daily challenge</p>
           <h2 id="daily-popup-title" className="mt-1 font-semibold leading-6">
             {streak > 0
               ? `Keep your ${streak}-day streak alive`
@@ -145,7 +145,7 @@ function Popup() {
                 ? 'Finish today\'s challenge'
                 : 'Today\'s challenge is ready'}
           </h2>
-          <p className="mt-1 text-sm leading-6 text-[#8B95AC]">
+          <p className="mt-1 text-sm leading-6 text-text-secondary">
             {streak > 0
               ? 'Solve any one tier before midnight to keep it going.'
               : 'A few minutes, up to 150 XP, and a streak to start.'}
@@ -157,14 +157,14 @@ function Popup() {
         <Link
           href="/daily-challenge"
           onClick={() => change('mini')}
-          className="inline-flex flex-1 items-center justify-center rounded-md bg-[#0F62FE] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0353E9]"
+          className="inline-flex flex-1 items-center justify-center rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-accent-contrast transition hover:bg-accent-strong"
         >
           {started ? 'Continue' : 'Start challenge'}
         </Link>
         <button
           type="button"
           onClick={() => change('mini')}
-          className="rounded-md border border-[#34425A] px-4 py-2.5 text-sm font-medium text-[#C5CDD9] transition hover:border-[#8B95AC] hover:text-white"
+          className="rounded-md border border-border-strong px-4 py-2.5 text-sm font-medium text-text-secondary transition hover:border-border-strong hover:text-text-primary"
         >
           Later
         </button>

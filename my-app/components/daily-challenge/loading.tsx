@@ -12,11 +12,11 @@ export function Spinner({ size = 40, className = '' }: { size?: number; classNam
       className={`animate-spin motion-reduce:animate-[spin_3s_linear_infinite] ${className}`}
       aria-hidden="true"
     >
-      <circle cx="24" cy="24" r="20" fill="none" stroke="#233049" strokeWidth="5" />
+      <circle cx="24" cy="24" r="20" fill="none" stroke="var(--color-border)" strokeWidth="5" />
       <path
         d="M24 4 a20 20 0 0 1 20 20"
         fill="none"
-        stroke="#0F62FE"
+        stroke="var(--color-accent)"
         strokeWidth="5"
         strokeLinecap="round"
       />
@@ -49,19 +49,19 @@ const GRADING_MESSAGES = [
 export function GradingOverlay() {
   const { message, slow } = useRotatingMessage(GRADING_MESSAGES);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B1220]/80 px-6 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/80 px-6 backdrop-blur-sm">
       <div
         role="status"
         aria-live="polite"
-        className="w-full max-w-sm rounded-xl border border-[#233049] bg-[#111B2E] p-8 text-center shadow-2xl shadow-black/40"
+        className="w-full max-w-sm rounded-xl border border-border bg-surface-raised p-8 text-center shadow-2xl shadow-black/40"
       >
         <Spinner size={52} className="mx-auto" />
-        <p className="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-[#4C8DFF]">
+        <p className="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-accent">
           Grading your answer
         </p>
-        <p className="mt-3 min-h-12 text-sm leading-6 text-[#C5CDD9]">{message}</p>
+        <p className="mt-3 min-h-12 text-sm leading-6 text-text-secondary">{message}</p>
         {slow && (
-          <p className="mt-3 text-xs leading-5 text-[#8B95AC]">
+          <p className="mt-3 text-xs leading-5 text-text-secondary">
             The grader can take up to 30 seconds if it has been idle. Your attempt is safe.
           </p>
         )}
@@ -83,14 +83,14 @@ export function GeneratingState({ firstLoad }: { firstLoad: boolean }) {
     <div
       role="status"
       aria-live="polite"
-      className="flex flex-col items-center rounded-xl border border-[#233049] bg-[#111B2E] px-6 py-16 text-center"
+      className="flex flex-col items-center rounded-xl border border-border bg-surface-raised px-6 py-16 text-center"
     >
       <Spinner size={48} />
-      <p className="mt-6 text-sm font-semibold text-[#E7ECF5]">
+      <p className="mt-6 text-sm font-semibold text-text-primary">
         {firstLoad ? message : 'Loading your challenge...'}
       </p>
       {slow && (
-        <p className="mt-2 max-w-sm text-xs leading-5 text-[#8B95AC]">
+        <p className="mt-2 max-w-sm text-xs leading-5 text-text-secondary">
           The first challenge of the day takes a few extra seconds to build.
         </p>
       )}

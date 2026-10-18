@@ -111,18 +111,18 @@ export function ChallengeView() {
       {grading && <GradingOverlay />}
 
       {/* Challenge orientation */}
-      <header className="border-b border-[#233049] pb-8">
+      <header className="border-b border-border pb-8">
         <Eyebrow>
           Daily challenge · Tier {challenge.difficulty} · {TIER_LABEL[challenge.difficulty]}
         </Eyebrow>
         <div className="mt-3 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{challenge.title}</h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-[#AAB4C5]">{challenge.scenario}</p>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-text-secondary">{challenge.scenario}</p>
           </div>
-          <div className="rounded-lg border border-[#233049] bg-[#111B2E] px-4 py-3">
-            <p className="text-xs uppercase tracking-[0.15em] text-[#8B95AC]">Worth now</p>
-            <p className="mt-1 text-sm font-semibold text-[#E7ECF5]">{xpNow} XP</p>
+          <div className="rounded-lg border border-border bg-surface-raised px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.15em] text-text-secondary">Worth now</p>
+            <p className="mt-1 text-sm font-semibold text-text-primary">{xpNow} XP</p>
           </div>
         </div>
       </header>
@@ -130,19 +130,19 @@ export function ChallengeView() {
       <div className="grid grid-cols-1 gap-8 py-8 lg:grid-cols-[270px_minmax(0,1fr)]">
         {/* Attempts and hints */}
         <aside className="min-w-0 space-y-5 lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-xl border border-[#233049] bg-[#111B2E] p-5">
+          <div className="rounded-xl border border-border bg-surface-raised p-5">
             <div className="flex items-center gap-3">
-              <Target size={18} className="text-[#4C8DFF]" aria-hidden="true" />
-              <h2 className="text-sm font-semibold text-[#E7ECF5]">Attempts</h2>
+              <Target size={18} className="text-accent" aria-hidden="true" />
+              <h2 className="text-sm font-semibold text-text-primary">Attempts</h2>
               <span className="ml-auto">
                 <AttemptDots used={progress.attemptsUsed} max={progress.maxAttempts} solved={false} />
               </span>
             </div>
-            <p className="mt-2 text-xs leading-5 text-[#8B95AC]">
+            <p className="mt-2 text-xs leading-5 text-text-secondary">
               {progress.attemptsLeft} of {progress.maxAttempts} left. Each extra attempt costs 15 XP. The worked
               solution unlocks when you solve it or run out of attempts.
             </p>
-            <p className="mt-4 border-t border-[#233049] pt-4 text-xs text-[#69758A]">
+            <p className="mt-4 border-t border-border pt-4 text-xs text-text-secondary">
               Category: {TYPE_LABEL[challenge.type] ?? challenge.type}
             </p>
           </div>
@@ -159,17 +159,17 @@ export function ChallengeView() {
         {/* Main challenge area */}
         <div className="min-w-0 space-y-6">
           {progress.lastAttempt && !progress.lastAttempt.correct && (
-            <div className="rounded-lg border border-[#F87171]/30 bg-[#F87171]/10 px-5 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#FCA5A5]">
+            <div className="rounded-lg border border-danger/30 bg-danger/10 px-5 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-danger">
                 Last attempt
               </p>
-              <p className="mt-1 text-sm leading-6 text-[#C5CDD9]">{progress.lastAttempt.feedback}</p>
+              <p className="mt-1 text-sm leading-6 text-text-secondary">{progress.lastAttempt.feedback}</p>
             </div>
           )}
 
-          <section className="overflow-hidden rounded-xl border border-[#233049] bg-[#111B2E]">
-            <header className="border-b border-[#233049] px-7 py-6 sm:px-9">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#4C8DFF]">Your task</p>
+          <section className="overflow-hidden rounded-xl border border-border bg-surface-raised">
+            <header className="border-b border-border px-7 py-6 sm:px-9">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Your task</p>
               <h2 className="mt-2 text-xl font-semibold leading-8 tracking-tight">{challenge.task}</h2>
             </header>
             <div className="px-7 py-8 sm:px-9">
@@ -177,18 +177,18 @@ export function ChallengeView() {
             </div>
           </section>
 
-          <section className="rounded-xl border border-[#233049] bg-[#111B2E] px-7 py-8 sm:px-9">
-            <p className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-[#4C8DFF]">Your answer</p>
+          <section className="rounded-xl border border-border bg-surface-raised px-7 py-8 sm:px-9">
+            <p className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-accent">Your answer</p>
             <AnswerInput challenge={challenge} value={submission} onChange={setSubmission} disabled={grading} />
           </section>
 
           {submitError && (
-            <div role="alert" className="rounded-lg border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-3 text-sm text-[#FCA5A5]">
+            <div role="alert" className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
               {submitError}
             </div>
           )}
 
-          <nav className="flex items-center justify-between border-t border-[#233049] pt-7">
+          <nav className="flex items-center justify-between border-t border-border pt-7">
             <Link href="/daily-challenge" className={secondaryButton}>
               <ChevronLeft size={17} aria-hidden="true" />
               All challenges
