@@ -37,7 +37,7 @@ export function CircuitDiagram({
   const x = (i: number) => LEFT + i * COL + COL / 2;
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-[#233049] bg-[#0D1728] p-3">
+    <div className="overflow-x-auto rounded-lg border border-border bg-surface p-3">
       <svg
         width={width}
         height={height}
@@ -48,15 +48,15 @@ export function CircuitDiagram({
       >
         {Array.from({ length: numQubits }, (_, q) => (
           <g key={q}>
-            <text x={8} y={y(q) + 5} fontSize="13" fill="#8B95AC" fontFamily="ui-monospace, monospace">
+            <text x={8} y={y(q) + 5} fontSize="13" fill="var(--color-text-secondary)" fontFamily="ui-monospace, monospace">
               q{q}
             </text>
-            <line x1={LEFT - 12} x2={width - 8} y1={y(q)} y2={y(q)} stroke="#34425A" strokeWidth="2" />
+            <line x1={LEFT - 12} x2={width - 8} y1={y(q)} y2={y(q)} stroke="var(--color-border-strong)" strokeWidth="2" />
           </g>
         ))}
 
         {tokens.length === 0 && (
-          <text x={LEFT + 6} y={y(0) - 12} fontSize="12" fill="#69758A">
+          <text x={LEFT + 6} y={y(0) - 12} fontSize="12" fill="var(--color-text-secondary)">
             No gates yet (identity)
           </text>
         )}
@@ -76,7 +76,7 @@ export function CircuitDiagram({
                     onRemove(i);
                   }
                 },
-                className: 'cursor-pointer outline-none [&:focus-visible>*]:stroke-white [&:hover>*]:opacity-80',
+                className: 'cursor-pointer outline-none [&:focus-visible>*]:stroke-accent [&:hover>*]:opacity-80',
               }
             : {};
 
@@ -85,11 +85,11 @@ export function CircuitDiagram({
             const t = Number(b);
             return (
               <g key={i} {...common}>
-                <line x1={x(i)} x2={x(i)} y1={y(c)} y2={y(t)} stroke="#4C8DFF" strokeWidth="2" />
-                <circle cx={x(i)} cy={y(c)} r={6} fill="#4C8DFF" />
-                <circle cx={x(i)} cy={y(t)} r={12} fill="#0D1728" stroke="#4C8DFF" strokeWidth="2" />
-                <line x1={x(i) - 12} x2={x(i) + 12} y1={y(t)} y2={y(t)} stroke="#4C8DFF" strokeWidth="2" />
-                <line x1={x(i)} x2={x(i)} y1={y(t) - 12} y2={y(t) + 12} stroke="#4C8DFF" strokeWidth="2" />
+                <line x1={x(i)} x2={x(i)} y1={y(c)} y2={y(t)} stroke="var(--color-accent)" strokeWidth="2" />
+                <circle cx={x(i)} cy={y(c)} r={6} fill="var(--color-accent)" />
+                <circle cx={x(i)} cy={y(t)} r={12} fill="var(--color-surface)" stroke="var(--color-accent)" strokeWidth="2" />
+                <line x1={x(i) - 12} x2={x(i) + 12} y1={y(t)} y2={y(t)} stroke="var(--color-accent)" strokeWidth="2" />
+                <line x1={x(i)} x2={x(i)} y1={y(t) - 12} y2={y(t) + 12} stroke="var(--color-accent)" strokeWidth="2" />
               </g>
             );
           }
@@ -102,8 +102,8 @@ export function CircuitDiagram({
                 width={BOX}
                 height={BOX}
                 rx={6}
-                fill="#14284A"
-                stroke="#4C8DFF"
+                fill="var(--color-surface-raised)"
+                stroke="var(--color-accent)"
                 strokeWidth="1.5"
               />
               <text
@@ -112,7 +112,7 @@ export function CircuitDiagram({
                 textAnchor="middle"
                 fontSize="15"
                 fontWeight="600"
-                fill="#E7ECF5"
+                fill="var(--color-text-primary)"
               >
                 {gateLabel(token)}
               </text>

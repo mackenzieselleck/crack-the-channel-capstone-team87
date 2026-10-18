@@ -25,13 +25,13 @@ export default async function AuthErrorPage({
   const msg = MESSAGES[reason ?? ''] ?? MESSAGES['invalid-link']
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#F7F9FC] px-6 text-[#06152B]">
-      <div className="w-full max-w-md rounded-xl border border-[#DDE3EA] bg-white p-8">
+    <main className="flex min-h-screen items-center justify-center bg-surface px-6 text-text-primary">
+      <div className="w-full max-w-md rounded-xl border border-border bg-surface-raised p-8">
         <h1 className="text-2xl font-semibold">{msg.title}</h1>
-        <p className="mt-2 text-sm leading-6 text-[#52606D]">{msg.body}</p>
+        <p className="mt-2 text-sm leading-6 text-text-secondary">{msg.body}</p>
         <Link
           href={msg.href}
-          className="mt-6 inline-block rounded-md bg-[#0F62FE] px-4 py-3 text-sm font-semibold text-white hover:bg-[#0353E9]"
+          className="mt-6 inline-block rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-contrast hover:bg-accent-strong"
         >
           {msg.cta}
         </Link>

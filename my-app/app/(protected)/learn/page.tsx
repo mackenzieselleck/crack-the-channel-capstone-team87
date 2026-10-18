@@ -27,21 +27,21 @@ export default async function LearnPage() {
   const passedCount = list.filter((m) => progressById.get(m.id)?.quiz_passed).length;
 
   return (
-    <main className="min-h-screen bg-[#0B1220] px-6 pb-24 pt-10 text-[#E7ECF5]">
+    <main className="min-h-screen bg-surface px-6 pb-24 pt-10 text-text-primary">
       <div className="mx-auto max-w-6xl">
-        <header className="border-b border-[#233049] pb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#4C8DFF]">Learning</p>
+        <header className="border-b border-border pb-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">Learning</p>
           <div className="mt-3 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Learning modules</h1>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-[#AAB4C5]">
+              <p className="mt-4 max-w-2xl text-base leading-7 text-text-secondary">
                 Work through each module at your own pace, then pass its assessment to complete it.
               </p>
             </div>
             {list.length > 0 && (
-              <div className="rounded-lg border border-[#233049] bg-[#111B2E] px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.15em] text-[#8B95AC]">Completed</p>
-                <p className="mt-1 text-sm font-semibold text-[#E7ECF5]">
+              <div className="rounded-lg border border-border bg-surface-raised px-4 py-3">
+                <p className="text-xs uppercase tracking-[0.15em] text-text-secondary">Completed</p>
+                <p className="mt-1 text-sm font-semibold text-text-primary">
                   {passedCount} of {list.length} modules
                 </p>
               </div>
@@ -50,10 +50,10 @@ export default async function LearnPage() {
         </header>
 
         {list.length === 0 ? (
-          <div className="mt-8 rounded-xl border border-[#233049] bg-[#111B2E] p-8 text-center">
-            <BookOpen size={28} className="mx-auto text-[#4C8DFF]" aria-hidden="true" />
+          <div className="mt-8 rounded-xl border border-border bg-surface-raised p-8 text-center">
+            <BookOpen size={28} className="mx-auto text-accent" aria-hidden="true" />
             <p className="mt-4 font-semibold">No modules yet</p>
-            <p className="mt-2 text-sm text-[#8B95AC]">New learning modules will appear here when they&apos;re published.</p>
+            <p className="mt-2 text-sm text-text-secondary">New learning modules will appear here when they&apos;re published.</p>
           </div>
         ) : (
           <ul className="grid gap-5 py-8 md:grid-cols-2 lg:grid-cols-3">
@@ -71,30 +71,30 @@ export default async function LearnPage() {
                   <Link
                     href={`/learn/${m.slug}`}
                     className={[
-                      'group flex h-full flex-col rounded-xl border bg-[#111B2E] p-6 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F62FE]/60',
-                      passed ? 'border-[#4ADE80]/30' : 'border-[#233049] hover:border-[#4C8DFF]/60',
+                      'group flex h-full flex-col rounded-xl border bg-surface-raised p-6 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60',
+                      passed ? 'border-success/30' : 'border-border hover:border-accent/60',
                     ].join(' ')}
                   >
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#4C8DFF]">Module {i + 1}</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Module {i + 1}</p>
                       {passed ? (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-[#4ADE80]/40 bg-[#4ADE80]/10 px-2.5 py-1 text-xs font-medium text-[#4ADE80]">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/10 px-2.5 py-1 text-xs font-medium text-success">
                           <Check size={12} aria-hidden="true" /> Completed{p?.best_score != null ? ` · ${p.best_score}%` : ''}
                         </span>
                       ) : started ? (
-                        <span className="rounded-full border border-[#34425A] px-2.5 py-1 text-xs font-medium text-[#C5CDD9]">In progress</span>
+                        <span className="rounded-full border border-border-strong px-2.5 py-1 text-xs font-medium text-text-secondary">In progress</span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-[#34425A] px-2.5 py-1 text-xs font-medium text-[#8B95AC]">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-border-strong px-2.5 py-1 text-xs font-medium text-text-secondary">
                           <Lock size={11} aria-hidden="true" /> Not started
                         </span>
                       )}
                     </div>
 
                     <h2 className="mt-4 text-xl font-semibold tracking-tight">{m.title}</h2>
-                    {m.summary && <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#8B95AC]">{m.summary}</p>}
+                    {m.summary && <p className="mt-2 line-clamp-3 text-sm leading-6 text-text-secondary">{m.summary}</p>}
 
                     <div className="mt-auto pt-6">
-                      <div className="flex items-center justify-between text-xs text-[#8B95AC]">
+                      <div className="flex items-center justify-between text-xs text-text-secondary">
                         <span>{total ? `${read} of ${total} parts read` : 'No parts yet'}</span>
                         <span>{m.pass_mark}% to pass</span>
                       </div>
@@ -104,10 +104,10 @@ export default async function LearnPage() {
                         aria-valuemin={0}
                         aria-valuemax={100}
                         aria-valuenow={percent}
-                        className="mt-2 h-2 overflow-hidden rounded-full bg-[#1A263A]"
+                        className="mt-2 h-2 overflow-hidden rounded-full bg-border"
                       >
                         <div
-                          className={['h-full rounded-full transition-all', passed ? 'bg-[#4ADE80]' : 'bg-[#0F62FE]'].join(' ')}
+                          className={['h-full rounded-full transition-all', passed ? 'bg-success' : 'bg-accent'].join(' ')}
                           style={{ width: `${percent}%` }}
                         />
                       </div>
@@ -115,8 +115,8 @@ export default async function LearnPage() {
                         className={[
                           'mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-semibold transition',
                           passed
-                            ? 'border border-[#34425A] text-[#C5CDD9] group-hover:border-[#8B95AC] group-hover:text-white'
-                            : 'bg-[#0F62FE] text-white group-hover:bg-[#0353E9]',
+                            ? 'border border-border-strong text-text-secondary group-hover:border-border-strong group-hover:text-text-primary'
+                            : 'bg-accent text-accent-contrast group-hover:bg-accent-strong',
                         ].join(' ')}
                       >
                         {cta}

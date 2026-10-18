@@ -10,7 +10,7 @@ export type LoginState = {
   unconfirmed?: boolean
 }
 
-const DEFAULT_AFTER_LOGIN = '/learn/test-module'
+const DEFAULT_AFTER_LOGIN = '/dashboard'
 
 // pages login should never redirect to
 const BLOCKED_NEXT_PREFIXES = [

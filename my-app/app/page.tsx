@@ -1,52 +1,49 @@
 import Link from 'next/link';
+import ThemeToggle from '@/components/theme/ThemeToggle';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#F7F9FC] text-[#06152B]">
+    <main className="min-h-screen bg-surface text-text-primary">
       {/* Navigation */}
-      <header className="border-b border-[#DDE3EA] bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
+      <header className="border-b border-border bg-surface-raised">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-5 lg:px-10">
           <Link
             href="/"
-            className="text-xl font-bold tracking-tight text-[#06152B]"
+            className="text-xl font-bold tracking-tight text-text-primary"
           >
             Crack the Channel
           </Link>
 
-          <nav className="flex items-center gap-3 sm:gap-6">
+          <nav className="flex flex-wrap items-center gap-3 sm:gap-6">
             <div className="hidden items-center gap-7 md:flex">
               <a
                 href="#learn"
-                className="text-sm font-medium text-[#52606D] transition hover:text-[#0F62FE]"
+                className="text-sm font-medium text-text-secondary transition hover:text-accent"
               >
                 Learn
               </a>
 
               <a
                 href="#simulate"
-                className="text-sm font-medium text-[#52606D] transition hover:text-[#0F62FE]"
+                className="text-sm font-medium text-text-secondary transition hover:text-accent"
               >
                 Simulate
               </a>
-
-              <a
-                href="#about"
-                className="text-sm font-medium text-[#52606D] transition hover:text-[#0F62FE]"
-              >
-                About
-              </a>
             </div>
+
+            {/* Light/Dark theme toggle */}
+            <ThemeToggle />
 
             <Link
               href="/login"
-              className="rounded-md border border-[#AAB4C0] px-5 py-2.5 text-sm font-medium text-[#06152B] transition hover:border-[#0F62FE] hover:text-[#0F62FE]"
+              className="rounded-md border border-border-strong px-5 py-2.5 text-sm font-medium text-text-primary transition hover:border-accent hover:text-accent"
             >
               Log in
             </Link>
 
             <Link
               href="/signup"
-              className="rounded-md bg-[#0F62FE] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#0353E9]"
+              className="rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-accent-contrast transition hover:bg-accent-strong"
             >
               Sign up
             </Link>
@@ -55,22 +52,21 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <section
-        id="about"
-        className="mx-auto grid max-w-7xl gap-16 px-6 py-20 lg:grid-cols-2 lg:items-center lg:px-10 lg:py-28"
-      >
+      <section className="mx-auto grid max-w-7xl gap-16 px-6 py-20 lg:grid-cols-2 lg:items-center lg:px-10 lg:py-28">
         <div>
-          <p className="mb-5 text-xs font-semibold uppercase tracking-[0.3em] text-[#0F62FE]">
+          <p className="mb-5 text-xs font-semibold uppercase tracking-[0.3em] text-accent">
             Learn. Simulate. Defend.
           </p>
 
           <h1 className="text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl">
             Learn quantum.
             <br />
-            <span className="text-[#0F62FE]">Build your future.</span>
+            <span className="text-accent">
+              Build your future.
+            </span>
           </h1>
 
-          <p className="mt-7 max-w-xl text-lg leading-8 text-[#52606D]">
+          <p className="mt-7 max-w-xl text-lg leading-8 text-text-secondary">
             Interactive lessons, hands-on simulations and real-world
             cybersecurity applications designed to make quantum security
             approachable.
@@ -79,7 +75,7 @@ export default function Home() {
           <div className="mt-9 flex flex-wrap gap-4">
             <Link
               href="/signup"
-              className="inline-flex items-center gap-3 rounded-md bg-[#0F62FE] px-7 py-3.5 font-medium text-white transition hover:bg-[#0353E9]"
+              className="inline-flex items-center gap-3 rounded-md bg-accent px-7 py-3.5 font-medium text-accent-contrast transition hover:bg-accent-strong"
             >
               Start Learning
               <span aria-hidden="true">→</span>
@@ -87,7 +83,7 @@ export default function Home() {
 
             <Link
               href="/login"
-              className="rounded-md border border-[#AAB4C0] bg-white px-7 py-3.5 font-medium text-[#06152B] transition hover:border-[#0F62FE] hover:text-[#0F62FE]"
+              className="rounded-md border border-border-strong bg-surface-raised px-7 py-3.5 font-medium text-text-primary transition hover:border-accent hover:text-accent"
             >
               Log in
             </Link>
@@ -95,13 +91,14 @@ export default function Home() {
         </div>
 
         {/* Graphic placeholder */}
-        <div className="flex min-h-[380px] items-center justify-center rounded-lg border border-[#B8C2CE] bg-white">
-          <div className="flex h-[300px] w-[85%] items-center justify-center border border-[#B8C2CE] bg-[#F7F9FC]">
+        <div className="flex min-h-[380px] items-center justify-center rounded-lg border border-border-strong bg-surface-raised">
+          <div className="flex h-[300px] w-[85%] items-center justify-center border border-border-strong bg-surface">
             <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
-              <div className="absolute left-0 top-1/2 h-px w-full -rotate-[28deg] bg-[#B8C2CE]" />
-              <div className="absolute left-0 top-1/2 h-px w-full rotate-[28deg] bg-[#B8C2CE]" />
+              <div className="absolute left-0 top-1/2 h-px w-full -rotate-[28deg] bg-border-strong" />
 
-              <span className="relative bg-[#F7F9FC] px-4 text-xs font-medium uppercase tracking-[0.25em] text-[#7A8694]">
+              <div className="absolute left-0 top-1/2 h-px w-full rotate-[28deg] bg-border-strong" />
+
+              <span className="relative bg-surface px-4 text-xs font-medium uppercase tracking-[0.25em] text-text-secondary">
                 Graphic
               </span>
             </div>
@@ -110,75 +107,84 @@ export default function Home() {
       </section>
 
       {/* Feature section */}
-      <section className="border-t border-[#DDE3EA] bg-white">
+      <section className="border-t border-border bg-surface-raised">
         <div className="mx-auto grid max-w-7xl md:grid-cols-3">
+          {/* Learn */}
           <article
             id="learn"
-            className="border-b border-[#DDE3EA] px-8 py-10 md:border-b-0 md:border-r"
+            className="border-b border-border px-8 py-10 md:border-b-0 md:border-r"
           >
-            <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-md border border-[#0F62FE] text-[#0F62FE]">
+            <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-md border border-accent text-accent">
               <BookIcon />
             </div>
 
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#0F62FE]">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-accent">
               01
             </p>
 
-            <h2 className="text-xl font-semibold">Learn</h2>
+            <h2 className="text-xl font-semibold text-text-primary">
+              Learn
+            </h2>
 
-            <p className="mt-3 max-w-xs leading-7 text-[#52606D]">
+            <p className="mt-3 max-w-xs leading-7 text-text-secondary">
               Build your understanding of quantum computing and security
               concepts at your own pace.
             </p>
           </article>
 
+          {/* Simulate */}
           <article
             id="simulate"
-            className="border-b border-[#DDE3EA] px-8 py-10 md:border-b-0 md:border-r"
+            className="border-b border-border px-8 py-10 md:border-b-0 md:border-r"
           >
-            <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-md border border-[#0F62FE] text-[#0F62FE]">
+            <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-md border border-accent text-accent">
               <SimulationIcon />
             </div>
 
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#0F62FE]">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-accent">
               02
             </p>
 
-            <h2 className="text-xl font-semibold">Simulate</h2>
+            <h2 className="text-xl font-semibold text-text-primary">
+              Simulate
+            </h2>
 
-            <p className="mt-3 max-w-xs leading-7 text-[#52606D]">
+            <p className="mt-3 max-w-xs leading-7 text-text-secondary">
               Explore BB84 and quantum key distribution through interactive
               simulations.
             </p>
           </article>
 
+          {/* Apply */}
           <article className="px-8 py-10">
-            <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-md border border-[#0F62FE] text-[#0F62FE]">
+            <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-md border border-accent text-accent">
               <ShieldIcon />
             </div>
 
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#0F62FE]">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-accent">
               03
             </p>
 
-            <h2 className="text-xl font-semibold">Apply</h2>
+            <h2 className="text-xl font-semibold text-text-primary">
+              Apply
+            </h2>
 
-            <p className="mt-3 max-w-xs leading-7 text-[#52606D]">
-              See how quantum concepts connect to real-world cybersecurity and
-              secure communications.
+            <p className="mt-3 max-w-xs leading-7 text-text-secondary">
+              See how quantum concepts connect to real-world cybersecurity
+              and secure communications.
             </p>
           </article>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#DDE3EA] bg-[#F7F9FC]">
+      <footer className="border-t border-border bg-surface">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-10">
-          <p className="text-sm font-medium text-[#06152B]">
+          <p className="text-sm font-medium text-text-primary">
             Crack the Channel
           </p>
 
-          <p className="text-xs uppercase tracking-[0.2em] text-[#7A8694]">
+          <p className="text-xs uppercase tracking-[0.2em] text-text-secondary">
             Quantum knowledge. A more secure tomorrow.
           </p>
         </div>
@@ -187,6 +193,7 @@ export default function Home() {
   );
 }
 
+/* Learning icon */
 function BookIcon() {
   return (
     <svg
@@ -204,6 +211,7 @@ function BookIcon() {
   );
 }
 
+/* Simulation icon */
 function SimulationIcon() {
   return (
     <svg
@@ -222,6 +230,7 @@ function SimulationIcon() {
   );
 }
 
+/* Security icon */
 function ShieldIcon() {
   return (
     <svg

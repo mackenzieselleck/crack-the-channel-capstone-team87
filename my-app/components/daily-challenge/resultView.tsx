@@ -80,14 +80,14 @@ export function ResultView() {
   const nextTier = status?.tiers.find((t) => !t.solved && t.attemptsLeft > 0 && t.difficulty !== challenge.difficulty);
 
   const tone = solved
-    ? { ring: 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]', Icon: Check, heading: 'Correct!', eyebrow: 'Challenge solved' }
+    ? { ring: 'border-success/40 bg-success/10 text-success', Icon: Check, heading: 'Correct!', eyebrow: 'Challenge solved' }
     : out
-      ? { ring: 'border-[#F87171]/40 bg-[#F87171]/10 text-[#FCA5A5]', Icon: X, heading: 'Out of attempts', eyebrow: 'Challenge closed' }
-      : { ring: 'border-[#F87171]/40 bg-[#F87171]/10 text-[#FCA5A5]', Icon: X, heading: 'Not quite', eyebrow: `Attempt ${last.attemptNo} of ${progress.maxAttempts}` };
+      ? { ring: 'border-danger/40 bg-danger/10 text-danger', Icon: X, heading: 'Out of attempts', eyebrow: 'Challenge closed' }
+      : { ring: 'border-danger/40 bg-danger/10 text-danger', Icon: X, heading: 'Not quite', eyebrow: `Attempt ${last.attemptNo} of ${progress.maxAttempts}` };
 
   return (
     <PageShell>
-      <header className="border-b border-[#233049] pb-8">
+      <header className="border-b border-border pb-8">
         <Eyebrow>
           Daily challenge · Tier {challenge.difficulty} · {TIER_LABEL[challenge.difficulty]} · Result
         </Eyebrow>
@@ -96,17 +96,17 @@ export function ResultView() {
 
       <div className="mx-auto max-w-3xl space-y-6 py-8">
         {/* Outcome */}
-        <section className="overflow-hidden rounded-xl border border-[#233049] bg-[#111B2E]">
+        <section className="overflow-hidden rounded-xl border border-border bg-surface-raised">
           <div className="flex flex-col gap-6 px-7 py-8 sm:flex-row sm:items-center sm:px-9">
             <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full border ${tone.ring}`}>
               <tone.Icon size={30} aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8B95AC]">{tone.eyebrow}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">{tone.eyebrow}</p>
               <h2 className="mt-1 text-2xl font-semibold tracking-tight" role="status">
                 {tone.heading}
               </h2>
-              <div className="mt-3 flex items-center gap-3 text-sm text-[#8B95AC]">
+              <div className="mt-3 flex items-center gap-3 text-sm text-text-secondary">
                 <AttemptDots used={progress.attemptsUsed} max={progress.maxAttempts} solved={solved} />
                 <span>
                   {solved
@@ -120,19 +120,19 @@ export function ResultView() {
           </div>
 
           {solved && (
-            <div className="grid border-t border-[#233049] sm:grid-cols-2">
+            <div className="grid border-t border-border sm:grid-cols-2">
               <div className="flex items-center gap-3 px-7 py-5 sm:px-9">
-                <Award size={20} className="text-[#4C8DFF]" aria-hidden="true" />
+                <Award size={20} className="text-accent" aria-hidden="true" />
                 <div>
-                  <p className="text-xs uppercase tracking-[0.15em] text-[#8B95AC]">XP earned</p>
+                  <p className="text-xs uppercase tracking-[0.15em] text-text-secondary">XP earned</p>
                   <p className="text-lg font-semibold">+{last.xpAwarded ?? '—'} XP</p>
                 </div>
               </div>
               {status && (
-                <div className="flex items-center gap-3 border-t border-[#233049] px-7 py-5 sm:border-l sm:border-t-0 sm:px-9">
-                  <Flame size={20} className="text-[#FBBF24]" aria-hidden="true" />
+                <div className="flex items-center gap-3 border-t border-border px-7 py-5 sm:border-l sm:border-t-0 sm:px-9">
+                  <Flame size={20} className="text-warning" aria-hidden="true" />
                   <div>
-                    <p className="text-xs uppercase tracking-[0.15em] text-[#8B95AC]">Streak</p>
+                    <p className="text-xs uppercase tracking-[0.15em] text-text-secondary">Streak</p>
                     <p className="text-lg font-semibold">
                       {status.streak.current} day{status.streak.current === 1 ? '' : 's'}
                     </p>
@@ -145,26 +145,26 @@ export function ResultView() {
 
         {/* Feedback (LLM-phrased from the grader's explanation; plain text) */}
         {last.feedback && (
-          <section className="rounded-xl border border-[#233049] bg-[#111B2E] px-7 py-7 sm:px-9">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#4C8DFF]">Feedback</p>
-            <p className="mt-3 whitespace-pre-wrap text-[16px] leading-8 text-[#C5CDD9]">{last.feedback}</p>
+          <section className="rounded-xl border border-border bg-surface-raised px-7 py-7 sm:px-9">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Feedback</p>
+            <p className="mt-3 whitespace-pre-wrap text-[16px] leading-8 text-text-secondary">{last.feedback}</p>
           </section>
         )}
 
         {/* Worked solution: only sent by the server once solved or out of attempts */}
         {progress.workedSolution ? (
-          <section className="rounded-xl border border-[#233049] bg-[#111B2E] px-7 py-7 sm:px-9">
+          <section className="rounded-xl border border-border bg-surface-raised px-7 py-7 sm:px-9">
             <div className="flex items-center gap-3">
-              <BookOpenCheck size={18} className="text-[#4C8DFF]" aria-hidden="true" />
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#4C8DFF]">Worked solution</p>
+              <BookOpenCheck size={18} className="text-accent" aria-hidden="true" />
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Worked solution</p>
             </div>
-            <div className="mt-4 overflow-x-auto rounded-lg border border-[#233049] bg-[#0D1728] px-5 py-4 text-[15px] leading-7 text-[#E7ECF5]">
+            <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-surface px-5 py-4 text-[15px] leading-7 text-text-primary">
               <MathText text={progress.workedSolution} display />
             </div>
           </section>
         ) : (
-          <div className="rounded-lg border border-[#233049] bg-[#0D1728] px-5 py-4">
-            <p className="text-sm leading-6 text-[#8B95AC]">
+          <div className="rounded-lg border border-border bg-surface px-5 py-4">
+            <p className="text-sm leading-6 text-text-secondary">
               The worked solution unlocks when you solve this challenge or use all {progress.maxAttempts} attempts.
               {progress.hints.length < progress.hintsTotal && ' A hint might help before your next try.'}
             </p>
@@ -172,7 +172,7 @@ export function ResultView() {
         )}
 
         {/* Next steps */}
-        <nav className="flex flex-col-reverse gap-3 border-t border-[#233049] pt-7 sm:flex-row sm:items-center sm:justify-between">
+        <nav className="flex flex-col-reverse gap-3 border-t border-border pt-7 sm:flex-row sm:items-center sm:justify-between">
           <Link href="/daily-challenge" className={secondaryButton}>
             <ChevronLeft size={17} aria-hidden="true" />
             All challenges
@@ -188,7 +188,7 @@ export function ResultView() {
               <ChevronRight size={17} aria-hidden="true" />
             </Link>
           ) : (
-            <p className="text-sm text-[#8B95AC]">That&apos;s everything for today. New challenges at midnight.</p>
+            <p className="text-sm text-text-secondary">That&apos;s everything for today. New challenges at midnight.</p>
           )}
         </nav>
       </div>

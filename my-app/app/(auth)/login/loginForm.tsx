@@ -8,7 +8,7 @@ import { login, type LoginState } from './actions'
 const initialState: LoginState = {}
 
 const inputClass =
-  'w-full rounded-md border border-[#AAB4C0] bg-white px-4 py-3 text-[#06152B] outline-none transition placeholder:text-[#7A8694] focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/20'
+  'w-full rounded-md border border-border-strong bg-surface-raised px-4 py-3 text-text-primary outline-none transition placeholder:text-text-secondary focus:border-accent focus:ring-2 focus:ring-accent/20'
 
 export function LoginForm({ next }: { next: string }) {
   const [captchaToken, setCaptchaToken] = useState('')
@@ -34,7 +34,7 @@ export function LoginForm({ next }: { next: string }) {
       <div>
         <label
           htmlFor="email"
-          className="mb-2 block text-sm font-medium text-[#06152B]"
+          className="mb-2 block text-sm font-medium text-text-primary"
         >
           Email address
         </label>
@@ -55,14 +55,14 @@ export function LoginForm({ next }: { next: string }) {
         <div className="mb-2 flex items-center justify-between">
           <label
             htmlFor="password"
-            className="text-sm font-medium text-[#06152B]"
+            className="text-sm font-medium text-text-primary"
           >
             Password
           </label>
 
           <Link
             href="/forgot-password"
-            className="text-sm font-medium text-[#0F62FE] hover:underline"
+            className="text-sm font-medium text-accent hover:underline"
           >
             Forgot password?
           </Link>
@@ -87,14 +87,14 @@ export function LoginForm({ next }: { next: string }) {
         onSuccess={setCaptchaToken}
         onExpire={() => setCaptchaToken('')}
         onError={() => setCaptchaToken('')}
-        options={{ theme: 'light', size: 'flexible' }}
+        options={{ theme: 'auto', size: 'flexible' }}
       />
 
       {/* Error */}
       {state.error && (
         <div
           role="alert"
-          className="rounded-md border border-[#FECDCA] bg-[#FEF3F2] px-4 py-3 text-sm text-[#B42318]"
+          className="rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger"
         >
           {state.error}
           {state.unconfirmed && (
@@ -115,7 +115,7 @@ export function LoginForm({ next }: { next: string }) {
       <button
         type="submit"
         disabled={pending || !captchaToken}
-        className="w-full rounded-md bg-[#0F62FE] px-6 py-3.5 font-medium text-white transition hover:bg-[#0353E9] disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-md bg-accent px-6 py-3.5 font-medium text-accent-contrast transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending ? 'Logging in...' : 'Log in'}
       </button>

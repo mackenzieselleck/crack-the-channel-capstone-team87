@@ -24,7 +24,7 @@ export function AnswerInput(props: Props) {
     case 'circuit':         return <CircuitBuilder {...props} />;
     case 'decision':        return <DecisionInput {...props} />;
     case 'number':          return <RateInput {...props} />;
-    default:                return <p className="text-sm text-[#FCA5A5]">This challenge type isn&apos;t supported yet.</p>;
+    default:                return <p className="text-sm text-danger">This challenge type isn&apos;t supported yet.</p>;
   }
 }
 
@@ -42,13 +42,13 @@ export function isComplete(s: Submission | null): s is Submission {
 }
 
 const inputBase =
-  'w-full rounded-md border border-[#34425A] bg-[#0D1728] px-4 py-3 text-[#E7ECF5] placeholder:text-[#69758A] outline-none transition focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/30 disabled:opacity-50';
+  'w-full rounded-md border border-border-strong bg-surface px-4 py-3 text-text-primary placeholder:text-text-secondary outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30 disabled:opacity-50';
 const chip =
-  'rounded-md border border-[#34425A] px-3 py-1.5 text-sm font-medium text-[#C5CDD9] transition hover:border-[#8B95AC] hover:text-white disabled:cursor-not-allowed disabled:opacity-40';
+  'rounded-md border border-border-strong px-3 py-1.5 text-sm font-medium text-text-secondary transition hover:border-border-strong hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40';
 
 function Label({ htmlFor, children }: { htmlFor?: string; children: React.ReactNode }) {
   return (
-    <label htmlFor={htmlFor} className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-[#8B95AC]">
+    <label htmlFor={htmlFor} className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-text-secondary">
       {children}
     </label>
   );
@@ -69,8 +69,8 @@ function MultipleChoice({ challenge, value, onChange, disabled }: Props) {
             className={[
               'flex cursor-pointer items-center gap-4 rounded-lg border px-5 py-4 transition',
               checked
-                ? 'border-[#0F62FE] bg-[#0F62FE]/10'
-                : 'border-[#233049] bg-[#0D1728] hover:border-[#34425A]',
+                ? 'border-accent bg-accent/10'
+                : 'border-border bg-surface hover:border-border-strong',
             ].join(' ')}
           >
             <input
@@ -84,13 +84,13 @@ function MultipleChoice({ challenge, value, onChange, disabled }: Props) {
             <span
               className={[
                 'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold',
-                checked ? 'border-[#0F62FE] bg-[#0F62FE] text-white' : 'border-[#34425A] text-[#8B95AC]',
+                checked ? 'border-accent bg-accent text-accent-contrast' : 'border-border-strong text-text-secondary',
               ].join(' ')}
               aria-hidden="true"
             >
               {String.fromCharCode(65 + i)}
             </span>
-            <MathText text={opt.display} large className="min-w-0 overflow-x-auto py-1 text-base text-[#E7ECF5]" />
+            <MathText text={opt.display} large className="min-w-0 overflow-x-auto py-1 text-base text-text-primary" />
           </label>
         );
       })}
@@ -125,7 +125,7 @@ function BitsInput({ value, onChange, disabled }: Props) {
         <button type="button" className={`${chip} inline-flex items-center gap-1.5`} disabled={disabled || !bits} onClick={() => set(bits.slice(0, -1))}>
           <Delete size={14} aria-hidden="true" /> Delete
         </button>
-        <span id={`${id}-count`} className="ml-auto text-xs text-[#8B95AC]">
+        <span id={`${id}-count`} className="ml-auto text-xs text-text-secondary">
           {bits.length} bit{bits.length === 1 ? '' : 's'}
         </span>
       </div>
@@ -155,7 +155,7 @@ function WordInput({ value, onChange, disabled }: Props) {
         placeholder="ABC"
         className={`${inputBase} max-w-48 font-mono text-2xl uppercase tracking-[0.5em]`}
       />
-      <p className="mt-2 text-xs text-[#8B95AC]">Three letters, A to Z.</p>
+      <p className="mt-2 text-xs text-text-secondary">Three letters, A to Z.</p>
     </div>
   );
 }
@@ -188,7 +188,7 @@ function MathInput({ challenge, value, onChange, disabled }: Props) {
           </button>
         ))}
       </div>
-      <p id={`${id}-help`} className="mt-3 text-xs leading-5 text-[#8B95AC]">
+      <p id={`${id}-help`} className="mt-3 text-xs leading-5 text-text-secondary">
         Type square roots as sqrt(…), for example 1/sqrt(2). Any equivalent exact form is accepted, so 1/sqrt(2) and
         sqrt(2)/2 both count.
       </p>
@@ -219,13 +219,13 @@ function AmplitudesInput({ challenge, value, onChange, disabled }: Props) {
   };
   return (
     <div>
-      <p className="mb-3 text-sm leading-6 text-[#AAB4C5]">
+      <p className="mb-3 text-sm leading-6 text-text-secondary">
         Enter the amplitude for each basis state. Use 0 for states that don&apos;t appear.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {basis.map((b, i) => (
           <div key={b}>
-            <label htmlFor={`${base}-${i}`} className="mb-1.5 block font-mono text-sm text-[#C5CDD9]">
+            <label htmlFor={`${base}-${i}`} className="mb-1.5 block font-mono text-sm text-text-secondary">
               |{b}⟩
             </label>
             <input
@@ -237,14 +237,14 @@ function AmplitudesInput({ challenge, value, onChange, disabled }: Props) {
               onFocus={() => setActive(i)}
               onChange={(e) => set(i, e.target.value)}
               placeholder="e.g. 1/sqrt(2)"
-              className={`${inputBase} font-mono ${active === i ? 'border-[#4C8DFF]/60' : ''}`}
+              className={`${inputBase} font-mono ${active === i ? 'border-accent/60' : ''}`}
             />
           </div>
         ))}
       </div>
       <div className="mt-4">
-        <p className="mb-2 text-xs text-[#8B95AC]">
-          Quick fill <span className="font-mono text-[#C5CDD9]">|{basis[active]}⟩</span>:
+        <p className="mb-2 text-xs text-text-secondary">
+          Quick fill <span className="font-mono text-text-secondary">|{basis[active]}⟩</span>:
         </p>
         <div className="flex flex-wrap gap-2">
           {AMP_CHIPS.map((c) => (
@@ -286,8 +286,8 @@ function CircuitBuilder({ challenge, value, onChange, disabled }: Props) {
     <div className="space-y-4">
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B95AC]">Your circuit</p>
-          <p className="text-xs text-[#8B95AC]">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-secondary">Your circuit</p>
+          <p className="text-xs text-text-secondary">
             {circuit.length} gate{circuit.length === 1 ? '' : 's'} · original {original}
           </p>
         </div>
@@ -297,13 +297,13 @@ function CircuitBuilder({ challenge, value, onChange, disabled }: Props) {
           label="Your circuit"
           onRemove={disabled ? undefined : (i) => set(circuit.filter((_, j) => j !== i))}
         />
-        <p className="mt-2 text-xs text-[#69758A]">Select a gate in your circuit to remove it.</p>
+        <p className="mt-2 text-xs text-text-secondary">Select a gate in your circuit to remove it.</p>
       </div>
 
-      <div className="space-y-3 rounded-lg border border-[#233049] bg-[#0D1728] p-4">
+      <div className="space-y-3 rounded-lg border border-border bg-surface p-4">
         {groups.map((tokens, q) => (
           <div key={q} className="flex flex-wrap items-center gap-2">
-            <span className="w-8 font-mono text-xs text-[#8B95AC]">q{q}</span>
+            <span className="w-8 font-mono text-xs text-text-secondary">q{q}</span>
             {tokens.map((t) => (
               <button
                 key={t}
@@ -311,7 +311,7 @@ function CircuitBuilder({ challenge, value, onChange, disabled }: Props) {
                 disabled={disabled || circuit.length >= 20}
                 onClick={() => set([...circuit, t])}
                 aria-label={`Add ${describeToken(t)}`}
-                className="h-10 min-w-10 rounded-md border border-[#4C8DFF]/50 bg-[#14284A] px-2 text-sm font-semibold text-[#E7ECF5] transition hover:border-[#4C8DFF] hover:bg-[#0F62FE]/25 disabled:opacity-40"
+                className="h-10 min-w-10 rounded-md border border-accent/50 bg-accent/10 px-2 text-sm font-semibold text-text-primary transition hover:border-accent hover:bg-accent/25 disabled:opacity-40"
               >
                 {gateLabel(t)}
               </button>
@@ -319,22 +319,22 @@ function CircuitBuilder({ challenge, value, onChange, disabled }: Props) {
           </div>
         ))}
         {twoQubit.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 border-t border-[#233049] pt-3">
-            <span className="w-8 font-mono text-xs text-[#8B95AC]">2q</span>
+          <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+            <span className="w-8 font-mono text-xs text-text-secondary">2q</span>
             {twoQubit.map((t) => (
               <button
                 key={t}
                 type="button"
                 disabled={disabled || circuit.length >= 20}
                 onClick={() => set([...circuit, t])}
-                className="h-10 rounded-md border border-[#4C8DFF]/50 bg-[#14284A] px-3 text-sm font-semibold text-[#E7ECF5] transition hover:border-[#4C8DFF] hover:bg-[#0F62FE]/25 disabled:opacity-40"
+                className="h-10 rounded-md border border-accent/50 bg-accent/10 px-3 text-sm font-semibold text-text-primary transition hover:border-accent hover:bg-accent/25 disabled:opacity-40"
               >
                 {describeToken(t)}
               </button>
             ))}
           </div>
         )}
-        <div className="flex flex-wrap gap-2 border-t border-[#233049] pt-3">
+        <div className="flex flex-wrap gap-2 border-t border-border pt-3">
           <button type="button" className={`${chip} inline-flex items-center gap-1.5`} disabled={disabled || !circuit.length} onClick={() => set(circuit.slice(0, -1))}>
             <Undo2 size={14} aria-hidden="true" /> Undo
           </button>
@@ -343,7 +343,7 @@ function CircuitBuilder({ challenge, value, onChange, disabled }: Props) {
           </button>
         </div>
       </div>
-      <p className="text-xs leading-5 text-[#8B95AC]">
+      <p className="text-xs leading-5 text-text-secondary">
         Build the shortest circuit that does the same job. If everything cancels, submit an empty circuit.
       </p>
     </div>
@@ -382,14 +382,14 @@ function DecisionInput({ value, onChange, disabled }: Props) {
             placeholder="e.g. 12.5"
             className={`${inputBase} font-mono`}
           />
-          <span className="text-[#8B95AC]">%</span>
+          <span className="text-text-secondary">%</span>
         </div>
-        <p className="mt-2 text-xs leading-5 text-[#8B95AC]">
+        <p className="mt-2 text-xs leading-5 text-text-secondary">
           Optional. If you enter it, it must be within 1 percentage point of the true QBER for the answer to count.
         </p>
       </div>
       <fieldset disabled={disabled}>
-        <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#8B95AC]">Decision</legend>
+        <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-text-secondary">Decision</legend>
         <div className="grid gap-3 sm:grid-cols-2">
           {choices.map(({ abort, title, body, Icon }) => {
             const checked = v?.abort === abort;
@@ -398,14 +398,14 @@ function DecisionInput({ value, onChange, disabled }: Props) {
                 key={title}
                 className={[
                   'flex cursor-pointer gap-4 rounded-lg border p-5 transition',
-                  checked ? 'border-[#0F62FE] bg-[#0F62FE]/10' : 'border-[#233049] bg-[#0D1728] hover:border-[#34425A]',
+                  checked ? 'border-accent bg-accent/10' : 'border-border bg-surface hover:border-border-strong',
                 ].join(' ')}
               >
                 <input type="radio" name={`${id}-decision`} className="sr-only" checked={checked} onChange={() => emit(abort, qber)} />
-                <Icon size={22} className={checked ? 'text-[#4C8DFF]' : 'text-[#8B95AC]'} aria-hidden="true" />
+                <Icon size={22} className={checked ? 'text-accent' : 'text-text-secondary'} aria-hidden="true" />
                 <span>
-                  <span className="block font-semibold text-[#E7ECF5]">{title}</span>
-                  <span className="mt-1 block text-sm leading-6 text-[#8B95AC]">{body}</span>
+                  <span className="block font-semibold text-text-primary">{title}</span>
+                  <span className="mt-1 block text-sm leading-6 text-text-secondary">{body}</span>
                 </span>
               </label>
             );
@@ -435,7 +435,7 @@ function RateInput({ value, onChange, disabled }: Props) {
           value={rate ?? 0}
           disabled={disabled}
           onChange={(e) => set(Number(e.target.value))}
-          className="h-2 w-full cursor-pointer appearance-none rounded-full bg-[#1A263A] accent-[#0F62FE] disabled:opacity-50 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-[#0F62FE] [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#0F62FE]"
+          className="h-2 w-full cursor-pointer appearance-none rounded-full bg-border accent-accent disabled:opacity-50 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-accent [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent"
           aria-valuetext={`${rate ?? 0}% of qubits intercepted`}
         />
         <div className="flex items-center gap-1">
@@ -452,10 +452,10 @@ function RateInput({ value, onChange, disabled }: Props) {
             placeholder="0"
             className={`${inputBase} w-20 px-3 text-center font-mono`}
           />
-          <span className="text-[#8B95AC]">%</span>
+          <span className="text-text-secondary">%</span>
         </div>
       </div>
-      <p className="mt-3 text-sm leading-6 text-[#8B95AC]">
+      <p className="mt-3 text-sm leading-6 text-text-secondary">
         {rate == null
           ? 'Drag the slider or type a value.'
           : `Eve intercepts and measures ${rate}% of the qubits Alice sends.`}

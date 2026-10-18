@@ -31,12 +31,12 @@ export function Quiz({
 
   if (questions.length === 0) {
     return (
-      <div className="rounded-xl border border-[#233049] bg-[#111B2E] p-7">
-        <p className="font-medium text-[#E7ECF5]">
+      <div className="rounded-xl border border-border bg-surface-raised p-7">
+        <p className="font-medium text-text-primary">
           Test coming soon
         </p>
 
-        <p className="mt-2 text-sm leading-6 text-[#8B95AC]">
+        <p className="mt-2 text-sm leading-6 text-text-secondary">
           The final test for this module has not been added yet.
         </p>
       </div>
@@ -55,26 +55,26 @@ export function Quiz({
           className={[
             'rounded-xl border p-7',
             result.passed
-              ? 'border-[#4ADE80]/30 bg-[#4ADE80]/10'
-              : 'border-[#FBBF24]/30 bg-[#FBBF24]/10',
+              ? 'border-success/30 bg-success/10'
+              : 'border-warning/30 bg-warning/10',
           ].join(' ')}
         >
           <p
             className={[
               'text-xs font-semibold uppercase tracking-[0.2em]',
               result.passed
-                ? 'text-[#4ADE80]'
-                : 'text-[#FBBF24]',
+                ? 'text-success'
+                : 'text-warning',
             ].join(' ')}
           >
             {result.passed ? 'Module complete' : 'Keep learning'}
           </p>
 
-          <h3 className="mt-3 text-3xl font-bold text-[#E7ECF5]">
+          <h3 className="mt-3 text-3xl font-bold text-text-primary">
             {result.score}%
           </h3>
 
-          <p className="mt-2 text-[#C5CDD9]">
+          <p className="mt-2 text-text-secondary">
             You answered {result.correctCount} of {result.total} questions
             correctly. The pass mark is {passMark}%.
           </p>
@@ -82,8 +82,8 @@ export function Quiz({
 
         {/* XP / badges */}
         {result.passed && result.xpAwarded > 0 && (
-          <div className="rounded-xl border border-[#0F62FE]/40 bg-[#0F62FE]/10 p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#4C8DFF]">
+          <div className="rounded-xl border border-accent/40 bg-accent/10 p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
               Reward earned
             </p>
 
@@ -96,14 +96,14 @@ export function Quiz({
                 {result.badgesAwarded.map((badge) => (
                   <div
                     key={badge.id}
-                    className="rounded-md border border-[#2F4770] bg-[#111B2E] px-4 py-3"
+                    className="rounded-md border border-accent/30 bg-surface-raised px-4 py-3"
                   >
-                    <p className="font-medium text-[#E7ECF5]">
+                    <p className="font-medium text-text-primary">
                       Badge earned: {badge.title}
                     </p>
 
                     {badge.description && (
-                      <p className="mt-1 text-sm text-[#8B95AC]">
+                      <p className="mt-1 text-sm text-text-secondary">
                         {badge.description}
                       </p>
                     )}
@@ -122,22 +122,22 @@ export function Quiz({
             return (
               <div
                 key={question.id}
-                className="rounded-xl border border-[#233049] bg-[#111B2E] p-6"
+                className="rounded-xl border border-border bg-surface-raised p-6"
               >
                 <div className="flex gap-4">
                   <div
                     className={[
                       'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
                       questionResult?.correct
-                        ? 'bg-[#4ADE80]/15 text-[#4ADE80]'
-                        : 'bg-[#F87171]/15 text-[#F87171]',
+                        ? 'bg-success/15 text-success'
+                        : 'bg-danger/15 text-danger',
                     ].join(' ')}
                   >
                     {index + 1}
                   </div>
 
                   <div>
-                    <p className="font-medium leading-7 text-[#E7ECF5]">
+                    <p className="font-medium leading-7 text-text-primary">
                       {question.prompt}
                     </p>
 
@@ -145,15 +145,15 @@ export function Quiz({
                       className={[
                         'mt-3 text-sm font-semibold',
                         questionResult?.correct
-                          ? 'text-[#4ADE80]'
-                          : 'text-[#F87171]',
+                          ? 'text-success'
+                          : 'text-danger',
                       ].join(' ')}
                     >
                       {questionResult?.correct ? 'Correct' : 'Incorrect'}
                     </p>
 
                     {questionResult?.explanation && (
-                      <p className="mt-2 text-sm leading-6 text-[#8B95AC]">
+                      <p className="mt-2 text-sm leading-6 text-text-secondary">
                         {questionResult.explanation}
                       </p>
                     )}
@@ -171,7 +171,7 @@ export function Quiz({
               setAnswers({});
               onRetry();
             }}
-            className="rounded-md bg-[#0F62FE] px-6 py-3 font-semibold text-white transition hover:bg-[#0353E9]"
+            className="rounded-md bg-accent px-6 py-3 font-semibold text-accent-contrast transition hover:bg-accent-strong"
           >
             Try again
           </button>
@@ -185,19 +185,19 @@ export function Quiz({
       {questions.map((question, questionIndex) => (
         <fieldset
           key={question.id}
-          className="rounded-xl border border-[#233049] bg-[#111B2E] p-6 sm:p-7"
+          className="rounded-xl border border-border bg-surface-raised p-6 sm:p-7"
         >
           <legend className="sr-only">
             Question {questionIndex + 1}
           </legend>
 
           <div className="flex gap-4">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0F62FE]/15 text-sm font-semibold text-[#4C8DFF]">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15 text-sm font-semibold text-accent">
               {questionIndex + 1}
             </div>
 
             <div className="w-full">
-              <p className="font-medium leading-7 text-[#E7ECF5]">
+              <p className="font-medium leading-7 text-text-primary">
                 {question.prompt}
               </p>
 
@@ -212,8 +212,8 @@ export function Quiz({
                       className={[
                         'flex cursor-pointer items-start gap-3 rounded-lg border px-4 py-3.5 transition',
                         selected
-                          ? 'border-[#0F62FE] bg-[#0F62FE]/10'
-                          : 'border-[#2A3850] bg-[#0D1728] hover:border-[#536078]',
+                          ? 'border-accent bg-accent/10'
+                          : 'border-border bg-surface hover:border-border-strong',
                       ].join(' ')}
                     >
                       <input
@@ -229,7 +229,7 @@ export function Quiz({
                         className="mt-1 accent-[#0F62FE]"
                       />
 
-                      <span className="text-sm leading-6 text-[#C5CDD9]">
+                      <span className="text-sm leading-6 text-text-secondary">
                         {option}
                       </span>
                     </label>
@@ -242,7 +242,7 @@ export function Quiz({
       ))}
 
       <div className="flex items-center justify-between gap-4">
-        <p className="text-sm text-[#8B95AC]">
+        <p className="text-sm text-text-secondary">
           {Object.keys(answers).length} of {questions.length} answered
         </p>
 
@@ -250,7 +250,7 @@ export function Quiz({
           type="button"
           disabled={!allAnswered || busy}
           onClick={() => onSubmit(answers)}
-          className="rounded-md bg-[#0F62FE] px-6 py-3 font-semibold text-white transition hover:bg-[#0353E9] disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-md bg-accent px-6 py-3 font-semibold text-accent-contrast transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40"
         >
           {busy ? 'Submitting...' : 'Submit test'}
         </button>

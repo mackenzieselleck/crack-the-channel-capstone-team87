@@ -68,10 +68,10 @@ export function ChallengeData({ challenge }: { challenge: PublicChallenge }) {
     case 'which_single_gate':
       return (
         <Panel label="Gate product">
-          <div className="py-2 text-center text-3xl font-semibold tracking-wide text-[#E7ECF5]">
+          <div className="py-2 text-center text-3xl font-semibold tracking-wide text-text-primary">
             <Tex tex={`${str(d.expression)} = \\;?`} />
           </div>
-          <p className="text-center text-xs text-[#8B95AC]">
+          <p className="text-center text-xs text-text-secondary">
             Gates are applied right to left, like matrix multiplication.
           </p>
         </Panel>
@@ -89,7 +89,7 @@ export function ChallengeData({ challenge }: { challenge: PublicChallenge }) {
     case 'module_question':
       return (
         <Panel label="Question">
-          <p className="text-base leading-7 text-[#E7ECF5]">{str(d.question)}</p>
+          <p className="text-base leading-7 text-text-primary">{str(d.question)}</p>
         </Panel>
       );
     default:
@@ -105,9 +105,9 @@ function Stack({ children }: { children: React.ReactNode }) {
 
 function Panel({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-[#233049] bg-[#0D1728] p-5">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#8B95AC]">{label}</p>
-      <div className="overflow-x-auto text-[#E7ECF5]">{children}</div>
+    <div className="rounded-lg border border-border bg-surface p-5">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-text-secondary">{label}</p>
+      <div className="overflow-x-auto text-text-primary">{children}</div>
     </div>
   );
 }
@@ -116,9 +116,9 @@ function Tiles({ items }: { items: { label: string; value: string; mono?: boolea
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {items.map((t) => (
-        <div key={t.label} className="rounded-lg border border-[#233049] bg-[#0D1728] px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.15em] text-[#8B95AC]">{t.label}</p>
-          <p className={['mt-1 text-lg font-semibold text-[#E7ECF5]', t.mono ? 'break-all font-mono tracking-wider' : ''].join(' ')}>
+        <div key={t.label} className="rounded-lg border border-border bg-surface px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.15em] text-text-secondary">{t.label}</p>
+          <p className={['mt-1 text-lg font-semibold text-text-primary', t.mono ? 'break-all font-mono tracking-wider' : ''].join(' ')}>
             {t.value}
           </p>
         </div>
@@ -132,8 +132,8 @@ function groupBits(bits: string, size: number) {
   return bits.match(new RegExp(`.{1,${size}}`, 'g'))?.join(' ') ?? bits;
 }
 
-const th = 'sticky top-0 bg-[#111B2E] px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#8B95AC]';
-const td = 'px-4 py-2 font-mono text-sm text-[#C5CDD9]';
+const th = 'sticky top-0 bg-surface-raised px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-[0.12em] text-text-secondary';
+const td = 'px-4 py-2 font-mono text-sm text-text-secondary';
 
 type SiftedRow = { round: number; alice_bit: number; bob_bit: number };
 function SiftedTable({ rows }: { rows: SiftedRow[] }) {
@@ -148,8 +148,8 @@ function SiftedTable({ rows }: { rows: SiftedRow[] }) {
       </thead>
       <tbody>
         {rows.map((r) => (
-          <tr key={r.round} className="border-t border-[#1A263A]">
-            <td className={`${td} text-[#8B95AC]`}>{r.round}</td>
+          <tr key={r.round} className="border-t border-border">
+            <td className={`${td} text-text-secondary`}>{r.round}</td>
             <td className={td}>{r.alice_bit}</td>
             <td className={td}>{r.bob_bit}</td>
           </tr>
@@ -174,8 +174,8 @@ function RoundsTable({ rows }: { rows: RoundRow[] }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.round} className="border-t border-[#1A263A]">
-              <td className={`${td} text-[#8B95AC]`}>{r.round}</td>
+            <tr key={r.round} className="border-t border-border">
+              <td className={`${td} text-text-secondary`}>{r.round}</td>
               <td className={td}>{r.alice_bit}</td>
               <td className={td}>{r.alice_basis}</td>
               <td className={td}>{r.bob_basis}</td>
@@ -183,7 +183,7 @@ function RoundsTable({ rows }: { rows: RoundRow[] }) {
           ))}
         </tbody>
       </ScrollTable>
-      <p className="text-xs leading-5 text-[#8B95AC]">
+      <p className="text-xs leading-5 text-text-secondary">
         Z is the standard (computational) basis and X is the diagonal (Hadamard) basis.
       </p>
     </div>
@@ -192,7 +192,7 @@ function RoundsTable({ rows }: { rows: RoundRow[] }) {
 
 function ScrollTable({ caption, children }: { caption: string; children: React.ReactNode }) {
   return (
-    <div className="max-h-96 overflow-auto rounded-lg border border-[#233049] bg-[#0D1728]">
+    <div className="max-h-96 overflow-auto rounded-lg border border-border bg-surface">
       <table className="w-full border-collapse">
         <caption className="sr-only">{caption}</caption>
         {children}
@@ -204,15 +204,15 @@ function ScrollTable({ caption, children }: { caption: string; children: React.R
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 function LetterTable({ encoding }: { encoding: string }) {
   return (
-    <details className="group rounded-lg border border-[#233049] bg-[#0D1728]">
-      <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-3 text-sm font-medium text-[#C5CDD9]">
+    <details className="group rounded-lg border border-border bg-surface">
+      <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-3 text-sm font-medium text-text-secondary">
         <span>Letter encoding: {encoding}</span>
-        <ChevronDown size={16} className="text-[#8B95AC] transition group-open:rotate-180" aria-hidden="true" />
+        <ChevronDown size={16} className="text-text-secondary transition group-open:rotate-180" aria-hidden="true" />
       </summary>
-      <div className="grid grid-cols-2 gap-x-6 gap-y-1 border-t border-[#233049] px-5 py-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-1 border-t border-border px-5 py-4 sm:grid-cols-4">
         {ALPHABET.split('').map((letter, i) => (
-          <p key={letter} className="font-mono text-xs text-[#AAB4C5]">
-            <span className="inline-block w-4 font-semibold text-[#E7ECF5]">{letter}</span>{' '}
+          <p key={letter} className="font-mono text-xs text-text-secondary">
+            <span className="inline-block w-4 font-semibold text-text-primary">{letter}</span>{' '}
             {i.toString(2).padStart(5, '0')}
           </p>
         ))}
@@ -233,8 +233,8 @@ function StateEvolution({ d }: { d: Data }) {
           <ol className="flex flex-wrap items-center gap-2">
             {gates.map((g, i) => (
               <li key={i} className="flex items-center gap-2">
-                {i > 0 && <span className="text-[#69758A]">then</span>}
-                <span className="rounded-md border border-[#4C8DFF]/40 bg-[#0F62FE]/10 px-3 py-1.5 text-sm font-semibold text-[#E7ECF5]">
+                {i > 0 && <span className="text-text-secondary">then</span>}
+                <span className="rounded-md border border-accent/40 bg-accent/10 px-3 py-1.5 text-sm font-semibold text-text-primary">
                   {g}
                 </span>
               </li>
@@ -248,7 +248,7 @@ function StateEvolution({ d }: { d: Data }) {
         </Panel>
       )}
       {d.convention != null && (
-        <p className="text-xs leading-5 text-[#8B95AC]">
+        <p className="text-xs leading-5 text-text-secondary">
           Notation: <MathText text={str(d.convention)} />
         </p>
       )}

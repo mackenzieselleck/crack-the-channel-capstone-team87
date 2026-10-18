@@ -16,6 +16,7 @@ function formDataFor(email: string, password: string, captchaToken: string) {
   const formData = new FormData();
   formData.set('email', email);
   formData.set('password', password);
+  formData.set('confirmPassword', password);
   formData.set('captchaToken', captchaToken);
   return formData;
 }
