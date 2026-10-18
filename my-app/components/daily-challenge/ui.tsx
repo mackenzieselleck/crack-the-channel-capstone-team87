@@ -1,6 +1,6 @@
 'use client';
 
-// Small shared pieces for the Daily Challenge pages, styled to match the learning modules.
+// small shared pieces for Daily Challenge pages
 import { AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -51,11 +51,7 @@ export function ErrorCard({
   );
 }
 
-/**
- * The pages sit behind the login wall (requireOnboarding() from lib/auth/guards.ts in each page.tsx), so a 401 here
- * only means the session ended while the page was open. Re-running the server page lets the
- * guard redirect to login, exactly as on any other protected page.
- */
+
 export function useSessionExpiry(error: ApiFailure | null) {
   const router = useRouter();
   useEffect(() => {
@@ -63,7 +59,7 @@ export function useSessionExpiry(error: ApiFailure | null) {
   }, [error, router]);
 }
 
-/** Attempt indicator: filled dots for used attempts. */
+// attempt indicator: filled dots for used attempts
 export function AttemptDots({ used, max, solved }: { used: number; max: number; solved: boolean }) {
   return (
     <span className="flex items-center gap-1.5" aria-label={`${used} of ${max} attempts used`}>

@@ -1,4 +1,3 @@
-// POST /api/challenge/submit
 // user submits answer -> grading is done by Python service
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -12,8 +11,7 @@ import type { SubmitResponse } from "@/lib/daily-challenge/types";
 // grading plus feedback can take a while
 export const maxDuration = 60;
 
-// size limited, shape checked request body
-// `submission` must match exactly one answer format below, one per input_kind:
+// submission must match exactly one answer format per input type
 const Body = z.object({
   challengeId: z.string().uuid(),
   hintsUsed: z.number().int().min(0).max(3).default(0),
@@ -30,7 +28,6 @@ const Body = z.object({
 
 export async function POST(req: NextRequest) {
   // ---- Authenticate: read the signed in user from their session cookie
-  // getUser() verifies session with Supabase rather than trusting cookie alone
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "sign in required" }, { status: 401 });
@@ -85,7 +82,7 @@ export async function POST(req: NextRequest) {
     useLlm: await llmAllowed(userId),
   });
 
-  // ---- Record attempt (the mistake tag is kept for analytics)
+  // ---- Record attempt
   const hintsUsed = ch.hints_revealed ?? 0;
   const { data: attempt, error: insertError } = await admin.from("challenge_attempts").insert({
     user_id: userId, challenge_id: challengeId, attempt_no: attemptNo,
@@ -97,8 +94,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "server error" }, { status: 500 });
   }
 
-  // ---- On a correct answer, award XP and update streak
-  // record_daily_solve validates its inputs, uses the Melbourne date, and returns what was awarded
+  // ---- On correct answer award XP and update streak
  let xpAwarded: number | null = null;
   if (grade.correct) {
     const { data: solve, error: solveError } = await admin.rpc("record_daily_solve", {

@@ -1,18 +1,10 @@
 'use client';
 
-// Corner pop-up nudging users who haven't solved a Daily Challenge today.
-// It lives behind the login wall: mount <DailyChallengePopup /> ONLY in the layout(s) of
-// logged-in content pages (the ones guarded by requireOnboarding()), never in the root
-// layout, so it can't appear on the landing page, auth pages or onboarding.
-// Three states, remembered per Melbourne day in this browser:
-//   - full: the card, shown until the user acts on it,
-//   - mini: "Later" (or Escape) shrinks it to a small round button in the same corner that
-//     opens the Daily Challenge, so it's always one click away,
-//   - hidden: the × hides it completely until tomorrow.
-// It never shows when:
-//   - they've solved at least one tier today (their streak is safe),
-//   - they're on a Daily Challenge page (the challenge is already in front of them),
-//   - the status call fails for any reason (it never shows an error).
+// corner pop-up for challenge to remind users to solve their Daily Challenge each day
+// three states, remembered per Melbourne day in browser:
+//   - full card: shown until the user does challenge
+//   - mini card: shrinks to a small round button
+//   - hidden: × hides it completely until tomorrow
 import { Flame, Swords, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -20,9 +12,9 @@ import { Suspense, useEffect, useState } from 'react';
 import { dailyApi } from '@/lib/daily-challenge/client';
 import type { StatusResponse } from '@/lib/daily-challenge/types';
 
-/** The Daily Challenge pages themselves never show the nudge. */
+// Daily Challenge pages never show popup
 const CHALLENGE_PREFIX = '/daily-challenge';
-/** Wait a moment after page load so the pop-up doesn't compete with the page itself. */
+// wait a moment after load so pop-up doesn't compete with page
 const SHOW_DELAY_MS = 1500;
 
 type Mode = 'full' | 'mini' | 'hidden';
@@ -41,7 +33,7 @@ function saveMode(date: string, mode: Mode) {
   try { localStorage.setItem(modeKey(date), mode); } catch { /* storage unavailable */ }
 }
 
-/** Mount in logged-in content layouts only. The Suspense boundary lets pages prerender around it. */
+// mount in logged-in content only
 export function DailyChallengePopup() {
   return (
     <Suspense fallback={null}>
@@ -56,7 +48,7 @@ function Popup() {
   const [status, setStatus] = useState<StatusResponse | null>(null);
   const [mode, setMode] = useState<Mode>('hidden');
 
-  // Re-check on navigation so solving a challenge hides it everywhere.
+  // re-check on navigation so solving challenge hides it everywhere
   useEffect(() => {
     if (hiddenHere) return;
     let cancelled = false;
@@ -67,7 +59,7 @@ function Popup() {
         setStatus(s);
         setMode(s.completedToday ? 'hidden' : readMode(s.date));
       } catch {
-        // Session ended, rate limited or offline: stay hidden.
+        // session ended, rate limited or offline: stay hidden
         if (!cancelled) setMode('hidden');
       }
     }, SHOW_DELAY_MS);
@@ -82,7 +74,7 @@ function Popup() {
     if (status) saveMode(status.date, next);
   }
 
-  // Escape shrinks the card, like "Later".
+  // escape shrinks card
   useEffect(() => {
     if (mode !== 'full') return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && change('mini');

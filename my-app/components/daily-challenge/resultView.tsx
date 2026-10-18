@@ -1,8 +1,6 @@
 'use client';
 
-// /daily-challenge/[tier]/result: the outcome of the latest submission.
-// Reads everything from the server (feedback and XP are stored with each attempt),
-// so the page survives a refresh and can be revisited from the hub.
+// daily-challenge result: outcome of the latest submission
 import { Award, BookOpenCheck, Check, ChevronLeft, ChevronRight, Flame, RotateCcw, X } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -30,7 +28,7 @@ export function ResultView() {
     Promise.all([dailyApi.today(tier), dailyApi.status()]).then(
       ([today, st]) => {
         if (!active) return;
-        // Nothing submitted yet: this tier's result doesn't exist, so go to the challenge.
+        // nothing submitted: result doesn't exist, so go to challenge
         if (!today.progress.lastAttempt) {
           router.replace(`/daily-challenge/${tier}`);
           return;
@@ -42,7 +40,7 @@ export function ResultView() {
     );
     return () => {
       active = false;
-      setData(null);   // never flash a previous attempt's result when this page is revisited
+      setData(null);   // never flash a previous attempt's result
     };
   }, [tier, router, reloadKey]);
 

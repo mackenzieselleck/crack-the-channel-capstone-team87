@@ -1,6 +1,5 @@
-// GET /api/challenge/status
-// Cheap summary of today's three tiers plus the user's streak and XP. Used by the Daily
-// Challenge hub and the corner pop-up. Never generates a challenge or calls the LLM.
+
+// cheap summary of today's three tiers and user's streak and XP for challenge hub
 import { NextResponse } from "next/server";
 import { createAdminClient, createClient, MAX_ATTEMPTS, melbourneDate } from "@/lib/supabase/server";
 import { limitRoute } from "@/lib/daily-challenge/rateLimit";

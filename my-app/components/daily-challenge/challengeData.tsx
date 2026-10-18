@@ -1,7 +1,6 @@
 'use client';
 
-// The data panel for each challenge category: tables, states, matrices and circuits.
-// Everything shown here comes from prompt_data, written by the Python generators.
+// data panel for each challenge category: tables, states, matrices and circuits
 import { ChevronDown } from 'lucide-react';
 import type { PublicChallenge } from '@/lib/daily-challenge/types';
 import { CircuitDiagram } from './circuitDiagram';
@@ -98,10 +97,8 @@ export function ChallengeData({ challenge }: { challenge: PublicChallenge }) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Building blocks
-// ---------------------------------------------------------------------------
 
+// building blocks
 function Stack({ children }: { children: React.ReactNode }) {
   return <div className="space-y-4">{children}</div>;
 }

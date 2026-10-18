@@ -1,4 +1,4 @@
-// Browser-side helpers for the Daily Challenge API. Client-safe.
+// browser-side helpers for Daily Challenge API
 import type {
   ApiError, Difficulty, HintResponse, StatusResponse, Submission, SubmitResponse, TodayResponse,
 } from "./types";
@@ -9,7 +9,7 @@ export class ApiFailure extends Error {
   }
 }
 
-/** Normalise any thrown value into an ApiFailure. */
+// normalise any thrown value into ApiFailure
 export function toFailure(e: unknown): ApiFailure {
   return e instanceof ApiFailure ? e : new ApiFailure('Something went wrong. Please try again.', 500);
 }
@@ -44,13 +44,13 @@ export const dailyApi = {
     api<SubmitResponse>("/api/challenge/submit", post({ challengeId, submission })),
 };
 
-/** Parse the [tier] route segment. */
+// parse [tier] route segment
 export function parseTier(raw: string | string[] | undefined): Difficulty | null {
   const n = Number(Array.isArray(raw) ? raw[0] : raw);
   return n === 1 || n === 2 || n === 3 ? n : null;
 }
 
-// The user's last answer per challenge, so "Try again" starts from what they submitted.
+// user's last answer per challenge, so "Try again" starts from what was submitted
 const draftKey = (challengeId: string) => `dc-draft:${challengeId}`;
 export function saveDraft(challengeId: string, submission: Submission) {
   try { sessionStorage.setItem(draftKey(challengeId), JSON.stringify(submission)); } catch { /* storage unavailable */ }

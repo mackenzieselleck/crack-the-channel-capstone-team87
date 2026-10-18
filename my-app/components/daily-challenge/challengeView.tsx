@@ -1,6 +1,6 @@
 'use client';
 
-// /daily-challenge/[tier]: one challenge, with its data, answer input and hints.
+// dailychallenge tier: one challenge, with its data, answer input and hints
 import { ChevronLeft, ChevronRight, Target } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -33,7 +33,7 @@ export function ChallengeView() {
     dailyApi.today(tier).then(
       (res) => {
         if (!active) return;
-        // Finished tiers go straight to their result.
+        // finished tiers go straight to result
         if (res.progress.solved || res.progress.attemptsLeft === 0) {
           router.replace(`/daily-challenge/${tier}/result`);
           return;
@@ -45,8 +45,7 @@ export function ChallengeView() {
     );
     return () => {
       active = false;
-      // Next.js may keep this page alive in the background after navigating to the result.
-      // Reset so coming back shows fresh progress, not the old grading overlay.
+      // reset so coming back shows fresh progress
       setData(null);
       setGrading(false);
       setSubmitError(null);

@@ -1,33 +1,28 @@
 'use client';
 
-// Renders challenge maths with KaTeX. Challenge data comes from the Python generators, which
-// write LaTeX (states, matrices, fractions). LLM-written text is never passed through here:
-// it is always rendered as plain text.
+// renders challenge maths with KaTeX
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { useMemo } from 'react';
 
 function render(tex: string, displayMode: boolean) {
-  // trust: false (the default) blocks \href, \url and similar, so output is inert HTML.
+  // false blocks \href, \url and similar, so output is HTML
   return katex.renderToString(tex, { throwOnError: false, displayMode, output: 'html' });
 }
 
-/** True if the string is LaTeX rather than plain text (e.g. "\frac{1}{2}", "|0\rangle"). */
+// true if string is LaTeX
 export function looksLikeTex(s: string) {
   return /\\[a-zA-Z]+|\^\{?|_\{/.test(s);
 }
 
-/** Pure LaTeX, inline or display. */
+// pure LaTeX, inline or display
 export function Tex({ tex, display = false, large = false, className }: { tex: string; display?: boolean; large?: boolean; className?: string }) {
-  // `large` keeps inline maths at full display size (readable fractions in answer options).
+  // large keeps inline maths at full display size
   const html = useMemo(() => render(large && !display ? `\\displaystyle ${tex}` : tex, display), [tex, display, large]);
   return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
-/**
- * Mixed content: "$...$" segments render as maths, a string that is entirely LaTeX renders
- * as maths, and anything else is plain text.
- */
+// mixed content segments render as maths and entirely LaTeX renders as maths
 export function MathText({ text, display = false, large = false, className }: { text: string; display?: boolean; large?: boolean; className?: string }) {
   if (text.includes('$')) {
     const parts = text.split(/\$([^$]+)\$/g);

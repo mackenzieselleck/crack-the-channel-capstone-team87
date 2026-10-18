@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: 'Challenge result | Crack the Channel
 
 export default async function DailyChallengeResultPage() {
   await requireOnboarding();
-  // Suspense: the view reads the [tier] param on the client.
+  // view reads [tier] param on client
   return (
     <Suspense>
       <ResultView />

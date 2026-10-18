@@ -2,12 +2,12 @@
 import { writeModuleMcq, type Challenge } from "./prompts";
 import { createAdminClient, seededRandom } from "@/lib/supabase/server";
 
-// builds module_mcq challenge in same shape the Python service returns so it is treated the same as other categories
+// builds module_mcq challenge in same shape the Python service returns
 const MAX_PASSAGE_CHARS = 6000;
 
 type Mcq = { question: string; options: string[]; correct_index: number; explanation: string; supporting_quote?: string };
 
-/** Returns null if user has no completed module with content (category is skipped) */
+// returns null if user has no completed module
 export async function buildModuleMcq(userId: string, seed: number, useLlm = true): Promise<Challenge | null> {
   const admin = createAdminClient();   // reads module data and server only question pool
   // modules user has completed
@@ -16,13 +16,13 @@ export async function buildModuleMcq(userId: string, seed: number, useLlm = true
   if (error) console.error("[daily-challenge] module_mcq: reading module_progress failed:", error.code, error.message);
   if (!progress?.length) return null;
 
-  // Keep only modules that are still published.
+  // keep only modules that are published
   const { data: published } = await admin.from("modules")
     .select("id").in("id", progress.map((p) => p.module_id)).eq("is_published", true);
   const moduleIds = (published ?? []).map((m) => m.id as string).sort();   // sorted: stable order for the seed
   if (!moduleIds.length) return null;
 
-  // seeded randomness, so the same user, day and tier always get the same question
+  // seeded randomness, so the same user, day and tier always get same question
   const rand = seededRandom(seed);
   const moduleId = moduleIds[Math.floor(rand() * moduleIds.length)];
 
@@ -42,7 +42,7 @@ export async function buildModuleMcq(userId: string, seed: number, useLlm = true
     }
   }
   
- // Fallback: a question from the module's end-of-module test (human-written, already passed).
+ // fallback: a question from module's end-of-module test
   if (!q) {
     const { data: questions } = await admin.from("quiz_questions")
       .select("id,prompt,options,explanation,answer_keys(correct_index)")
@@ -71,12 +71,12 @@ export async function buildModuleMcq(userId: string, seed: number, useLlm = true
   }
   const ids = "abcdefgh".split("");
   const options = order.map((orig, i) => ({ id: ids[i], display: q!.options[orig] }));
-  // Find where the correct option ended up, and record its new id.
+  // find where the correct option ended up, and record its new id
   const correctId = ids[order.indexOf(q.correct_index)];
-  // Show the supporting quote in the worked solution so users can see where the answer comes from.
+  // show supporting quote in worked solution so users can see where answer comes from
   const quote = q.supporting_quote ? `\n\nFrom the module: "${q.supporting_quote}"` : "";
 
-  // same shape as a Python generated challenge, so storage and grading work the same way
+  // same shape as Python generated challenge, so storage and grading work in same way
   // correct option text is a leak term, so hints can't give it away
   return {
     type: "module_mcq",
@@ -91,7 +91,7 @@ export async function buildModuleMcq(userId: string, seed: number, useLlm = true
   };
 }
 
-/** grade module question */
+// grade module question
 export function gradeModuleMcq(answer: Record<string, unknown>, submission: Record<string, unknown>) {
   const correct = submission.option_id === answer.correct_option;
   return {

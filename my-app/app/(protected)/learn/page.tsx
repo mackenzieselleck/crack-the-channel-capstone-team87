@@ -1,6 +1,4 @@
-// /learn: every published learning module, with the signed-in user's progress.
-// Server component: reads with the user's own session, so RLS applies
-// (published modules and their pages only; the user's own progress only).
+// every published learning modulewith user's progress
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BookOpen, Check, ChevronRight, Lock } from 'lucide-react';

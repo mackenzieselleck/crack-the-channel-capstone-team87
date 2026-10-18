@@ -2,7 +2,7 @@
 import OpenAI from "openai";
 import { z } from "zod";
 
-// open source LLM client -> any OpenAI compatible endpoint will work
+// open source LLM client ->  Groq
 
 // LLM variables
 export const llm = new OpenAI({
@@ -11,26 +11,21 @@ export const llm = new OpenAI({
   timeout: 30_000,                            // default timeout
 });
 const MODEL = process.env.LLM_MODEL ?? "openai/gpt-oss-20b";
-// requesting JSON output (dependent on what LLM we choose)
-// "json_schema" if the provider supports structured outputs (vLLM, most hosts)
-// "json_object" as fallback. Zod validation below runs either way
+
 const JSON_MODE = (process.env.LLM_JSON_MODE ?? "json_schema") as "json_schema" | "json_object";
-// gpt-oss is a reasoning model. "low" keeps the user-facing calls well inside their timeouts;
-// the jobs are writing tasks, not reasoning tasks. Leave unset for models without this option.
+
 const REASONING_EFFORT = process.env.LLM_REASONING_EFFORT as "low" | "medium" | "high" | undefined;
 
 
-/** removes ```json fences that some models wrap around their output. */
+// removes json fences that some models wrap around their output
 function stripFences(t: string) {
   return t.replace(/```json|```/g, "").trim();
 }
 
 // JSON Schema keywords that some providers reject in strict structured-output mode
-// (Groq documents support for types, enums and number ranges only). Length limits are
-// still enforced: Zod re-validates every response below.
 const UNSUPPORTED_KEYWORDS = new Set(["$schema", "minLength", "maxLength", "minItems", "maxItems", "pattern", "format"]);
 
-/** Convert a Zod schema to a JSON Schema that strict-mode providers accept. */
+// cnvert a Zod schema to a JSON Schema that strict-mode providers accept
 export function providerSchema(schema: z.ZodType): Record<string, unknown> {
   const strip = (node: unknown): unknown => {
     if (Array.isArray(node)) return node.map(strip);
@@ -66,7 +61,7 @@ export async function llmJson<T>(opts: {
       temperature,
       messages: [
         { role: "system", content: system },
-        // on retry, tell the model why its last output was rejected so it can be fixed
+        // on retry, tell model why last output was rejected
         { role: "user", content: lastError ? `${user}\n\nYour previous output was rejected: ${lastError}. Fix it.` : user },
       ],
       // ask provider to keep outputs to JSON only
@@ -86,7 +81,7 @@ export async function llmJson<T>(opts: {
       if (!problem) return parsed;
       lastError = problem;
     } catch (e) {
-       // A provider 429 means the shared quota is used up: retrying immediately won't help.
+       // a provider 429 means the shared quota is used up
       if (e instanceof OpenAI.APIError && e.status === 429) throw new Error("LLM provider rate limit reached");
       // keep error short, it's sent back to model on the next attempt
       lastError = e instanceof Error ? e.message.slice(0, 200) : "invalid JSON";
@@ -95,11 +90,8 @@ export async function llmJson<T>(opts: {
   throw new Error(`LLM output failed validation: ${lastError}`);
 }
 
-/**
- * true if any answer string appears in text
- * case and whitespace are ignored, so "Key" and "K E Y" both match "KEY".
- * terms shorter than 2 characters are skipped to avoid false matches
- */
+
+// checks for answer leaks
 export function leaks(text: string, leakTerms: string[]): boolean {
   const norm = (s: string) => s.toLowerCase().replace(/\s+/g, "");
   const t = norm(text);

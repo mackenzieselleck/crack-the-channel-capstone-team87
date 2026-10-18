@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-/** The loading wheel used across the Daily Challenge. */
+// loading wheel used across Daily Challenge
 export function Spinner({ size = 40, className = '' }: { size?: number; className?: string }) {
   return (
     <svg

@@ -1,7 +1,7 @@
 'use client';
 
-// Hints are revealed one at a time through the server, which records each reveal so the
-// XP penalty can't be skipped. Hint text is LLM-written (leak-checked), so it's plain text.
+// hints are revealed one at a time throw server
+// hint text is LLM written with fallbacks at failure
 import { Lightbulb, Lock } from 'lucide-react';
 import { useState } from 'react';
 import { ApiFailure, dailyApi } from '@/lib/daily-challenge/client';
@@ -18,7 +18,7 @@ export function HintPanel({
   challengeId: string;
   hints: string[];
   hintsTotal: number;
-  /** True once solved or out of attempts: reveals no longer cost XP, but we stop offering them. */
+  // true once solved or out of attempts
   locked: boolean;
   onHints: (hints: string[]) => void;
 }) {

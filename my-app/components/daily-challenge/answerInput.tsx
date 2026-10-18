@@ -1,8 +1,6 @@
 'use client';
 
-// One input component per input_kind. Each produces exactly the submission shape the
-// submit route's Zod union accepts. Inputs are controlled: `value` is the current
-// submission (or null when incomplete) and `onChange` reports the new one.
+// one input component per input type
 import { Delete, RotateCcw, ShieldAlert, ShieldCheck, Undo2 } from 'lucide-react';
 import { useId, useState } from 'react';
 import type { PublicChallenge, Submission } from '@/lib/daily-challenge/types';
@@ -30,14 +28,14 @@ export function AnswerInput(props: Props) {
   }
 }
 
-/** True when the submission is complete enough to send. */
+// true when submission is complete enough to send
 export function isComplete(s: Submission | null): s is Submission {
   if (!s) return false;
   if ('option_id' in s) return !!s.option_id;
   if ('bits' in s) return /^[01]{1,64}$/.test(s.bits);
   if ('text' in s) return s.text.trim().length > 0;
   if ('amplitudes' in s) return s.amplitudes.length === 4 && s.amplitudes.every((a) => a.trim().length > 0);
-  if ('circuit' in s) return true;                 // an empty circuit is a valid answer (identity)
+  if ('circuit' in s) return true;                 // empty circuit is a valid answer
   if ('abort' in s) return typeof s.abort === 'boolean';
   if ('rate_pct' in s) return Number.isFinite(s.rate_pct);
   return false;
@@ -56,9 +54,7 @@ function Label({ htmlFor, children }: { htmlFor?: string; children: React.ReactN
   );
 }
 
-// ---------------------------------------------------------------------------
-// Multiple choice (bb84_eve t2, state_evolution t1-2, normalisation t1, gate t1, module_mcq)
-// ---------------------------------------------------------------------------
+// multiple choice
 function MultipleChoice({ challenge, value, onChange, disabled }: Props) {
   const selected = value && 'option_id' in value ? value.option_id : null;
   const name = useId();
@@ -102,9 +98,8 @@ function MultipleChoice({ challenge, value, onChange, disabled }: Props) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Bit string (sifting t1-2)
-// ---------------------------------------------------------------------------
+
+// bit string
 function BitsInput({ value, onChange, disabled }: Props) {
   const bits = value && 'bits' in value ? value.bits : '';
   const id = useId();
@@ -138,9 +133,8 @@ function BitsInput({ value, onChange, disabled }: Props) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Three-letter word (sifting t3)
-// ---------------------------------------------------------------------------
+
+// three-letter word
 function WordInput({ value, onChange, disabled }: Props) {
   const text = value && 'text' in value ? value.text : '';
   const id = useId();
@@ -166,9 +160,7 @@ function WordInput({ value, onChange, disabled }: Props) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Typed maths (normalisation t2-3)
-// ---------------------------------------------------------------------------
+// typed maths
 function MathInput({ challenge, value, onChange, disabled }: Props) {
   const text = value && 'text' in value ? value.text : '';
   const id = useId();
@@ -204,9 +196,8 @@ function MathInput({ challenge, value, onChange, disabled }: Props) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Amplitudes (state_evolution t3)
-// ---------------------------------------------------------------------------
+
+// amplitudes
 const AMP_CHIPS = [
   { insert: '0', label: '0' },
   { insert: '1', label: '1' },
@@ -276,9 +267,7 @@ function AmplitudesInput({ challenge, value, onChange, disabled }: Props) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Circuit builder (gate_simplification t2-3)
-// ---------------------------------------------------------------------------
+// circuit builder
 function CircuitBuilder({ challenge, value, onChange, disabled }: Props) {
   const d = challenge.prompt_data as Record<string, unknown>;
   const palette = (d.palette as string[]) ?? [];
@@ -287,7 +276,7 @@ function CircuitBuilder({ challenge, value, onChange, disabled }: Props) {
   const circuit = value && 'circuit' in value ? value.circuit : [];
   const set = (c: string[]) => onChange({ circuit: c.slice(0, 20) });
 
-  // Group the palette by qubit so the buttons read "q0: H X Z S".
+  // group palette by qubit so buttons read "q0: H X Z S"
   const groups = Array.from({ length: numQubits }, (_, q) =>
     palette.filter((t) => !t.startsWith('cx') && t.endsWith(` ${q}`)),
   );
@@ -361,9 +350,7 @@ function CircuitBuilder({ challenge, value, onChange, disabled }: Props) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Abort decision (bb84_eve t1)
-// ---------------------------------------------------------------------------
+// abort decision
 function DecisionInput({ value, onChange, disabled }: Props) {
   const v = value && 'abort' in value ? value : null;
   const [qber, setQber] = useState(v?.qber_pct != null ? String(v.qber_pct) : '');
@@ -429,9 +416,8 @@ function DecisionInput({ value, onChange, disabled }: Props) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Intercept rate (bb84_eve t3, play as Eve)
-// ---------------------------------------------------------------------------
+
+// intercept rate 
 function RateInput({ value, onChange, disabled }: Props) {
   const rate = value && 'rate_pct' in value ? value.rate_pct : null;
   const id = useId();

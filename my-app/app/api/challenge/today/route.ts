@@ -1,8 +1,5 @@
-// GET /api/challenge/today?difficulty=1|2|3
-// Returns the user's challenge for today at that tier (generating it on first request) plus
-// their progress on it. The category is random but seeded by user + date + tier, so
-// refreshing can't re-roll it. Hints are NOT included here: they're revealed one at a time
-// through POST /api/challenge/hint so the XP penalty is tracked on the server (ADR 018).
+// returns user's challenge at that tier and their progress on it
+// category is random but seeded by user + date + tier
 import { NextRequest, NextResponse } from "next/server";
 import { buildModuleMcq } from "@/lib/daily-challenge/moduleMcq";
 import { FALLBACK_TEXT, writeChallengeText, type Challenge } from "@/lib/daily-challenge/prompts";
@@ -11,54 +8,53 @@ import { limitRoute, llmAllowed } from "@/lib/daily-challenge/rateLimit";
 import { loadProgress, PUBLIC_COLS } from "@/lib/daily-challenge/progress";
 import type { PublicChallenge, TodayResponse } from "@/lib/daily-challenge/types";
 
-// Allow up to 60 s: first generation calls the Python service and the LLM.
+// allow 60 s: first generation calls Python service and LLM
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
-  // ---- Authenticate: read the signed-in user from their session cookie.
-  // getUser() verifies the session with Supabase rather than trusting the cookie alone.
+  // ---- Authenticate: read signed-in user from session cookie
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "sign in required" }, { status: 401 });
   const userId = user.id;
   const limited = await limitRoute(userId, "today");
   if (limited) return limited;
-  // Admin client for the server-only tables (only after the user is verified).
+  // admin client for server-only tables 
   const admin = createAdminClient();
 
-  // ---- Validate the requested tier.
+  // ---- Validate requested tier
   const difficulty = Number(req.nextUrl.searchParams.get("difficulty"));
   if (![1, 2, 3].includes(difficulty)) return NextResponse.json({ error: "difficulty must be 1-3" }, { status: 400 });
   const date = melbourneDate();
 
-  // ---- Already generated today for this tier? Return it with the user's progress.
+  // ---- If already generated it is returned with user's progress
   const existing = await findRow(admin, userId, date, difficulty);
   if (existing) return respond(admin, userId, existing);
 
-  // ---- Pick a random category (deterministic for this user, day and tier).
+  // ---- Pick a random category
   const pickSeed = seedFrom(`${userId}:${date}:${difficulty}`);
   const pool: string[] = [...PYTHON_TYPES];
   if (difficulty === 1) pool.push(MODULE_MCQ);            // module questions are tier 1 only
   let type = pool[pickSeed % pool.length];
-  // Separate seed for generating the challenge itself, so the problem varies by category too.
+  // separate seed for generating challenge
   const seed = seedFrom(`${userId}:${date}:${difficulty}:${type}`);
 
-  // ---- Build the challenge.
+  // ---- Build challenge
   let ch: Challenge | null = null;
   if (type === MODULE_MCQ) {
-    // Built here (needs the user's modules); returns null if none are eligible.
+    // returns null if none are eligible
     ch = await buildModuleMcq(userId, seed, await llmAllowed(userId));
     if (!ch) type = PYTHON_TYPES[pickSeed % PYTHON_TYPES.length];   // no completed modules/content yet
   }
-  // Every other category comes from the Python service (only called if `ch` is still null).
+  // all other category come from Python service
   try {
     ch ??= await qiskit<Challenge>("/challenges/generate", { type, seed, difficulty });
   } catch {
     return NextResponse.json({ error: "The challenge service is waking up. Try again in a moment." }, { status: 503 });
   }
 
-  // ---- Have the LLM write the title, scenario, task and hints; use templated text if it
-  // fails or the LLM budget is used up.
+  // ---- Have LLM write title, scenario, task and hints
+  // uses fallback if llm fails or usage runs out
   let text = FALLBACK_TEXT[type], usedFallback = true;
   if (await llmAllowed(userId)) {
     const started = Date.now();
@@ -73,8 +69,8 @@ export async function GET(req: NextRequest) {
     console.info("[daily-challenge] LLM budget used up: using fallback text");
   }
 
-  // ---- Store the public challenge row.
-  // On conflict do nothing: if two requests race, the first insert wins and we return it.
+  // ---- Store public challenge row
+  // on conflict do nothing: if two requests race, the first insert wins
   const { data: row, error: storeError } = await admin.from("daily_challenges")
     .upsert({
       user_id: userId, date, type, difficulty, input_kind: ch.input_kind,
@@ -88,7 +84,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "server error" }, { status: 500 });
   }
 
-  // ---- Store the answer in the server-only table, but only if this request created the row.
+  // ---- Store answer in server-only table
   if (row) {
     const { error } = await admin.from("daily_challenge_answers").insert({
       challenge_id: row.id, answer: ch.answer, worked_solution: ch.worked_solution,
@@ -96,12 +92,12 @@ export async function GET(req: NextRequest) {
     });
     if (error) {
       console.error("[daily-challenge] storing answer failed:", error.code, error.message);
-      // Remove the half-stored challenge so the user isn't stuck with an ungradeable tier.
+      // remove half-stored challenge so user isn't stuck with ungradeable tier
       await admin.from("daily_challenges").delete().eq("id", row.id);
       return NextResponse.json({ error: "server error" }, { status: 500 });
     }
   }
-  // ---- Return the stored row (whichever request created it).
+  // ---- Return stored row
   const stored = await findRow(admin, userId, date, difficulty);
   if (!stored) {
     console.error("[daily-challenge] challenge was stored but could not be read back");

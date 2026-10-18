@@ -1,6 +1,6 @@
 'use client';
 
-// /daily-challenge: today's three tiers, streak and XP.
+// daily challenge hub: three tiers, streak and XP
 import { Award, Check, ChevronRight, Flame, Sparkles, Trophy, X } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -30,7 +30,7 @@ export function ChallengeHub() {
     );
     return () => {
       active = false;
-      setStatus(null);   // refetch fresh progress when the hub is revisited
+      setStatus(null);   // refetch fresh progress when hub is revisited
     };
   }, [reloadKey]);
 
@@ -47,7 +47,7 @@ export function ChallengeHub() {
           <div className="max-w-3xl">
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Today&apos;s challenges</h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-[#AAB4C5]">
-              Three new challenges every day, one per tier. Solve any one to keep your streak alive, and solve
+              Three new challenges every day, one per tier. Solve any one tier to keep your streak alive. Solve
               more for extra XP. Every answer is checked with exact maths and real Qiskit circuits.
             </p>
           </div>
@@ -91,7 +91,7 @@ export function ChallengeHub() {
             <div className="rounded-lg border border-[#233049] bg-[#0D1728] px-5 py-4">
               <p className="text-sm leading-6 text-[#8B95AC]">
                 You get 3 attempts per tier. XP is 50 per tier level, minus 10 for each hint you reveal and 15 for
-                each extra attempt, and you always earn at least 10 XP for a correct answer.
+                each extra attempt. You can always earn at least 10 XP for a correct answer.
               </p>
             </div>
           </div>

@@ -1,20 +1,19 @@
-// Server-only helpers for reading a user's Daily Challenge progress.
-// Uses the service-role client, so only call these after verifying the user.
+// server-only helpers for reading user's Daily Challenge progress
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { MAX_ATTEMPTS } from "@/lib/supabase/server";
 import type { AttemptSummary, ChallengeProgress, StreakSummary } from "./types";
 
-/** Columns of daily_challenges that are safe to send to the browser (no hints, no answers). */
+// columns of daily_challenges that are safe to send to browser
 export const PUBLIC_COLS = "id,date,type,difficulty,input_kind,prompt_data,options,title,scenario,task";
 
-/** The YYYY-MM-DD date before `date` (dates are Melbourne calendar days). */
+// YYYY-MM-DD date - melbourne based
 export function previousDate(date: string): string {
   const d = new Date(`${date}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() - 1);
   return d.toISOString().slice(0, 10);
 }
 
-/** Progress for one challenge: attempts, revealed hints and (if earned) the worked solution. */
+// progress for one challenge: attempts, revealed hints and worked solution
 export async function loadProgress(
   admin: SupabaseClient,
   userId: string,
@@ -37,7 +36,7 @@ export async function loadProgress(
         xpAwarded: last.xp_awarded, createdAt: last.created_at }
     : null;
 
-  // The worked solution is only revealed once the user has solved it or run out of attempts.
+  // worked solution is only revealed once user has solved it or run out of attempts
   let workedSolution: string | null = null;
   if (solved || attemptsLeft === 0) {
     const { data } = await admin.from("daily_challenge_answers")
@@ -52,13 +51,13 @@ export async function loadProgress(
   };
 }
 
-/** The user's streak as it should be displayed today (a streak with a missed day shows 0). */
+// user's streak display
 export async function loadStreak(admin: SupabaseClient, userId: string, today: string): Promise<StreakSummary> {
-  // Streak and XP live on the team's profiles table (one XP total for the whole site).
+  // streak and XP live on profiles table
   const { data } = await admin.from("profiles")
     .select("xp,challenge_streak,best_streak,last_challenge").eq("id", userId).maybeSingle();
   if (!data) return { current: 0, best: 0, xp: 0, lastSolved: null };
-  // A streak whose last solve was before yesterday (Melbourne days) has lapsed: show 0.
+  // streak whose last solve was before yesterday, lapses
   const alive = data.last_challenge === today || data.last_challenge === previousDate(today);
   return {
     current: alive ? (data.challenge_streak ?? 0) : 0,

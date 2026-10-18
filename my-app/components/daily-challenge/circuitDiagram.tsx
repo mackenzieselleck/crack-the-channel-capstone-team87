@@ -1,8 +1,6 @@
 'use client';
 
-// Draws a circuit from whitelisted tokens ("h 0", "cx 0 1"), the same tokens the grader
-// accepts. Qubit 0 is drawn on top, as in Qiskit. Gates are drawn in order, one per column.
-
+// draws circuit from whitelisted tokens
 const COL = 56;
 const ROW = 56;
 const LEFT = 52;
@@ -13,7 +11,7 @@ export function gateLabel(token: string) {
   return name === 'cx' ? 'CNOT' : name.toUpperCase();
 }
 
-/** "cx 0 1" → "CNOT 0→1", "h 0" → "H on q0". Used for accessible labels and the palette. */
+// used for accessible labels
 export function describeToken(token: string) {
   const [name, a, b] = token.split(' ');
   return name === 'cx' ? `CNOT ${a}→${b}` : `${name.toUpperCase()} on q${a}`;
@@ -27,12 +25,12 @@ export function CircuitDiagram({
 }: {
   tokens: string[];
   numQubits: number;
-  /** When set, gates become buttons that remove themselves. */
+  // when set, gates become buttons that remove themselves
   onRemove?: (index: number) => void;
   label: string;
 }) {
   const cols = Math.max(tokens.length, 1);
-  // Minimum width keeps the empty-circuit message readable.
+  // minimum width keeps empty-circuit message readable
   const width = Math.max(LEFT + cols * COL + 24, 360);
   const height = numQubits * ROW + 8;
   const y = (q: number) => 4 + ROW / 2 + q * ROW;

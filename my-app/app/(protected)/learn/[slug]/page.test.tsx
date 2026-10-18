@@ -1,10 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// regression test: app/learn/[slug]/page.tsx lives outside the (protected)
-// route group, so it never ran requireOnboarding(), a signed-out visitor 
-// could load /learn/<any-slug> directly and see module content that every
-// other learning route keeps behind a login check.
-
 const mockGetUser = vi.fn();
 const mockSingle = vi.fn();
 

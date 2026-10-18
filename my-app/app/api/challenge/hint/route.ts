@@ -1,7 +1,6 @@
-// POST /api/challenge/hint   { challengeId, index }
-// Reveals hint `index` (0-based) for one of the user's challenges and records the reveal,
-// so the XP penalty (−10 per hint) is enforced on the server rather than reported by the
-// browser (ADR 018). Hints must be revealed in order; repeating a request is harmless.
+
+// reveals hint `index` (0-based) for user's challenges and records it
+// XP penalty (−10 per hint) is enforced on server
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
@@ -35,8 +34,7 @@ export async function POST(req: NextRequest) {
   if (index > revealed) return NextResponse.json({ error: "Reveal the earlier hints first." }, { status: 400 });
 
   if (index === revealed) {
-    // Conditional update: only succeeds if nobody revealed this hint in the meantime,
-    // so double-clicks and parallel requests count once.
+    // double-clicks and parallel requests count once
     const { data: updated } = await admin.from("daily_challenges")
       .update({ hints_revealed: revealed + 1 })
       .eq("id", challengeId).eq("user_id", user.id).eq("hints_revealed", revealed)
