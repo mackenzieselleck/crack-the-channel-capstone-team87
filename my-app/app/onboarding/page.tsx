@@ -30,23 +30,23 @@ export default async function OnboardingPage({
   const { error } = await searchParams;
 
   return (
-    <main className="min-h-screen bg-[#F7F9FC] text-[#06152B]">
+    <main className="min-h-screen bg-surface text-text-primary">
       {/* Header */}
-      <header className="border-b border-[#DDE3EA] bg-white">
+      <header className="border-b border-border bg-surface-raised">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
           <Link
             href="/"
-            className="text-xl font-bold tracking-tight text-[#06152B]"
+            className="text-xl font-bold tracking-tight text-text-primary"
           >
             Crack the Channel
           </Link>
 
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-[#52606D] sm:inline">
+            <span className="hidden text-sm text-text-secondary sm:inline">
               Account setup
             </span>
 
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E8F0FF] text-sm font-semibold text-[#0F62FE]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 text-sm font-semibold text-accent">
               2
             </div>
           </div>
@@ -57,52 +57,52 @@ export default async function OnboardingPage({
       <section className="mx-auto grid max-w-7xl gap-16 px-6 py-16 lg:grid-cols-2 lg:items-center lg:px-10 lg:py-24">
         {/* Left side */}
         <div>
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-[#0F62FE]">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-accent">
             Almost there
           </p>
 
           <h1 className="max-w-xl text-5xl font-bold leading-[1.08] tracking-tight">
             Set up your
             <br />
-            <span className="text-[#0F62FE]">learning profile.</span>
+            <span className="text-accent">learning profile.</span>
           </h1>
 
-          <p className="mt-6 max-w-lg text-lg leading-8 text-[#52606D]">
+          <p className="mt-6 max-w-lg text-lg leading-8 text-text-secondary">
             Tell us a little about yourself before starting your Crack the
             Channel learning journey.
           </p>
 
           {/* Progress steps */}
-          <div className="mt-10 max-w-lg rounded-lg border border-[#DDE3EA] bg-white">
+          <div className="mt-10 max-w-lg rounded-lg border border-border bg-surface-raised">
             {/* Step 1 */}
-            <div className="flex items-start gap-4 border-b border-[#DDE3EA] p-5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E8F0FF] text-[#0F62FE]">
+            <div className="flex items-start gap-4 border-b border-border p-5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
                 <CheckIcon />
               </div>
 
               <div>
-                <p className="text-sm font-semibold text-[#06152B]">
+                <p className="text-sm font-semibold text-text-primary">
                   Create your account
                 </p>
 
-                <p className="mt-1 text-sm leading-6 text-[#52606D]">
+                <p className="mt-1 text-sm leading-6 text-text-secondary">
                   Your account has been created and verified.
                 </p>
               </div>
             </div>
 
             {/* Step 2 */}
-            <div className="flex items-start gap-4 border-b border-[#DDE3EA] bg-[#F7FAFF] p-5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0F62FE] text-sm font-semibold text-white">
+            <div className="flex items-start gap-4 border-b border-border bg-accent/5 p-5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-contrast">
                 2
               </div>
 
               <div>
-                <p className="text-sm font-semibold text-[#06152B]">
+                <p className="text-sm font-semibold text-text-primary">
                   Set up your profile
                 </p>
 
-                <p className="mt-1 text-sm leading-6 text-[#52606D]">
+                <p className="mt-1 text-sm leading-6 text-text-secondary">
                   Add your name so we can personalise your experience.
                 </p>
               </div>
@@ -110,16 +110,16 @@ export default async function OnboardingPage({
 
             {/* Step 3 */}
             <div className="flex items-start gap-4 p-5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#B8C2CE] text-sm font-semibold text-[#7A8694]">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border-strong text-sm font-semibold text-text-secondary">
                 3
               </div>
 
               <div>
-                <p className="text-sm font-semibold text-[#52606D]">
+                <p className="text-sm font-semibold text-text-secondary">
                   Start learning
                 </p>
 
-                <p className="mt-1 text-sm leading-6 text-[#7A8694]">
+                <p className="mt-1 text-sm leading-6 text-text-secondary">
                   Explore quantum security through lessons and simulations.
                 </p>
               </div>
@@ -129,28 +129,28 @@ export default async function OnboardingPage({
 
         {/* Form side */}
         <div className="mx-auto w-full max-w-lg">
-          <div className="rounded-lg border border-[#DDE3EA] bg-white p-8 sm:p-10">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-[#0F62FE]">
+          <div className="rounded-lg border border-border bg-surface-raised p-8 sm:p-10">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-accent">
               Your profile
             </p>
 
-            <h2 className="text-3xl font-bold tracking-tight text-[#06152B]">
+            <h2 className="text-3xl font-bold tracking-tight text-text-primary">
               What should we call you?
             </h2>
 
-            <p className="mt-4 leading-7 text-[#52606D]">
+            <p className="mt-4 leading-7 text-text-secondary">
               Add your name to complete your profile. You can update these
               details later.
             </p>
 
             {/* Account info */}
             {user.email && (
-              <div className="mt-7 rounded-md border border-[#DDE3EA] bg-[#F7F9FC] px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#7A8694]">
+              <div className="mt-7 rounded-md border border-border bg-surface px-4 py-3">
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-text-secondary">
                   Signed in as
                 </p>
 
-                <p className="mt-1 text-sm font-medium text-[#06152B]">
+                <p className="mt-1 text-sm font-medium text-text-primary">
                   {user.email}
                 </p>
               </div>
@@ -161,7 +161,7 @@ export default async function OnboardingPage({
               <div>
                 <label
                   htmlFor="first_name"
-                  className="mb-2 block text-sm font-medium text-[#06152B]"
+                  className="mb-2 block text-sm font-medium text-text-primary"
                 >
                   First name
                 </label>
@@ -173,7 +173,7 @@ export default async function OnboardingPage({
                   autoComplete="given-name"
                   placeholder="Enter your first name"
                   required
-                  className="w-full rounded-md border border-[#AAB4C0] bg-white px-4 py-3 text-[#06152B] outline-none transition placeholder:text-[#98A2AE] focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10"
+                  className="w-full rounded-md border border-border-strong bg-surface-raised px-4 py-3 text-text-primary outline-none transition placeholder:text-text-secondary focus:border-accent focus:ring-2 focus:ring-accent/10"
                 />
               </div>
 
@@ -181,7 +181,7 @@ export default async function OnboardingPage({
               <div>
                 <label
                   htmlFor="last_name"
-                  className="mb-2 block text-sm font-medium text-[#06152B]"
+                  className="mb-2 block text-sm font-medium text-text-primary"
                 >
                   Last name
                 </label>
@@ -193,7 +193,7 @@ export default async function OnboardingPage({
                   autoComplete="family-name"
                   placeholder="Enter your last name"
                   required
-                  className="w-full rounded-md border border-[#AAB4C0] bg-white px-4 py-3 text-[#06152B] outline-none transition placeholder:text-[#98A2AE] focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10"
+                  className="w-full rounded-md border border-border-strong bg-surface-raised px-4 py-3 text-text-primary outline-none transition placeholder:text-text-secondary focus:border-accent focus:ring-2 focus:ring-accent/10"
                 />
               </div>
 
@@ -210,20 +210,20 @@ export default async function OnboardingPage({
               {/* Submit */}
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-3 rounded-md bg-[#0F62FE] px-6 py-3.5 font-medium text-white transition hover:bg-[#0353E9]"
+                className="flex w-full items-center justify-center gap-3 rounded-md bg-accent px-6 py-3.5 font-medium text-accent-contrast transition hover:bg-accent-strong"
               >
                 Continue
                 <span aria-hidden="true">→</span>
               </button>
             </form>
 
-            <div className="mt-7 border-t border-[#DDE3EA] pt-6">
+            <div className="mt-7 border-t border-border pt-6">
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 shrink-0 text-[#0F62FE]">
+                <div className="mt-0.5 shrink-0 text-accent">
                   <InfoIcon />
                 </div>
 
-                <p className="text-xs leading-5 text-[#7A8694]">
+                <p className="text-xs leading-5 text-text-secondary">
                   Your profile information is used to personalise your learning
                   experience and is linked securely to your account.
                 </p>
@@ -231,7 +231,7 @@ export default async function OnboardingPage({
             </div>
           </div>
 
-          <p className="mt-6 text-center text-xs uppercase tracking-[0.16em] text-[#7A8694]">
+          <p className="mt-6 text-center text-xs uppercase tracking-[0.16em] text-text-secondary">
             Step 2 of 3 · Profile setup
           </p>
         </div>

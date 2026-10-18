@@ -17,11 +17,11 @@ export function ProgressBar({ percent }: { percent: number }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B95AC]">
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-text-secondary">
           Module progress
         </span>
 
-        <span className="text-sm font-semibold text-[#E7ECF5]">
+        <span className="text-sm font-semibold text-text-primary">
           {percent}%
         </span>
       </div>
@@ -32,10 +32,10 @@ export function ProgressBar({ percent }: { percent: number }) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={percent}
-        className="h-2 overflow-hidden rounded-full bg-[#1A263A]"
+        className="h-2 overflow-hidden rounded-full bg-border"
       >
         <div
-          className="h-full rounded-full bg-[#0F62FE] transition-all duration-500"
+          className="h-full rounded-full bg-accent transition-all duration-500"
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -61,15 +61,15 @@ export function ModuleShell({ slug }: { slug: string }) {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#0B1220] px-6 py-14 text-[#E7ECF5]">
+      <main className="min-h-screen bg-surface px-6 py-14 text-text-primary">
         <div className="mx-auto max-w-6xl animate-pulse space-y-6">
-          <div className="h-3 w-32 rounded bg-[#233049]" />
-          <div className="h-10 w-2/3 rounded bg-[#233049]" />
-          <div className="h-3 w-full rounded bg-[#233049]" />
+          <div className="h-3 w-32 rounded bg-border" />
+          <div className="h-10 w-2/3 rounded bg-border" />
+          <div className="h-3 w-full rounded bg-border" />
 
           <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-            <div className="h-96 rounded-xl bg-[#111B2E]" />
-            <div className="h-96 rounded-xl bg-[#111B2E]" />
+            <div className="h-96 rounded-xl bg-surface-raised" />
+            <div className="h-96 rounded-xl bg-surface-raised" />
           </div>
         </div>
       </main>
@@ -78,13 +78,13 @@ export function ModuleShell({ slug }: { slug: string }) {
 
   if (!mod) {
     return (
-      <main className="min-h-screen bg-[#0B1220] px-6 py-16 text-[#E7ECF5]">
-        <div className="mx-auto max-w-3xl rounded-xl border border-[#F87171]/30 bg-[#F87171]/10 p-6">
-          <p className="font-semibold text-[#FCA5A5]">
+      <main className="min-h-screen bg-surface px-6 py-16 text-text-primary">
+        <div className="mx-auto max-w-3xl rounded-xl border border-danger/30 bg-danger/10 p-6">
+          <p className="font-semibold text-danger">
             Unable to load this module
           </p>
 
-          <p className="mt-2 text-sm leading-6 text-[#C5CDD9]">
+          <p className="mt-2 text-sm leading-6 text-text-secondary">
             {error ?? 'This learning module could not be found.'}
           </p>
         </div>
@@ -99,11 +99,11 @@ export function ModuleShell({ slug }: { slug: string }) {
     isReading && pos.index === mod.pages.length - 1;
 
   return (
-    <main className="min-h-screen bg-[#0B1220] px-6 pb-24 pt-10 text-[#E7ECF5]">
+    <main className="min-h-screen bg-surface px-6 pb-24 pt-10 text-text-primary">
       <div className="mx-auto max-w-6xl">
         {/* Module orientation */}
-        <header className="border-b border-[#233049] pb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#4C8DFF]">
+        <header className="border-b border-border pb-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">
             Learning module
           </p>
 
@@ -114,18 +114,18 @@ export function ModuleShell({ slug }: { slug: string }) {
               </h1>
 
               {mod.summary && (
-                <p className="mt-4 max-w-2xl text-base leading-7 text-[#AAB4C5]">
+                <p className="mt-4 max-w-2xl text-base leading-7 text-text-secondary">
                   {mod.summary}
                 </p>
               )}
             </div>
 
-            <div className="rounded-lg border border-[#233049] bg-[#111B2E] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.15em] text-[#8B95AC]">
+            <div className="rounded-lg border border-border bg-surface-raised px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.15em] text-text-secondary">
                 Assessment
               </p>
 
-              <p className="mt-1 text-sm font-semibold text-[#E7ECF5]">
+              <p className="mt-1 text-sm font-semibold text-text-primary">
                 {mod.passMark}% to pass
               </p>
             </div>
@@ -139,20 +139,20 @@ export function ModuleShell({ slug }: { slug: string }) {
         <div className="grid gap-8 py-8 lg:grid-cols-[270px_minmax(0,1fr)]">
           {/* Module pathway */}
           <aside>
-            <div className="rounded-xl border border-[#233049] bg-[#111B2E] p-5 lg:sticky lg:top-24">
+            <div className="rounded-xl border border-border bg-surface-raised p-5 lg:sticky lg:top-24">
               <div className="flex items-center gap-3">
                 <BookOpen
                   size={18}
-                  className="text-[#4C8DFF]"
+                  className="text-accent"
                   aria-hidden="true"
                 />
 
-                <h2 className="text-sm font-semibold text-[#E7ECF5]">
+                <h2 className="text-sm font-semibold text-text-primary">
                   Module pathway
                 </h2>
               </div>
 
-              <p className="mt-2 text-xs leading-5 text-[#8B95AC]">
+              <p className="mt-2 text-xs leading-5 text-text-secondary">
                 Complete each part in order to unlock the final assessment.
               </p>
 
@@ -174,7 +174,7 @@ export function ModuleShell({ slug }: { slug: string }) {
                       className={[
                         'flex items-start gap-3 rounded-lg px-3 py-3',
                         current
-                          ? 'bg-[#0F62FE]/10'
+                          ? 'bg-accent/10'
                           : '',
                       ].join(' ')}
                     >
@@ -182,10 +182,10 @@ export function ModuleShell({ slug }: { slug: string }) {
                         className={[
                           'mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border',
                           completed
-                            ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
+                            ? 'border-success/40 bg-success/10 text-success'
                             : current
-                              ? 'border-[#0F62FE] bg-[#0F62FE] text-white'
-                              : 'border-[#34425A] text-[#69758A]',
+                              ? 'border-accent bg-accent text-accent-contrast'
+                              : 'border-border-strong text-text-secondary',
                         ].join(' ')}
                       >
                         {completed ? (
@@ -204,8 +204,8 @@ export function ModuleShell({ slug }: { slug: string }) {
                           className={[
                             'text-xs font-medium',
                             current || completed
-                              ? 'text-[#E7ECF5]'
-                              : 'text-[#69758A]',
+                              ? 'text-text-primary'
+                              : 'text-text-secondary',
                           ].join(' ')}
                         >
                           Part {index + 1}
@@ -215,8 +215,8 @@ export function ModuleShell({ slug }: { slug: string }) {
                           className={[
                             'mt-0.5 line-clamp-2 text-xs leading-5',
                             current
-                              ? 'text-[#AAB4C5]'
-                              : 'text-[#69758A]',
+                              ? 'text-text-secondary'
+                              : 'text-text-secondary',
                           ].join(' ')}
                         >
                           {modulePage.title}
@@ -229,9 +229,9 @@ export function ModuleShell({ slug }: { slug: string }) {
                 {/* Final assessment */}
                 <div
                   className={[
-                    'mt-2 flex items-start gap-3 rounded-lg border-t border-[#233049] px-3 pt-4',
+                    'mt-2 flex items-start gap-3 rounded-lg border-t border-border px-3 pt-4',
                     pos.kind === 'quiz'
-                      ? 'bg-[#0F62FE]/10 pb-3'
+                      ? 'bg-accent/10 pb-3'
                       : '',
                   ].join(' ')}
                 >
@@ -239,10 +239,10 @@ export function ModuleShell({ slug }: { slug: string }) {
                     className={[
                       'mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border',
                       progress.quizPassed
-                        ? 'border-[#4ADE80]/40 bg-[#4ADE80]/10 text-[#4ADE80]'
+                        ? 'border-success/40 bg-success/10 text-success'
                         : pos.kind === 'quiz'
-                          ? 'border-[#0F62FE] bg-[#0F62FE] text-white'
-                          : 'border-[#34425A] text-[#69758A]',
+                          ? 'border-accent bg-accent text-accent-contrast'
+                          : 'border-border-strong text-text-secondary',
                     ].join(' ')}
                   >
                     {progress.quizPassed ? (
@@ -263,22 +263,22 @@ export function ModuleShell({ slug }: { slug: string }) {
                         'text-xs font-medium',
                         pos.kind === 'quiz' ||
                         progress.quizPassed
-                          ? 'text-[#E7ECF5]'
-                          : 'text-[#69758A]',
+                          ? 'text-text-primary'
+                          : 'text-text-secondary',
                       ].join(' ')}
                     >
                       Final assessment
                     </p>
 
-                    <p className="mt-0.5 text-xs text-[#69758A]">
+                    <p className="mt-0.5 text-xs text-text-secondary">
                       {mod.passMark}% required
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 border-t border-[#233049] pt-4">
-                <p className="text-xs leading-5 text-[#8B95AC]">
+              <div className="mt-6 border-t border-border pt-4">
+                <p className="text-xs leading-5 text-text-secondary">
                   Your progress is saved when you continue to the next
                   section.
                 </p>
@@ -291,7 +291,7 @@ export function ModuleShell({ slug }: { slug: string }) {
             {error && (
               <div
                 role="alert"
-                className="mb-6 rounded-lg border border-[#F87171]/30 bg-[#F87171]/10 px-4 py-3 text-sm text-[#FCA5A5]"
+                className="mb-6 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger"
               >
                 {error}
               </div>
@@ -299,11 +299,11 @@ export function ModuleShell({ slug }: { slug: string }) {
 
             {pos.kind === 'reading' && page && (
               <>
-                <section className="overflow-hidden rounded-xl border border-[#233049] bg-[#111B2E]">
-                  <header className="border-b border-[#233049] px-7 py-6 sm:px-9">
+                <section className="overflow-hidden rounded-xl border border-border bg-surface-raised">
+                  <header className="border-b border-border px-7 py-6 sm:px-9">
                     <div className="flex items-center justify-between gap-5">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#4C8DFF]">
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
                           Part {pos.kind === 'reading' ? pos.index + 1 : 0} of {mod.pages.length}
                         </p>
 
@@ -314,21 +314,21 @@ export function ModuleShell({ slug }: { slug: string }) {
 
                       <BookOpen
                         size={22}
-                        className="shrink-0 text-[#4C8DFF]"
+                        className="shrink-0 text-accent"
                         aria-hidden="true"
                       />
                     </div>
                   </header>
 
                   <article className="px-7 py-8 sm:px-9 sm:py-10">
-                    <div className="whitespace-pre-wrap text-[16px] leading-8 text-[#C5CDD9]">
+                    <div className="whitespace-pre-wrap text-[16px] leading-8 text-text-secondary">
                       {page.body}
                     </div>
                   </article>
                 </section>
 
-                <div className="mt-5 rounded-lg border border-[#233049] bg-[#0D1728] px-5 py-4">
-                  <p className="text-sm leading-6 text-[#8B95AC]">
+                <div className="mt-5 rounded-lg border border-border bg-surface px-5 py-4">
+                  <p className="text-sm leading-6 text-text-secondary">
                     Focus on this concept before continuing. You can return
                     to completed sections at any time using the Back button.
                   </p>
@@ -338,14 +338,14 @@ export function ModuleShell({ slug }: { slug: string }) {
 
             {pos.kind === 'quiz' && (
               <section>
-                <div className="mb-7 rounded-xl border border-[#233049] bg-[#111B2E] p-7">
+                <div className="mb-7 rounded-xl border border-border bg-surface-raised p-7">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#0F62FE]/15 text-[#4C8DFF]">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/15 text-accent">
                       <Award size={20} aria-hidden="true" />
                     </div>
 
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#4C8DFF]">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
                         Final assessment
                       </p>
 
@@ -353,7 +353,7 @@ export function ModuleShell({ slug }: { slug: string }) {
                         Check your understanding
                       </h2>
 
-                      <p className="mt-3 max-w-2xl leading-7 text-[#8B95AC]">
+                      <p className="mt-3 max-w-2xl leading-7 text-text-secondary">
                         This assessment covers the concepts from this
                         module. You need {mod.passMark}% to pass. If you
                         do not pass, you can review the material and try
@@ -375,7 +375,7 @@ export function ModuleShell({ slug }: { slug: string }) {
             )}
 
             {/* Sequential navigation */}
-            <nav className="mt-8 flex items-center justify-between border-t border-[#233049] pt-7">
+            <nav className="mt-8 flex items-center justify-between border-t border-border pt-7">
               <button
                 type="button"
                 onClick={back}
@@ -383,7 +383,7 @@ export function ModuleShell({ slug }: { slug: string }) {
                   pos.kind === 'reading' &&
                   pos.index === 0
                 }
-                className="inline-flex items-center gap-2 rounded-md border border-[#34425A] px-5 py-3 text-sm font-medium text-[#C5CDD9] transition hover:border-[#8B95AC] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                className="inline-flex items-center gap-2 rounded-md border border-border-strong px-5 py-3 text-sm font-medium text-text-secondary transition hover:border-border-strong hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <ChevronLeft size={17} />
                 Back
@@ -394,7 +394,7 @@ export function ModuleShell({ slug }: { slug: string }) {
                   type="button"
                   onClick={next}
                   disabled={busy}
-                  className="inline-flex items-center gap-2 rounded-md bg-[#0F62FE] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#0353E9] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {busy
                     ? 'Saving...'

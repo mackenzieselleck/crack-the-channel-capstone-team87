@@ -14,25 +14,25 @@ export default function SignUpPage() {
   const router = useRouter();
 
   return (
-    <main className="min-h-screen bg-[#F7F9FC] text-[#06152B]">
+    <main className="min-h-screen bg-surface text-text-primary">
       {/* Header */}
-      <header className="border-b border-[#DDE3EA] bg-white">
+      <header className="border-b border-border bg-surface-raised">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
           <Link
             href="/"
-            className="text-xl font-bold tracking-tight text-[#06152B]"
+            className="text-xl font-bold tracking-tight text-text-primary"
           >
             Crack the Channel
           </Link>
 
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-[#52606D] sm:inline">
+            <span className="hidden text-sm text-text-secondary sm:inline">
               Already have an account?
             </span>
 
             <Link
               href="/login"
-              className="rounded-md border border-[#AAB4C0] px-5 py-2.5 text-sm font-medium text-[#06152B] transition hover:border-[#0F62FE] hover:text-[#0F62FE]"
+              className="rounded-md border border-border-strong px-5 py-2.5 text-sm font-medium text-text-primary transition hover:border-accent hover:text-accent"
             >
               Log in
             </Link>
@@ -44,13 +44,13 @@ export default function SignUpPage() {
       <section className="mx-auto grid max-w-7xl gap-16 px-6 py-16 lg:grid-cols-2 lg:items-center lg:px-10 lg:py-24">
         {/* Graphic / branding side */}
         <div className="hidden lg:block">
-          <div className="flex min-h-[500px] items-center justify-center rounded-lg border border-[#B8C2CE] bg-white">
-            <div className="flex h-[380px] w-[82%] items-center justify-center border border-[#B8C2CE] bg-[#F7F9FC]">
+          <div className="flex min-h-[500px] items-center justify-center rounded-lg border border-border-strong bg-surface-raised">
+            <div className="flex h-[380px] w-[82%] items-center justify-center border border-border-strong bg-surface">
               <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
-                <div className="absolute left-0 top-1/2 h-px w-full -rotate-[28deg] bg-[#B8C2CE]" />
-                <div className="absolute left-0 top-1/2 h-px w-full rotate-[28deg] bg-[#B8C2CE]" />
+                <div className="absolute left-0 top-1/2 h-px w-full -rotate-[28deg] bg-border-strong" />
+                <div className="absolute left-0 top-1/2 h-px w-full rotate-[28deg] bg-border-strong" />
 
-                <span className="relative bg-[#F7F9FC] px-4 text-xs font-medium uppercase tracking-[0.25em] text-[#7A8694]">
+                <span className="relative bg-surface px-4 text-xs font-medium uppercase tracking-[0.25em] text-text-secondary">
                   Graphic
                 </span>
               </div>
@@ -58,11 +58,11 @@ export default function SignUpPage() {
           </div>
 
           <div className="mt-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#0F62FE]">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-accent">
               Quantum ideas. Real security.
             </p>
 
-            <p className="mt-3 max-w-lg text-lg leading-8 text-[#52606D]">
+            <p className="mt-3 max-w-lg text-lg leading-8 text-text-secondary">
               Start building your understanding of quantum computing,
               cybersecurity and secure communication.
             </p>
@@ -71,16 +71,16 @@ export default function SignUpPage() {
 
         {/* Signup form */}
         <div className="mx-auto w-full max-w-lg">
-          <div className="rounded-lg border border-[#DDE3EA] bg-white p-8 sm:p-10">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-[#0F62FE]">
+          <div className="rounded-lg border border-border bg-surface-raised p-8 sm:p-10">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-accent">
               Get started
             </p>
 
-            <h1 className="text-4xl font-bold tracking-tight text-[#06152B]">
+            <h1 className="text-4xl font-bold tracking-tight text-text-primary">
               Create your account
             </h1>
 
-            <p className="mt-4 leading-7 text-[#52606D]">
+            <p className="mt-4 leading-7 text-text-secondary">
               Join Crack the Channel and begin your quantum cybersecurity
               learning journey.
             </p>
@@ -117,7 +117,7 @@ export default function SignUpPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="mb-2 block text-sm font-medium text-[#06152B]"
+                  className="mb-2 block text-sm font-medium text-text-primary"
                 >
                   Email address
                 </label>
@@ -128,7 +128,7 @@ export default function SignUpPage() {
                   type="email"
                   placeholder="you@example.com"
                   required
-                  className="w-full rounded-md border border-[#AAB4C0] bg-white px-4 py-3 text-[#06152B] outline-none transition placeholder:text-[#98A2AE] focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10"
+                  className="w-full rounded-md border border-border-strong bg-surface-raised px-4 py-3 text-text-primary outline-none transition placeholder:text-text-secondary focus:border-accent focus:ring-2 focus:ring-accent/10"
                 />
               </div>
 
@@ -136,7 +136,7 @@ export default function SignUpPage() {
               <div>
                 <label
                   htmlFor="password"
-                  className="mb-2 block text-sm font-medium text-[#06152B]"
+                  className="mb-2 block text-sm font-medium text-text-primary"
                 >
                   Password
                 </label>
@@ -147,10 +147,10 @@ export default function SignUpPage() {
                   type="password"
                   placeholder="Create a password"
                   required
-                  className="w-full rounded-md border border-[#AAB4C0] bg-white px-4 py-3 text-[#06152B] outline-none transition placeholder:text-[#98A2AE] focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10"
+                  className="w-full rounded-md border border-border-strong bg-surface-raised px-4 py-3 text-text-primary outline-none transition placeholder:text-text-secondary focus:border-accent focus:ring-2 focus:ring-accent/10"
                 />
 
-                <p className="mt-2 text-xs leading-5 text-[#7A8694]">
+                <p className="mt-2 text-xs leading-5 text-text-secondary">
                   Choose a secure password for your account.
                 </p>
               </div>
@@ -159,7 +159,7 @@ export default function SignUpPage() {
               <div>
                 <label
                   htmlFor="confirm-password"
-                  className="mb-2 block text-sm font-medium text-[#06152B]"
+                  className="mb-2 block text-sm font-medium text-text-primary"
                 >
                   Confirm password
                 </label>
@@ -172,10 +172,10 @@ export default function SignUpPage() {
                   placeholder="Re-enter your password"
                   maxLength={72}
                   required
-                  className="w-full rounded-md border border-[#AAB4C0] bg-white px-4 py-3 text-[#06152B] outline-none transition placeholder:text-[#98A2AE] focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10"
+                  className="w-full rounded-md border border-border-strong bg-surface-raised px-4 py-3 text-text-primary outline-none transition placeholder:text-text-secondary focus:border-accent focus:ring-2 focus:ring-accent/10"
                 />
 
-                <p className="mt-2 text-xs leading-5 text-[#7A8694]">
+                <p className="mt-2 text-xs leading-5 text-text-secondary">
                   Re-enter your password to confirm it.
                 </p>
               </div>
@@ -188,7 +188,7 @@ export default function SignUpPage() {
                   onSuccess={setCaptchaToken}
                   onExpire={() => setCaptchaToken('')}
                   onError={() => setCaptchaToken('')}
-                  options={{ theme: 'light', size: 'flexible' }}
+                  options={{ theme: 'auto', size: 'flexible' }}
                 />
               </div>
 
@@ -206,32 +206,32 @@ export default function SignUpPage() {
               <button
                 type="submit"
                 disabled={pending || !captchaToken}
-                className="w-full rounded-md bg-[#0F62FE] px-6 py-3.5 font-medium text-white transition hover:bg-[#0353E9] disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-md bg-accent px-6 py-3.5 font-medium text-accent-contrast transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {pending ? 'Creating account...' : 'Create account'}
               </button>
             </form>
 
             <div className="my-7 flex items-center gap-4">
-              <div className="h-px flex-1 bg-[#DDE3EA]" />
-              <span className="text-xs uppercase tracking-[0.2em] text-[#7A8694]">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs uppercase tracking-[0.2em] text-text-secondary">
                 or
               </span>
-              <div className="h-px flex-1 bg-[#DDE3EA]" />
+              <div className="h-px flex-1 bg-border" />
             </div>
 
-            <p className="text-center text-sm text-[#52606D]">
+            <p className="text-center text-sm text-text-secondary">
               Already have an account?{' '}
               <Link
                 href="/login"
-                className="font-medium text-[#0F62FE] hover:underline"
+                className="font-medium text-accent hover:underline"
               >
                 Log in
               </Link>
             </p>
           </div>
 
-          <p className="mt-6 text-center text-xs leading-5 text-[#7A8694]">
+          <p className="mt-6 text-center text-xs leading-5 text-text-secondary">
             Your account lets us securely save your learning progress.
           </p>
         </div>

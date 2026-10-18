@@ -16,10 +16,10 @@ export default function SimulatorPage() {
 
   return (
     <main className="relative min-h-screen px-6 pb-40 pt-12">
-      <h1 className="font-body text-2xl font-semibold text-[#E7ECF5]">
+      <h1 className="font-body text-2xl font-semibold text-text-primary">
         BB84 simulator
       </h1>
-      <p className="mt-2 max-w-xl text-[#8B95AC]">
+      <p className="mt-2 max-w-xl text-text-secondary">
         Run a BB84 key exchange between Alice and Bob, and see what happens when Eve tries to
         listen.
       </p>

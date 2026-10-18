@@ -568,7 +568,7 @@ export default function BB84Simulator() {
                   isLoading ||
                   (stage === 1 && !roleInputComplete)
                 }
-                className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent-simulator)] px-5 py-2.5 text-sm font-semibold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent-simulator)] px-5 py-2.5 text-sm font-semibold text-[var(--simulator-accent-contrast)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isLoading ? 'Running Qiskit...' : 'Continue'}
 

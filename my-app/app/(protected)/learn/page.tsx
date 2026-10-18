@@ -48,11 +48,11 @@ export default function LearningPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-8 px-6 pb-40 pt-12">
-      <h1 className="font-body text-2xl font-semibold text-[#E7ECF5]">
+      <h1 className="font-body text-2xl font-semibold text-text-primary">
         Quick check: encoding a bit
       </h1>
 
-      <p className="text-[#8B95AC]">{QUESTION.prompt}</p>
+      <p className="text-text-secondary">{QUESTION.prompt}</p>
 
       <div className="flex flex-col gap-3">
         {QUESTION.options.map((option) => {
@@ -64,12 +64,12 @@ export default function LearningPage() {
               onClick={() => handleSelect(option.id, option.correct)}
               disabled={status !== 'unanswered'}
               className={[
-                'rounded-xl border px-4 py-3 text-left text-[#E7ECF5] transition',
+                'rounded-xl border px-4 py-3 text-left text-text-primary transition',
                 showResult && option.correct
-                  ? 'border-[#4ADE80] bg-[#4ADE80]/10'
+                  ? 'border-success bg-success/10'
                   : showResult && !option.correct
-                  ? 'border-[#F87171] bg-[#F87171]/10'
-                  : 'border-[#233049] hover:border-[#8B95AC]',
+                  ? 'border-danger bg-danger/10'
+                  : 'border-border hover:border-border-strong',
               ].join(' ')}
             >
               {option.text}
@@ -81,7 +81,7 @@ export default function LearningPage() {
       {status !== 'unanswered' && (
         <button
           onClick={handleRetry}
-          className="self-start text-sm font-medium text-[#8B95AC] underline underline-offset-4 hover:text-[#E7ECF5]"
+          className="self-start text-sm font-medium text-text-secondary underline underline-offset-4 hover:text-text-primary"
         >
           Try again
         </button>
