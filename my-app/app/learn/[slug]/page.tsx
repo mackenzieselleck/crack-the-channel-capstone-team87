@@ -1,3 +1,4 @@
+import Navbar from '@/components/spike/navbar';
 import { ModuleShell } from '@/components/learning/moduleShell';
 import { requireOnboarding } from '@/lib/auth/guards';
 
@@ -8,5 +9,10 @@ export default async function LearnPage({ params }: { params: Promise<{ slug: st
   //module content is fetched and rendered 
   await requireOnboarding();
   const { slug } = await params;
-  return <ModuleShell slug={slug} />;
+   return (
+    <>
+      <Navbar />
+      <ModuleShell slug={slug} />
+    </>
+  );
 }

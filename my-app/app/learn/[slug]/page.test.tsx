@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+// Allow the server-only module to be tested in Vitest.
+vi.mock('server-only', () => ({}));
+
 // regression test: app/learn/[slug]/page.tsx lives outside the (protected)
-// route group, so it never ran requireOnboarding(), a signed-out visitor 
+// route group, so it never ran requireOnboarding(), a signed-out visitor
 // could load /learn/<any-slug> directly and see module content that every
 // other learning route keeps behind a login check.
 
@@ -14,7 +17,7 @@ vi.mock('@/lib/supabase/server', () => ({
     from: vi.fn(() => ({
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
-          single: mockSingle,
+          maybeSingle: mockSingle,
         })),
       })),
     })),
@@ -69,6 +72,11 @@ describe('/learn/[slug] page', () => {
     const element = await LearnPage({ params: Promise.resolve({ slug: 'bb84-basics' }) });
 
     expect(mockRedirect).not.toHaveBeenCalled();
-    expect(element.props).toEqual({ slug: 'bb84-basics' });
+
+    const children = element.props.children;
+
+    expect(children).toHaveLength(2);
+    expect(children[1].props).toEqual({ slug: 'bb84-basics' });
+
   });
 });
