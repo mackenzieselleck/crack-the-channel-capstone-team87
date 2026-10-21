@@ -1,7 +1,7 @@
 //renders user profile page
 
 import Link from 'next/link'
-import Navbar from '@/components/spike/navbar'
+import Navbar from '@/components/navbar';
 import { requireOnboarding } from '@/lib/auth/guards'
 import { createClient } from '@/lib/supabase/server'
 
