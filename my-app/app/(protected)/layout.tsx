@@ -1,6 +1,6 @@
 import Navbar from '@/components/navbar';
 import { requireOnboarding } from '@/lib/auth/guards';
-
+import { DailyChallengePopup } from '@/components/daily-challenge/dailyChallengePopup';
 export default async function ProtectedLayout({
   children,
 }: {
@@ -9,9 +9,10 @@ export default async function ProtectedLayout({
   await requireOnboarding();
 
   return (
-    <>
-      <Navbar />
-      {children}
-    </>
+    <div className="...">
+       <Navbar />
+       {children}
+       <DailyChallengePopup />
+     </div>
   );
 }

@@ -1,82 +1,163 @@
 @import "tailwindcss";
 
 :root {
+  /* Follow the user's operating system light/dark preference */
+  color-scheme: light;
+
   --background: #ffffff;
   --foreground: #171717;
 
   /*
-    Shared theme tokens, allows a page to follow the visitor's
-    light/dark setting instead of hardcoding the palette. Values
-    below are the light variant
+    Shared theme tokens — Light Mode
+    Used across the landing page, authentication pages,
+    dashboard, learning modules, profile, and navigation.
   */
-  --color-surface: #f7f9fc;         /* page background */
-  --color-surface-raised: #ffffff;  /* cards, panels, inputs */
+
+  --color-surface: #f7f9fc;
+  --color-surface-raised: #ffffff;
+
   --color-border: #dde3ea;
   --color-border-strong: #aab4c0;
+
   --color-text-primary: #06152b;
   --color-text-secondary: #52606d;
+
   --color-accent: #0f62fe;
   --color-accent-strong: #0353e9;
-  --color-accent-contrast: #ffffff; /* text colour that stays readable on top of --color-accent */
+  --color-accent-contrast: #ffffff;
+
   --color-danger: #dc2626;
   --color-success: #16a34a;
+  --color-warning: #b45309;
 
-  /* BB84 simulator theme */
-  --bg-app: #0a0a0a;
-  --bg-card: #121a2b;
-  --text-primary: #e7ecf5;
-  --text-secondary: #8b95ac;
-  --border-default: #233049;
-  --success: #4ade80;
-  --error: #f87171;
-  --accent-learning: #3b82f6;
-  --accent-simulator: #7ff5d6;
+  /*
+    BB84 Simulator Theme
+    Uses the shared site colours so the simulator
+    automatically adapts to light and dark mode.
+  */
 
+  --bg-app: var(--color-surface);
+  --bg-card: var(--color-surface-raised);
+
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+
+  --border-default: var(--color-border);
+
+  --success: var(--color-success);
+  --error: var(--color-danger);
+
+  --accent-learning: var(--color-accent);
+  --accent-simulator: var(--color-accent);
+
+  --simulator-accent-contrast: var(--color-accent-contrast);
 }
+
+/*
+  Tailwind Theme Mapping
+  Makes shared theme variables available as utility classes.
+
+  Examples:
+  bg-surface
+  bg-surface-raised
+  text-text-primary
+  text-text-secondary
+  border-border
+  bg-accent
+  text-success
+  text-danger
+*/
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
   --color-surface: var(--color-surface);
   --color-surface-raised: var(--color-surface-raised);
+
   --color-border: var(--color-border);
   --color-border-strong: var(--color-border-strong);
+
   --color-text-primary: var(--color-text-primary);
   --color-text-secondary: var(--color-text-secondary);
+
   --color-accent: var(--color-accent);
   --color-accent-strong: var(--color-accent-strong);
   --color-accent-contrast: var(--color-accent-contrast);
+
   --color-danger: var(--color-danger);
   --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+/*
+  Dark Mode
+  Automatically activated when the user's operating
+  system or browser prefers a dark colour scheme.
+*/
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+
     --background: #0a0a0a;
     --foreground: #ededed;
 
     /*
-      dark variant 
+      Shared theme tokens — Dark Mode
     */
+
     --color-surface: #0b1220;
     --color-surface-raised: #121b2e;
+
     --color-border: #233049;
     --color-border-strong: #8b95ac;
+
     --color-text-primary: #e7ecf5;
     --color-text-secondary: #8b95ac;
+
     --color-accent: #5b9dff;
     --color-accent-strong: #8ab8ff;
-    --color-accent-contrast: #0b1220; 
+    --color-accent-contrast: #0b1220;
+
     --color-danger: #f87171;
     --color-success: #4ade80;
+    --color-warning: #fbbf24;
+
+    /*
+      BB84 Simulator — Dark Mode
+      The shared background, text, and border tokens
+      update automatically.
+
+      Only simulator-specific accent values need
+      to be overridden here.
+    */
+
+    --accent-simulator: var(--color-accent);
+    --simulator-accent-contrast: var(--color-accent-contrast);
   }
-}
+
+/*
+  Global Body Styles
+*/
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Toggle button labels */
+.theme-visible-dark {
+  display: none;
+}
+
+html[data-theme="dark"] .theme-visible-light {
+  display: none;
+}
+
+html[data-theme="dark"] .theme-visible-dark {
+  display: inline-flex;
 }
