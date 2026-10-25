@@ -7,7 +7,7 @@ vi.mock('server-only', () => ({}));
 import {
   hasValidRecoverySession,
   RECOVERY_WINDOW_SECONDS,
-} from './recovery-session';
+} from './recoverySession';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 function supabaseWithClaims(claims: unknown, error: unknown = null) {

@@ -2,6 +2,8 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('server-only', () => ({}));
+
 const { mockRedirect } = vi.hoisted(() => ({
   mockRedirect: vi.fn((url: string) => {
     throw new Error(`REDIRECT:${url}`);
@@ -34,7 +36,7 @@ const { mockHasValidRecoverySession } = vi.hoisted(() => ({
   mockHasValidRecoverySession: vi.fn(),
 }));
 
-vi.mock('@/lib/auth/recovery-session', () => ({
+vi.mock('@/lib/auth/recoverySession', () => ({
   hasValidRecoverySession: mockHasValidRecoverySession,
 }));
 
@@ -42,7 +44,7 @@ import {
   requestPasswordReset,
   updatePassword,
   type ActionState,
-} from './password-reset-actions';
+} from './passwordResetActions';
 
 const GENERIC_RESET_MESSAGE =
   'If an account exists for that email, a reset link has been sent. Check your inbox and spam folder.';

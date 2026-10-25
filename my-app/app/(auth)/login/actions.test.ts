@@ -220,7 +220,7 @@ describe('login()', () => {
 
       await expect(
         login(initialState, formDataFor(VALID_FIELDS)),
-      ).rejects.toThrow('REDIRECT:/learn/test-module');
+      ).rejects.toThrow('REDIRECT:/dashboard');
     });
 
     it('honors a safe same-origin next param', async () => {
@@ -253,7 +253,7 @@ describe('login()', () => {
           initialState,
           formDataFor({ ...VALID_FIELDS, next: 'https://evil.example/phish' }),
         ),
-      ).rejects.toThrow('REDIRECT:/learn/test-module');
+      ).rejects.toThrow('REDIRECT:/dashboard');
     });
 
     it.each([
@@ -275,7 +275,7 @@ describe('login()', () => {
 
         await expect(
           login(initialState, formDataFor({ ...VALID_FIELDS, next: blocked })),
-        ).rejects.toThrow('REDIRECT:/learn/test-module');
+        ).rejects.toThrow('REDIRECT:/dashboard');
       },
     );
   });

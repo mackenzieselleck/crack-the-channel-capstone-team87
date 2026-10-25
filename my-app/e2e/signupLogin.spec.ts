@@ -117,7 +117,7 @@ test.describe('login', () => {
     await page.getByRole('button', { name: 'Log in' }).click();
 
     // default post-login destination per DEFAULT_AFTER_LOGIN in login/actions.ts
-    await expect(page).toHaveURL(/\/learn\/test-module$/);
+    await expect(page).toHaveURL('/dashboard');
   });
 
   test('rejects an open-redirect attempt via the next param, falling back to the default page', async ({ page }) => {
@@ -129,7 +129,7 @@ test.describe('login', () => {
     await expect(page.getByRole('button', { name: 'Log in' })).toBeEnabled();
     await page.getByRole('button', { name: 'Log in' }).click();
 
-    await expect(page).toHaveURL(/\/learn\/test-module$/);
+    await expect(page).toHaveURL('/dashboard');
   });
 
   test('the submit button stays disabled until the CAPTCHA resolves', async ({ page }) => {

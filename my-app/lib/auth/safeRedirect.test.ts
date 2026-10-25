@@ -1,7 +1,7 @@
 //Unit tests for safeNext(), the open-redirect guard on the post-login ?next= param.
 
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_REDIRECT, safeNext } from './safe-redirect';
+import { DEFAULT_REDIRECT, safeNext } from './safeRedirect';
 
 const ORIGIN = 'https://crackthechannel.example';
 

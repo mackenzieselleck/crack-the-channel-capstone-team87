@@ -12,7 +12,7 @@ vi.mock('@/lib/supabase/server', () => ({
   })),
 }));
 
-import { resendConfirmation, type ResendState } from './resend-actions';
+import { resendConfirmation, type ResendState } from './resendActions';
 
 const GENERIC_MESSAGE =
   'If that email has an unconfirmed account, a new confirmation link is on its way.';
