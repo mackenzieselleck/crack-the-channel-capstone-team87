@@ -39,7 +39,9 @@ export default defineConfig({
         // revision doesn't match what's preinstalled in this environment
         // (and `playwright install` isn't available here) - launch the
         // preinstalled full Chromium directly instead.
-        launchOptions: { executablePath: '/opt/pw-browsers/chromium' },
+         ...(process.env.PW_CHROMIUM_PATH && {
+        launchOptions: { executablePath: process.env.PW_CHROMIUM_PATH },
+        }),
       },
     },
   ],
@@ -47,7 +49,7 @@ export default defineConfig({
     {
       // Stands in for Supabase's Auth + REST APIs (see e2e/mocks.ts for why:
       // no live Supabase project is configured in this environment).
-      command: 'node e2e/mock-supabase-server.cjs',
+      command: 'node e2e/mockSupabaseServer.cjs',
       url: 'http://127.0.0.1:54329/health',
       reuseExistingServer: !process.env.CI,
       timeout: 30_000,
