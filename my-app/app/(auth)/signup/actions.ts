@@ -44,7 +44,7 @@ export async function signup(formData: FormData) {
         return { error: 'Unable to create account. Please try again.' }
     }
     // returned when email confirmation is on and a user is already signed up
-    if (data.user && data.user.identities?.length === 0) {
+    if (data?.user && data.user.identities?.length === 0) {
         return { error: "User already exists. Please try logging in instead." }
     }
     return { success:true }
