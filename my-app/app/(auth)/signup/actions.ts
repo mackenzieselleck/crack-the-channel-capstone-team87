@@ -20,7 +20,7 @@ export async function signup(formData: FormData) {
 
     // create user with supabase signup
     const supabase = await createClient()
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
         email: parsed.data.email,
         password: parsed.data.password,
         options: { captchaToken, emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`}
@@ -36,8 +36,16 @@ export async function signup(formData: FormData) {
         if (error.code === 'weak_password') {
             return { error: 'That password is too weak. Try a longer one.' }
         }
+         // returned when email confirmation is turned off in Supabase
+        if (error.code === 'user_already_exists' || error.code === 'email_exists') {
+            return { error: "User already exists. Please try logging in instead." }
+        }
 
         return { error: 'Unable to create account. Please try again.' }
+    }
+    // returned when email confirmation is on and a user is already signed up
+    if (data?.user && data.user.identities?.length === 0) {
+        return { error: "User already exists. Please try logging in instead." }
     }
     return { success:true }
 
