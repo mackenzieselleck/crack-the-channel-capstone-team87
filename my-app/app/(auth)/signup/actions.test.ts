@@ -14,6 +14,9 @@ vi.mock('@/lib/supabase/server', () => ({
 
 import { signup } from './actions';
 
+// What Supabase returns for a brand new (or unconfirmed) account: a user with one identity.
+const NEW_USER = { data: { user: { id: 'user-1', identities: [{ id: 'identity-1' }] } }, error: null };
+
 function formDataFor(
   email: string,
   password: string,
@@ -104,6 +107,46 @@ describe('signup()', () => {
     });
   });
 
+  describe('already registered email', () => {
+    it('shows the account-exists message when Supabase hides an existing confirmed account (email confirmation on)', async () => {
+      // Supabase returns no error and a user with no identities, and sends no email
+      mockSignUp.mockResolvedValue({ data: { user: { id: 'user-1', identities: [] } }, error: null });
+
+      const result = await signup(
+        formDataFor('taken@example.com', 'Sup3rSecret!', 'captcha-token'),
+      );
+
+      expect(result).toEqual({ error: "User already exists. Please try logging in instead." });
+    });
+
+    it.each(['user_already_exists', 'email_exists'])(
+      'shows the account-exists message on the %s code (email confirmation off)',
+      async (code) => {
+        mockSignUp.mockResolvedValue({
+          data: { user: null },
+          error: { code, message: 'User already registered' },
+        });
+
+        const result = await signup(
+          formDataFor('taken@example.com', 'Sup3rSecret!', 'captcha-token'),
+        );
+
+        expect(result).toEqual({ error: "User already exists. Please try logging in instead." });
+      },
+    );
+
+    it('still succeeds for an unconfirmed account (Supabase resends the confirmation email)', async () => {
+      mockSignUp.mockResolvedValue(NEW_USER);
+
+      const result = await signup(
+        formDataFor('unconfirmed@example.com', 'Sup3rSecret!', 'captcha-token'),
+      );
+
+      expect(result).toEqual({ success: true });
+    });
+  });
+
+
   describe('Supabase error branches', () => {
     it('surfaces a CAPTCHA-specific message when Supabase rejects the token', async () => {
       mockSignUp.mockResolvedValue({
@@ -133,7 +176,7 @@ describe('signup()', () => {
 
     it('falls back to a generic message for any other Supabase failure (no enumeration)', async () => {
       mockSignUp.mockResolvedValue({
-        error: { code: 'email_exists', message: 'User already registered' },
+        error: { code: 'unexpected_failure', message: 'something went wrong' },
       });
 
       const result = await signup(
