@@ -1,3 +1,5 @@
+//Unit tests for signup()
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // regression test for the sign-up confirmation redirect bug
@@ -12,11 +14,19 @@ vi.mock('@/lib/supabase/server', () => ({
 
 import { signup } from './actions';
 
-function formDataFor(email: string, password: string, captchaToken: string) {
+function formDataFor(
+  email: string,
+  password: string,
+  captchaToken: string,
+  // defaults to matching `password` so existing call sites that don't care
+  // about the confirm-password check keep working; pass a different value
+  // to exercise the mismatch branch.
+  confirmPassword: string = password,
+) {
   const formData = new FormData();
   formData.set('email', email);
   formData.set('password', password);
-  formData.set('confirmPassword', password);
+  formData.set('confirmPassword', confirmPassword);
   formData.set('captchaToken', captchaToken);
   return formData;
 }
@@ -56,5 +66,83 @@ describe('signup()', () => {
 
     expect(result).toEqual({ error: 'Please complete the CAPTCHA' });
     expect(mockSignUp).not.toHaveBeenCalled();
+  });
+
+  describe('input validation', () => {
+    it('rejects an invalid email before checking anything else', async () => {
+      const result = await signup(
+        formDataFor('not-an-email', 'Sup3rSecret!', 'captcha-token'),
+      );
+
+      expect(result.error).toBeTruthy();
+      expect(mockSignUp).not.toHaveBeenCalled();
+    });
+
+    it('rejects a password that fails the complexity rules', async () => {
+      const result = await signup(
+        formDataFor('learner@example.com', 'allLowercaseNoSymbol', 'captcha-token'),
+      );
+
+      expect(result.error).toBeTruthy();
+      expect(mockSignUp).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('confirm-password check', () => {
+    it('rejects the signup when confirmPassword does not match password', async () => {
+      const result = await signup(
+        formDataFor(
+          'learner@example.com',
+          'Sup3rSecret!',
+          'captcha-token',
+          'SomethingDifferent1!',
+        ),
+      );
+
+      expect(result).toEqual({ error: 'Passwords do not match' });
+      expect(mockSignUp).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Supabase error branches', () => {
+    it('surfaces a CAPTCHA-specific message when Supabase rejects the token', async () => {
+      mockSignUp.mockResolvedValue({
+        error: { message: 'captcha verification process failed' },
+      });
+
+      const result = await signup(
+        formDataFor('learner@example.com', 'Sup3rSecret!', 'captcha-token'),
+      );
+
+      expect(result).toEqual({
+        error: 'CAPTCHA verification failed. Please try again.',
+      });
+    });
+
+    it('surfaces a weak-password message on the weak_password code', async () => {
+      mockSignUp.mockResolvedValue({ error: { code: 'weak_password' } });
+
+      const result = await signup(
+        formDataFor('learner@example.com', 'Sup3rSecret!', 'captcha-token'),
+      );
+
+      expect(result).toEqual({
+        error: 'That password is too weak. Try a longer one.',
+      });
+    });
+
+    it('falls back to a generic message for any other Supabase failure (no enumeration)', async () => {
+      mockSignUp.mockResolvedValue({
+        error: { code: 'email_exists', message: 'User already registered' },
+      });
+
+      const result = await signup(
+        formDataFor('learner@example.com', 'Sup3rSecret!', 'captcha-token'),
+      );
+
+      expect(result).toEqual({
+        error: 'Unable to create account. Please try again.',
+      });
+    });
   });
 });
