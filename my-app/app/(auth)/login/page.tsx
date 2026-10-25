@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { LoginForm } from './login-form'
+import { LoginForm } from './loginForm'
 
 export default async function LoginPage({
   searchParams,
@@ -9,25 +9,25 @@ export default async function LoginPage({
   const { next, reset } = await searchParams
 
   return (
-    <main className="min-h-screen bg-[#F7F9FC] text-[#06152B]">
+    <main className="min-h-screen bg-surface text-text-primary">
       {/* Header */}
-      <header className="border-b border-[#DDE3EA] bg-white">
+      <header className="border-b border-border bg-surface-raised">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
           <Link
             href="/"
-            className="text-xl font-bold tracking-tight text-[#06152B]"
+            className="text-xl font-bold tracking-tight text-text-primary"
           >
             Crack the Channel
           </Link>
 
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-[#52606D] sm:inline">
+            <span className="hidden text-sm text-text-secondary sm:inline">
               New to the platform?
             </span>
 
             <Link
               href="/signup"
-              className="rounded-md bg-[#0F62FE] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#0353E9]"
+              className="rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-accent-contrast transition hover:bg-accent-strong"
             >
               Sign up
             </Link>
@@ -39,13 +39,13 @@ export default async function LoginPage({
       <section className="mx-auto grid max-w-7xl gap-16 px-6 py-16 lg:grid-cols-2 lg:items-center lg:px-10 lg:py-24">
         {/* Graphic / branding side */}
         <div className="hidden lg:block">
-          <div className="flex min-h-[460px] items-center justify-center rounded-lg border border-[#AAB4C0] bg-white">
-            <div className="flex h-[360px] w-[82%] items-center justify-center border border-[#AAB4C0] bg-[#F7F9FC]">
+          <div className="flex min-h-[460px] items-center justify-center rounded-lg border border-border-strong bg-surface-raised">
+            <div className="flex h-[360px] w-[82%] items-center justify-center border border-border-strong bg-surface">
               <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
-                <div className="absolute left-0 top-1/2 h-px w-full -rotate-[28deg] bg-[#AAB4C0]" />
-                <div className="absolute left-0 top-1/2 h-px w-full rotate-[28deg] bg-[#AAB4C0]" />
+                <div className="absolute left-0 top-1/2 h-px w-full -rotate-[28deg] bg-border-strong" />
+                <div className="absolute left-0 top-1/2 h-px w-full rotate-[28deg] bg-border-strong" />
 
-                <span className="relative bg-[#F7F9FC] px-4 text-xs font-medium uppercase tracking-[0.25em] text-[#7A8694]">
+                <span className="relative bg-surface px-4 text-xs font-medium uppercase tracking-[0.25em] text-text-secondary">
                   Graphic
                 </span>
               </div>
@@ -53,11 +53,11 @@ export default async function LoginPage({
           </div>
 
           <div className="mt-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#0F62FE]">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-accent">
               Welcome back
             </p>
 
-            <p className="mt-3 max-w-lg text-lg leading-8 text-[#52606D]">
+            <p className="mt-3 max-w-lg text-lg leading-8 text-text-secondary">
               Continue learning about quantum computing, BB84 and the future
               of secure communication.
             </p>
@@ -66,23 +66,23 @@ export default async function LoginPage({
 
         {/* Login form */}
         <div className="mx-auto w-full max-w-lg">
-          <div className="rounded-lg border border-[#DDE3EA] bg-white p-8 sm:p-10">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-[#0F62FE]">
+          <div className="rounded-lg border border-border bg-surface-raised p-8 sm:p-10">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-accent">
               Continue learning
             </p>
 
-            <h1 className="text-4xl font-bold tracking-tight text-[#06152B]">
+            <h1 className="text-4xl font-bold tracking-tight text-text-primary">
               Log in
             </h1>
 
-            <p className="mt-4 leading-7 text-[#52606D]">
+            <p className="mt-4 leading-7 text-text-secondary">
               Sign in to continue your Crack the Channel learning journey.
             </p>
 
             {reset === 'success' && (
               <div
                 role="status"
-                className="mt-6 rounded-md border border-[#ABEFC6] bg-[#ECFDF3] px-4 py-3 text-sm text-[#027A48]"
+                className="mt-6 rounded-md border border-success/30 bg-success/10 px-4 py-3 text-sm text-success"
               >
                 Password updated. Log in with your new password.
               </div>
@@ -92,25 +92,25 @@ export default async function LoginPage({
             <LoginForm next={typeof next === 'string' ? next : ''} />
 
             <div className="my-7 flex items-center gap-4">
-              <div className="h-px flex-1 bg-[#DDE3EA]" />
-              <span className="text-xs uppercase tracking-[0.2em] text-[#7A8694]">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs uppercase tracking-[0.2em] text-text-secondary">
                 or
               </span>
-              <div className="h-px flex-1 bg-[#DDE3EA]" />
+              <div className="h-px flex-1 bg-border" />
             </div>
 
-            <p className="text-center text-sm text-[#52606D]">
+            <p className="text-center text-sm text-text-secondary">
               Don&apos;t have an account?{' '}
               <Link
                 href="/signup"
-                className="font-medium text-[#0F62FE] hover:underline"
+                className="font-medium text-accent hover:underline"
               >
                 Create one
               </Link>
             </p>
           </div>
 
-          <p className="mt-6 text-center text-xs leading-5 text-[#7A8694]">
+          <p className="mt-6 text-center text-xs leading-5 text-text-secondary">
             Your progress is securely linked to your account.
           </p>
         </div>

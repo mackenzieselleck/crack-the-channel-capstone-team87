@@ -6,7 +6,7 @@ import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 import {
   requestPasswordReset,
   type ActionState,
-} from '@/app/(auth)/password-reset-actions'
+} from '@/app/(auth)/passwordResetActions'
 
 const initialState: ActionState = {}
 
@@ -26,10 +26,10 @@ export default function ForgotPasswordPage() {
   )
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#F7F9FC] px-6 text-[#06152B]">
-      <div className="w-full max-w-md rounded-xl border border-[#DDE3EA] bg-white p-8">
+    <main className="flex min-h-screen items-center justify-center bg-surface px-6 text-text-primary">
+      <div className="w-full max-w-md rounded-xl border border-border bg-surface-raised p-8">
         <h1 className="text-2xl font-semibold">Reset your password</h1>
-        <p className="mt-2 text-sm leading-6 text-[#52606D]">
+        <p className="mt-2 text-sm leading-6 text-text-secondary">
           Enter your account email and we&apos;ll send you a link to choose a
           new password.
         </p>
@@ -37,14 +37,14 @@ export default function ForgotPasswordPage() {
         {state.message ? (
           <div
             role="status"
-            className="mt-6 rounded-lg border border-[#ABEFC6] bg-[#ECFDF3] px-4 py-3 text-sm text-[#027A48]"
+            className="mt-6 rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success"
           >
             {state.message}
           </div>
         ) : (
           <form action={formAction} className="mt-6 space-y-4">
             <div>
-              <label htmlFor="email" className="text-sm font-medium text-[#06152B]">
+              <label htmlFor="email" className="text-sm font-medium text-text-primary">
                 Email
               </label>
               <input
@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="mt-1 w-full rounded-md border border-[#AAB4C0] bg-white px-3 py-2 text-sm text-[#06152B] outline-none focus:border-[#0F62FE]"
+                className="mt-1 w-full rounded-md border border-border-strong bg-surface-raised px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
               />
             </div>
 
@@ -63,12 +63,12 @@ export default function ForgotPasswordPage() {
               onSuccess={setCaptchaToken}
               onExpire={() => setCaptchaToken('')}
               onError={() => setCaptchaToken('')}
-              options={{ theme: 'light', size: 'flexible' }}
+              options={{ theme: 'auto', size: 'flexible' }}
             />
             <input type="hidden" name="captchaToken" value={captchaToken} />
 
             {state.error && (
-              <p role="alert" className="text-sm text-[#B42318]">
+              <p role="alert" className="text-sm text-danger">
                 {state.error}
               </p>
             )}
@@ -76,15 +76,15 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={pending || !captchaToken}
-              className="w-full rounded-md bg-[#0F62FE] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#0353E9] disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-50"
             >
               {pending ? 'Sending...' : 'Send reset link'}
             </button>
           </form>
         )}
 
-        <p className="mt-6 text-center text-sm text-[#52606D]">
-          <Link href="/login" className="text-[#0F62FE] hover:underline">
+        <p className="mt-6 text-center text-sm text-text-secondary">
+          <Link href="/login" className="text-accent hover:underline">
             Back to log in
           </Link>
         </p>

@@ -3,14 +3,14 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { loginSchema } from '@/lib/validation/auth'
-import { safeNext } from '@/lib/auth/safe-redirect'
+import { safeNext } from '@/lib/auth/safeRedirect'
 
 export type LoginState = {
   error?: string
   unconfirmed?: boolean
 }
 
-const DEFAULT_AFTER_LOGIN = '/learn/test-module'
+const DEFAULT_AFTER_LOGIN = '/dashboard'
 
 // pages login should never redirect to
 const BLOCKED_NEXT_PREFIXES = [

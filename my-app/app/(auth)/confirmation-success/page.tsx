@@ -27,13 +27,13 @@ export default async function ConfirmationSuccessPage() {
     : { href: '/onboarding', label: 'Continue to onboarding' }
 
   return (
-    <main className="min-h-screen bg-[#F7F9FC] text-[#06152B]">
+    <main className="min-h-screen bg-surface text-text-primary">
       {/* Header */}
-      <header className="border-b border-[#DDE3EA] bg-white">
+      <header className="border-b border-border bg-surface-raised">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
           <Link
             href="/"
-            className="text-xl font-bold tracking-tight text-[#06152B]"
+            className="text-xl font-bold tracking-tight text-text-primary"
           >
             Crack the Channel
           </Link>
@@ -43,38 +43,38 @@ export default async function ConfirmationSuccessPage() {
       {/* Main content */}
       <section className="mx-auto flex max-w-7xl items-center justify-center px-6 py-20 lg:px-10 lg:py-28">
         <div className="w-full max-w-xl">
-          <div className="rounded-lg border border-[#DDE3EA] bg-white px-8 py-12 text-center sm:px-12">
+          <div className="rounded-lg border border-border bg-surface-raised px-8 py-12 text-center sm:px-12">
             {/* Success icon */}
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#E8F0FF] text-[#0F62FE]">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-accent/10 text-accent">
               <CheckIcon />
             </div>
 
-            <p className="mt-8 text-xs font-semibold uppercase tracking-[0.25em] text-[#0F62FE]">
+            <p className="mt-8 text-xs font-semibold uppercase tracking-[0.25em] text-accent">
               Account verified
             </p>
 
-            <h1 className="mt-3 text-4xl font-bold tracking-tight text-[#06152B]">
+            <h1 className="mt-3 text-4xl font-bold tracking-tight text-text-primary">
               You&apos;re verified
             </h1>
 
-            <p className="mx-auto mt-5 max-w-md leading-7 text-[#52606D]">
+            <p className="mx-auto mt-5 max-w-md leading-7 text-text-secondary">
               Your email has been confirmed and you&apos;re now signed in to
               Crack the Channel.
             </p>
 
             {/* Status box */}
-            <div className="mt-8 rounded-md border border-[#DDE3EA] bg-[#F7F9FC] p-5 text-left">
+            <div className="mt-8 rounded-md border border-border bg-surface p-5 text-left">
               <div className="flex items-start gap-4">
-                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E8F0FF] text-[#0F62FE]">
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
                   <SmallCheckIcon />
                 </div>
 
                 <div>
-                  <p className="font-medium text-[#06152B]">
+                  <p className="font-medium text-text-primary">
                     Email verification complete
                   </p>
 
-                  <p className="mt-1 text-sm leading-6 text-[#52606D]">
+                  <p className="mt-1 text-sm leading-6 text-text-secondary">
                     {onboarded
                       ? 'Your learner profile is already set up. Pick up where you left off.'
                       : 'Next, set up your learner profile and start your quantum journey.'}
@@ -86,14 +86,14 @@ export default async function ConfirmationSuccessPage() {
             {/* Primary action */}
             <Link
               href={cta.href}
-              className="mt-8 flex w-full items-center justify-center gap-3 rounded-md bg-[#0F62FE] px-6 py-3.5 font-medium text-white transition hover:bg-[#0353E9]"
+              className="mt-8 flex w-full items-center justify-center gap-3 rounded-md bg-accent px-6 py-3.5 font-medium text-accent-contrast transition hover:bg-accent-strong"
             >
               {cta.label}
               <span aria-hidden="true">→</span>
             </Link>
           </div>
 
-          <p className="mt-6 text-center text-xs leading-5 text-[#7A8694]">
+          <p className="mt-6 text-center text-xs leading-5 text-text-secondary">
             Your learning progress will be securely linked to your account.
           </p>
         </div>

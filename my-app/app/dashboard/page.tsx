@@ -1,6 +1,0 @@
-import { requireOnboarding } from '@/lib/auth/guards'
-//placeholder dashboard while waiting on UI finalisation, enforces auth and onboarding
-export default async function Dashboard() {
-    const { profile } = await requireOnboarding()
-    return <div>Welcome {profile.first_name}. Let&apos;s start learning!</div>
-}
