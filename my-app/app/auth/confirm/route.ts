@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
   const next =
     type === 'recovery'
       ? '/reset-password'
-      : safeNext(searchParams.get('next'), origin, '/confirmed')
+      : safeNext(searchParams.get('next'), origin, '/confirmation-success')
 
   const supabase = await createClient()
   const { error } = await supabase.auth.verifyOtp({
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
   })
 
   if (error) {
-    console.error('[(/confirm] verify failed:', error.code ?? error.name)
+    console.error('[(auth/confirm] verify failed:', error.code ?? error.name)
     errorUrl.searchParams.set(
       'reason',
       type === 'recovery' ? 'expired-reset' : 'invalid-link',
