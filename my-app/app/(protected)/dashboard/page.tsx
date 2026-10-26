@@ -27,6 +27,7 @@ export default async function Dashboard() {
             <p className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-accent">
               Your learning portal
             </p>
+  
 
             <h1 className="max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">
               Welcome back, {profile.first_name}!

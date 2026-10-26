@@ -27,11 +27,14 @@ export default async function ProfilePage() {
 
     //supabase query to get the actual badge titles/descriptions the user has earned
     //used to render the stats and badge grid
-    const { data: badgeRows } = await supabase
-        .from('user_badges')
+    const { data: badgeRows, error: badgesError } = await supabase
+        .from('badges')
         .select('id, title, description, icon_url, user_badges ( earned_at )')
         .eq('user_badges.user_id', user.id)
+        .order('position')
         .returns<BadgeRow[]>()
+
+    if (badgesError) console.error('Profile badges query failed:', badgesError)
 
     if (!profile) {
         return (

@@ -5,4 +5,5 @@ export type Badge = {
   title: string;
   description: string | null;
   artboard: string;
+  icon_url: string | null;
 };

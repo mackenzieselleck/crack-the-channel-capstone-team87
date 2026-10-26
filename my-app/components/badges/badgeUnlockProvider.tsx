@@ -19,7 +19,7 @@ export function BadgeUnlockProvider({ userId, children }: { userId: string; chil
   const loadUnseen = useCallback(async () => {
     const { data, error } = await supabase
       .from('user_badges')
-      .select('badge_id, badges(id, slug, title, description, artboard)')
+      .select('badge_id, badges(id, slug, title, description, artboard, icon_url)')
       .eq('user_id', userId)
       .is('seen_at', null)
       .order('earned_at');
@@ -98,7 +98,11 @@ function BadgeUnlockDialog({ badge, onClose }: { badge: Badge; onClose: () => vo
       >
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Badge unlocked</p>
 
-        <BadgeArt artboard={badge.artboard} className="mx-auto mt-4 aspect-[2/3] w-56" />
+          <BadgeArt
+          artboard={badge.artboard}
+          fallbackSrc={badge.icon_url}
+          className="mx-auto mt-4 aspect-[2/3] w-56"
+          />
 
         <h2 id="badge-unlock-title" className="mt-4 text-xl font-semibold text-text-primary">
           {badge.title}
