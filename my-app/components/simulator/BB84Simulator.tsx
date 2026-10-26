@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Check,
   Eye,
+  Lightbulb,
   RotateCcw,
   ShieldCheck,
   TriangleAlert,
@@ -35,6 +36,19 @@ interface ApiTraceRow {
   kept: boolean;
 }
 
+interface ErrorCorrectionResult {
+  block_size: number;
+  leaked_bits: number;
+  corrected_errors: number;
+  residual_mismatches: number;
+}
+
+interface PrivacyAmplificationResult {
+  input_length: number;
+  output_length: number;
+  compression_ratio: number;
+}
+
 interface Bb84ApiResponse {
   num_qubits: number;
   eavesdrop: boolean;
@@ -45,6 +59,8 @@ interface Bb84ApiResponse {
   errors: number;
   eavesdropping_detected: boolean;
   final_key_preview: string;
+  error_correction: ErrorCorrectionResult;
+  privacy_amplification: PrivacyAmplificationResult;
   secure_key_preview: string;
   secure_key_length: number;
   trace: ApiTraceRow[];
@@ -161,6 +177,37 @@ function isApiTraceRow(value: unknown): value is ApiTraceRow {
   );
 }
 
+function isErrorCorrectionResult(value: unknown): value is ErrorCorrectionResult {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const data = value as Record<string, unknown>;
+
+  return (
+    isFiniteNumber(data.block_size) &&
+    isFiniteNumber(data.leaked_bits) &&
+    isFiniteNumber(data.corrected_errors) &&
+    isFiniteNumber(data.residual_mismatches)
+  );
+}
+
+function isPrivacyAmplificationResult(
+  value: unknown,
+): value is PrivacyAmplificationResult {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const data = value as Record<string, unknown>;
+
+  return (
+    isFiniteNumber(data.input_length) &&
+    isFiniteNumber(data.output_length) &&
+    isFiniteNumber(data.compression_ratio)
+  );
+}
+
 /**
  * Validate the response before using its fields in the UI.
  * This also catches mismatches between the frontend and backend.
@@ -182,6 +229,8 @@ function isBb84ApiResponse(value: unknown): value is Bb84ApiResponse {
     isFiniteNumber(data.errors) &&
     typeof data.eavesdropping_detected === 'boolean' &&
     typeof data.final_key_preview === 'string' &&
+    isErrorCorrectionResult(data.error_correction) &&
+    isPrivacyAmplificationResult(data.privacy_amplification) &&
     typeof data.secure_key_preview === 'string' &&
     isFiniteNumber(data.secure_key_length) &&
     Array.isArray(data.trace) &&
@@ -825,6 +874,16 @@ function TransmitStage({
           description="Choose one bit and one basis for each of the six displayed photons. These choices fill the first six positions of the 200-photon run; the remaining inputs are generated randomly."
         />
 
+        <ExplainerBox>
+          BB84 encodes each bit using one of two incompatible bases: straight
+          (+) or diagonal (×). Picking a basis at random, rather than always
+          the same one, is what makes eavesdropping detectable later since 
+          this makes it harder for an eavesdropper to guess the correct one,
+          and anyone who measures a photon in the wrong basis gets a random
+          result and disturbs it, making it easy to catch them!
+
+        </ExplainerBox>
+
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {aliceChoices.map((choice, index) => (
             <PhotonChoiceCard
@@ -849,6 +908,15 @@ function TransmitStage({
           description="Choose the measurement basis for each of the six displayed photons. Eve’s bases for the remaining photons are generated randomly."
         />
 
+        <ExplainerBox>
+          To read a photon you have to measure it, and measuring forces you
+          to guess — you don’t know Alice’s bases. Guess correctly and you
+          learn (and can resend) the real bit undisturbed. Guess wrong and
+          your measurement and the photon you pass on to Bob - carries a
+          randomised bit instead. This disturbance will cause the error 
+          rate to increase and make it easy for Alice and Bob to detect you.
+        </ExplainerBox>
+
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {eveChoices.map((basis, index) => (
             <BasisCard
@@ -871,6 +939,14 @@ function TransmitStage({
         title="Alice is transmitting"
         description="Alice is preparing a 200-photon run using randomly generated bits and bases. The six markers below represent example photons; Alice’s choices remain hidden from you."
       />
+
+      <ExplainerBox>
+        Alice is picking a random bit and a random basis for every
+        photon she sends. You (Bob) never get to see which basis she
+        picked — the secrecy is necessary for this to work. In the next
+        step you’ll measure each incoming photon using your own, 
+        independently guessed basis.
+      </ExplainerBox>
 
       <HiddenPhotonRow />
     </div>
@@ -901,6 +977,14 @@ function MeasureStage({
           description="Choose a measurement basis for each of the six displayed photons. The remaining measurement bases in the 200-photon run are generated randomly."
         />
 
+        <ExplainerBox>
+          You’re guessing blind — Alice’s basis for each photon is unknown
+          to you. Guess the same basis she used and your measurement
+          reveals her bit exactly. Guess the other basis and you get a
+          50/50 random result. The next step (compare) will involve sorting out 
+          which guesses matched.
+        </ExplainerBox>
+
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {bobChoices.map((basis, index) => (
             <BasisCard
@@ -923,6 +1007,14 @@ function MeasureStage({
         title="Bob is measuring"
         description="Bob does not know Alice’s bases. The simulator generates Bob’s measurement bases and compares the results with Alice’s choices."
       />
+
+      <ExplainerBox>
+        Bob is measuring each incoming photon by guessing each
+        basis, with no knowledge of what Alice (or Eve) actually
+        used. Where his guess happens to match the sender’s basis, his
+        result reproduces the original bit; where it doesn’t, his result is
+        random.
+      </ExplainerBox>
 
       <HiddenPhotonRow />
 
@@ -955,6 +1047,15 @@ function CompareStage({
         title="Which photons can be kept?"
         description="Alice and Bob compare their bases. Positions where their bases match can be kept for the sifted key; positions where they differ are discarded."
       />
+
+      <ExplainerBox>
+        Alice and Bob now announce only their bases over an ordinary,
+        public channel. That’s safe because the basis alone tells an 
+        eavesdropper nothing about the bit. Where the bases matched, 
+        Bob’s result equals Alice’s bit, so that position is kept.
+        Where they didn’t match, Bob’s result was essentially random noise,
+        so it’s discarded rather than risking a wrong bit in the key.
+      </ExplainerBox>
 
       <p className="mt-4 text-xs leading-5 text-[var(--text-secondary)]">
         Showing {result.trace.length} example photon
@@ -1063,6 +1164,16 @@ function AnalyseStage({
         title="Analyse the quantum channel"
         description="Compare the no-Eve baseline with the observed error rate. Interception can disturb photon measurements and increase the quantum bit error rate (QBER)."
       />
+
+      <ExplainerBox title="How QBER is calculated">
+        Half of the kept (sifted) bits are set aside purely as a public
+        check sample and are never used in the key. QBER is simply the
+        share of that sample where Alice’s and Bob’s bits disagree. An
+        intercept-resend eavesdropper has to guess a basis too: guess wrong
+        and the error rate is increased toward roughly 25%, far above the small
+        error rate expected on an unmonitored channel. The 11% threshold
+        below is a conservative tripwire for that disturbance.
+      </ExplainerBox>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Metric
@@ -1285,6 +1396,39 @@ function ResultsStage({
         description="Review the simulation outcome and what the error rate can tell you about the channel."
       />
 
+      <ExplainerBox title="From sifted bits to a secure key">
+        The sifted key still has a few mismatches between Alice and Bob,
+        from ordinary noise or from Eve. Error correction (a simplified
+        Cascade protocol) finds and fixes those by comparing block parities
+        over the public channel — each comparison leaks a little
+        information to a possible eavesdropper, which is tracked below.
+        Privacy amplification then compresses the corrected key using a
+        random hash, shrinking it by exactly enough to wash out whatever
+        fragments Eve might have picked up. What’s left is the secure key.
+      </ExplainerBox>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Metric
+          label="Leaked bits (error correction)"
+          value={String(result.error_correction.leaked_bits)}
+        />
+
+        <Metric
+          label="Errors corrected"
+          value={String(result.error_correction.corrected_errors)}
+        />
+
+        <Metric
+          label="Residual mismatches"
+          value={String(result.error_correction.residual_mismatches)}
+        />
+
+        <Metric
+          label="Privacy amplification"
+          value={`${result.privacy_amplification.input_length} → ${result.privacy_amplification.output_length} bits`}
+        />
+      </div>
+
       <div className={`mt-8 rounded-xl border p-6 ${statusBorderClass}`}>
         <div className="flex gap-4">
           {status.tone === 'neutral' && !eveActive ? (
@@ -1414,6 +1558,38 @@ function StageHeading({
       <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
         {description}
       </p>
+    </div>
+  );
+}
+
+/**
+ * Short "why this step matters" callout. Used under the stage heading on
+ * every step so the mechanics (what you're clicking) are paired with the
+ * reasoning (why BB84 works) 
+ */
+function ExplainerBox({
+  title = 'Why this step',
+  children,
+}: {
+  title?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="mt-6 flex gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-4">
+      <Lightbulb
+        className="mt-0.5 shrink-0 text-[var(--accent-simulator)]"
+        size={18}
+      />
+
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--accent-simulator)]">
+          {title}
+        </p>
+
+        <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
+          {children}
+        </p>
+      </div>
     </div>
   );
 }
