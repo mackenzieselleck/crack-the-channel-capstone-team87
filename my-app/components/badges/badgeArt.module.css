@@ -1,0 +1,16 @@
+/* Static badge fallback: scales in when the unlock popup opens */
+@keyframes pop {
+  0%   { transform: scale(0.6); opacity: 0; }
+  70%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+.pop {
+  animation: pop 450ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pop {
+    animation: none;
+  }
+}

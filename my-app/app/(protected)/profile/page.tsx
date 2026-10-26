@@ -1,17 +1,16 @@
 //renders user profile page
 
 import Link from 'next/link'
+import { Lock } from 'lucide-react'
 import { requireOnboarding } from '@/lib/auth/guards'
 import { createClient } from '@/lib/supabase/server'
 
-type EarnedBadge = {
-    earned_at: string
-    badges: {
-        id: string
-        title: string
-        description: string | null
-        icon_url: string | null
-    } | null
+type BadgeRow = {
+    id: string
+    title: string
+    description: string | null
+    icon_url: string | null
+    user_badges: { earned_at: string }[]
 }
 
 //shows the logged in user's profile, stats and earned badges
@@ -28,11 +27,14 @@ export default async function ProfilePage() {
 
     //supabase query to get the actual badge titles/descriptions the user has earned
     //used to render the stats and badge grid
-    const { data: userBadges } = await supabase
-        .from('user_badges')
-        .select('earned_at, badges ( id, title, description, icon_url )')
-        .eq('user_id', user.id)
-        .returns<EarnedBadge[]>()
+    const { data: badgeRows, error: badgesError } = await supabase
+        .from('badges')
+        .select('id, title, description, icon_url, user_badges ( earned_at )')
+        .eq('user_badges.user_id', user.id)
+        .order('position')
+        .returns<BadgeRow[]>()
+
+    if (badgesError) console.error('Profile badges query failed:', badgesError)
 
     if (!profile) {
         return (
@@ -43,9 +45,11 @@ export default async function ProfilePage() {
             </div>
         )
     }
+    
+    const badges = badgeRows ?? []
+    const earnedCount = badges.filter((b) => b.user_badges.length > 0).length
 
-    const earnedBadges = (userBadges ?? []).filter((ub) => ub.badges)
-
+    
     return (
         <div className="min-h-screen bg-surface">
 
@@ -123,38 +127,80 @@ export default async function ProfilePage() {
                         <h2 className="font-body text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">
                             Badges
                         </h2>
-                        <span className="text-sm text-text-secondary">{earnedBadges.length} earned</span>
+                        <span className="text-sm text-text-secondary">
+                            {earnedCount} of {badges.length} earned
+                        </span>
                     </div>
 
-                    {earnedBadges.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                            {earnedBadges.map((ub) => (
-                                <div
-                                    key={ub.badges!.id}
-                                    className="flex flex-col items-center gap-2 rounded-xl border border-border bg-surface-raised px-3 py-5 text-center transition hover:border-border-strong"
-                                >
-                                    {ub.badges!.icon_url ? (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={ub.badges!.icon_url} alt="" width={40} height={40} />
-                                    ) : (
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/15 text-accent">
-                                            ★
+                    {badges.length > 0 ? (
+                        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                            {badges.map((b) => {
+                                const earned = b.user_badges.length > 0
+                                return (
+                                    <li
+                                        key={b.id}
+                                        className={[
+                                            'flex flex-col items-center gap-2 rounded-xl border bg-surface-raised px-3 py-5 text-center transition',
+                                            earned ? 'border-border hover:border-border-strong' : 'border-dashed border-border',
+                                        ].join(' ')}
+                                    >
+                                        <div className="relative flex h-24 w-24 items-center justify-center">
+                                            {b.icon_url ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img
+                                                    src={b.icon_url}
+                                                    alt=""
+                                                    width={96}
+                                                    height={96}
+                                                    className={[
+                                                        'h-24 w-24 object-contain',
+                                                        earned ? '' : 'opacity-30 grayscale',
+                                                    ].join(' ')}
+                                                />
+                                            ) : (
+                                                <span className="text-2xl text-accent">★</span>
+                                            )}
+
+                                            {!earned && (
+                                                <Lock
+                                                    size={18}
+                                                    className="absolute text-text-secondary"
+                                                    aria-hidden="true"
+                                                />
+                                            )}
                                         </div>
-                                    )}
-                                    <p className="font-body text-sm font-medium text-text-primary">
-                                        {ub.badges!.title}
-                                    </p>
-                                    {ub.badges!.description && (
-                                        <p className="text-xs leading-5 text-text-secondary">
-                                            {ub.badges!.description}
+
+                                        <p
+                                            className={[
+                                                'font-body text-sm font-medium',
+                                                earned ? 'text-text-primary' : 'text-text-secondary',
+                                            ].join(' ')}
+                                        >
+                                            {b.title}
+                                            {!earned && <span className="sr-only"> (locked)</span>}
                                         </p>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+
+                                        {b.description && (
+                                            <p className="text-xs leading-5 text-text-secondary">{b.description}</p>
+                                        )}
+
+                                        {earned && (
+                                            <p className="text-xs text-text-secondary">
+                                                Earned{' '}
+                                                {new Date(b.user_badges[0].earned_at).toLocaleDateString(undefined, {
+                                                    day: 'numeric',
+                                                    month: 'short',
+                                                    year: 'numeric',
+                                                })}
+                                            </p>
+                                        )}
+                                    </li>
+                                )
+                            })}
+                        </ul>
                     ) : (
                         <div className="rounded-xl border border-dashed border-border px-5 py-6 text-center">
-                            <p className="text-text-secondary">No badges earned yet. Keep learning to unlock some!</p>
+                            <p className="text-text-secondary">Badges are coming soon.</p>
                         </div>
                     )}
                 </section>

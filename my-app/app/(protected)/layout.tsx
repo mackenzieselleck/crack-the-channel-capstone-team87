@@ -1,18 +1,21 @@
 import Navbar from '@/components/navbar';
+import type { ReactNode } from 'react';
 import { requireOnboarding } from '@/lib/auth/guards';
 import { DailyChallengePopup } from '@/components/daily-challenge/dailyChallengePopup';
-export default async function ProtectedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  await requireOnboarding();
+import { BadgeUnlockProvider } from '@/components/badges/badgeUnlockProvider';
+
+
+export default async function ProtectedLayout({ children }: { children: ReactNode }) {
+  const { user } = await requireOnboarding();
 
   return (
-    <div className="...">
-       <Navbar />
-       {children}
-       <DailyChallengePopup />
-     </div>
+    <BadgeUnlockProvider userId={user.id}>
+      <div className="...">
+        <Navbar />
+        {children}
+        <DailyChallengePopup />
+      </div>
+    </BadgeUnlockProvider>
   );
 }
+

@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Navbar from '@/components/navbar'
 import { requireOnboarding } from '@/lib/auth/guards'
 import { updateProfile } from '../actions'
 
@@ -12,7 +11,7 @@ export default async function EditProfilePage({ searchParams }: {
 
     return (
         <div className="min-h-screen bg-surface">
-            <Navbar />
+   
 
             <main className="mx-auto flex max-w-xl flex-col gap-6 px-6 pb-40 pt-12 lg:px-10">
                 <div>
