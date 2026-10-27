@@ -1,0 +1,5 @@
+# Local Python environments, bytecode, test cache and generated QA reports.
+.venv/
+__pycache__/
+.pytest_cache/
+/reports/
