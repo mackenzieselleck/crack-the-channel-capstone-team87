@@ -84,7 +84,7 @@ jobs:
           cache-dependency-path: my-app/package-lock.json
       - run: npm ci
       - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps --only-shell chromium
       # playwright.config.ts starts mock Supabase server and `next dev` on port 3100
       - name: Run E2E tests
         run: npx playwright test
