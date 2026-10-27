@@ -116,6 +116,6 @@ describe('/learn/[slug] page', () => {
     });
 
     // The protected layout includes the learning page.
-    expect(layout.props.children[1]).toBe(element);
+    expect(layout.props.children.props.children).toContain(element);
   });
 });

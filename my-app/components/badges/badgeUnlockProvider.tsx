@@ -8,12 +8,15 @@ import { BadgeArt } from './badgeArt';
 
 type UnseenRow = { badge_id: string; badges: Badge | null };
 
-// shows unlock popup on any (protected) page on user earning a badge that they haven't dismiised yet
+// Shows unseen badge awards on protected pages.
 export function BadgeUnlockProvider({ userId, children }: { userId: string; children: ReactNode }) {
   const supabase = useMemo(() => createClient(), []);
   const pathname = usePathname();
   const [queue, setQueue] = useState<Badge[]>([]);
   const dismissed = useRef(new Set<string>()); // stops refetch of badge
+  const saving = useRef(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [dismissError, setDismissError] = useState<string | null>(null);
   const current = queue[0];
 
   const loadUnseen = useCallback(async () => {
@@ -32,7 +35,7 @@ export function BadgeUnlockProvider({ userId, children }: { userId: string; chil
 
     setQueue((prev) => {
       const queued = new Set(prev.map((b) => b.id));
-      return [...prev, ...unseen.filter((b) => !queued.has(b.id))];
+      return [...prev, ...unseen.filter((b) => !queued.has(b.id) && !dismissed.current.has(b.id))];
     });
   }, [supabase, userId]);
 
@@ -58,38 +61,92 @@ export function BadgeUnlockProvider({ userId, children }: { userId: string; chil
   }, [supabase, userId, loadUnseen]);
 
   const dismiss = useCallback(async () => {
-    if (!current) return;
-    dismissed.current.add(current.id);
-    setQueue((q) => q.slice(1));
-    await supabase.rpc('mark_badges_seen', { p_badge_ids: [current.id] });
+    if (!current || saving.current) return;
+    saving.current = true;
+    setIsSaving(true);
+    setDismissError(null);
+
+    try {
+      const { error } = await supabase.rpc('mark_badges_seen', { p_badge_ids: [current.id] });
+      if (error) throw error;
+
+      dismissed.current.add(current.id);
+      setQueue((q) => q.filter((badge) => badge.id !== current.id));
+    } catch {
+      setDismissError("We couldn't save your dismissal. Your badge is safe. Please try again.");
+    } finally {
+      saving.current = false;
+      setIsSaving(false);
+    }
   }, [current, supabase]);
 
   return (
     <>
       {children}
-      {current && <BadgeUnlockDialog key={current.id} badge={current} onClose={dismiss} />}
+      {current && (
+        <BadgeUnlockDialog
+          key={current.id}
+          badge={current}
+          onClose={dismiss}
+          isSaving={isSaving}
+          error={dismissError}
+        />
+      )}
     </>
   );
 }
 
-function BadgeUnlockDialog({ badge, onClose }: { badge: Badge; onClose: () => void }) {
+function BadgeUnlockDialog({ badge, onClose, isSaving, error }: {
+  badge: Badge;
+  onClose: () => void;
+  isSaving: boolean;
+  error: string | null;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    const dialog = dialogRef.current;
+    const previousFocus = document.activeElement;
+    // The native modal makes the rest of the page inert and contains Tab focus.
+    dialog?.showModal();
     closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+    return () => {
+      dialog?.close();
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) {
+        previousFocus.focus({ preventScroll: true });
+      }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, []);
 
   return (
-    <div
-      role="dialog"
+    <dialog
+      ref={dialogRef}
       aria-modal="true"
       aria-labelledby="badge-unlock-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6"
+      aria-describedby={error ? 'badge-unlock-error' : undefined}
+      aria-busy={isSaving}
+      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none items-center justify-center bg-transparent p-6 text-inherit backdrop:bg-black/60 open:flex"
+      onCancel={(e) => {
+        // Keep the modal open until the dismissal is saved, including Escape.
+        e.preventDefault();
+        onClose();
+      }}
+      onKeyDown={(e) => {
+        if (e.key !== 'Tab') return;
+        const controls = e.currentTarget.querySelectorAll<HTMLElement>(
+          'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]',
+        );
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }}
       onClick={onClose}
     >
       <div
@@ -98,11 +155,11 @@ function BadgeUnlockDialog({ badge, onClose }: { badge: Badge; onClose: () => vo
       >
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Badge unlocked</p>
 
-          <BadgeArt
+        <BadgeArt
           artboard={badge.artboard}
           fallbackSrc={badge.icon_url}
           className="mx-auto mt-4 aspect-[2/3] w-56"
-          />
+        />
 
         <h2 id="badge-unlock-title" className="mt-4 text-xl font-semibold text-text-primary">
           {badge.title}
@@ -111,15 +168,22 @@ function BadgeUnlockDialog({ badge, onClose }: { badge: Badge; onClose: () => vo
           <p className="mt-2 text-sm leading-6 text-text-secondary">{badge.description}</p>
         )}
 
+        {error && (
+          <p id="badge-unlock-error" role="alert" className="mt-4 text-sm text-text-primary">
+            {error}
+          </p>
+        )}
+
         <button
           ref={closeRef}
           type="button"
           onClick={onClose}
+          aria-disabled={isSaving}
           className="mt-6 w-full rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-accent-contrast transition hover:bg-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
         >
-          Continue
+          {isSaving ? 'Saving...' : error ? 'Try again' : 'Continue'}
         </button>
       </div>
-    </div>
+    </dialog>
   );
 }
