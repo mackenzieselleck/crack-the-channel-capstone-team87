@@ -23,7 +23,7 @@ export function useModule(slug: string) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ── Load module content + this user's progress, then resume where they left off ──
+  // load module content + user's progress, then resume
   useEffect(() => {
     let cancelled = false;
 
@@ -65,7 +65,7 @@ export function useModule(slug: string) {
         .from('module_progress')
         .select('pages_completed, quiz_passed, best_score, completed_at')
         .eq('module_id', loaded.id)
-        .maybeSingle(); // RLS already limits this to the current user
+        .maybeSingle(); // RLS already limits this to current user
 
       if (cancelled) return;
 
@@ -90,7 +90,7 @@ export function useModule(slug: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
-  // ── Next: only hits the server when the user is moving past their furthest step ──
+  // Next: only hits server when user is moves past their furthest current step
   const next = useCallback(async () => {
     if (!mod || pos.kind !== 'reading' || busy) return;
 
@@ -122,7 +122,7 @@ export function useModule(slug: string) {
     );
   }, [mod, pos, progress.pagesCompleted, busy, supabase]);
 
-  // ── Back: free navigation to already-completed content ──
+  // Back: free navigation to previous content
   const back = useCallback(() => {
     if (!mod) return;
     setQuizResult(null);
@@ -130,7 +130,7 @@ export function useModule(slug: string) {
     else if (pos.index > 0) setPos({ kind: 'reading', index: pos.index - 1 });
   }, [mod, pos]);
 
-  // ── Submit test: grading happens in the database, never in the browser ──
+  //  Submit test: grading happens via database
   const submitQuiz = useCallback(
     async (answers: Record<string, number>) => {
       if (!mod || busy) return;
