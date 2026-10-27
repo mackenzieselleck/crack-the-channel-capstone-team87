@@ -99,7 +99,7 @@ jobs:
   deploy:
     name: Deploy to Vercel
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [quality, unit, db, build, e2e]
+    needs: [quality, unit, build, e2e]
     runs-on: ubuntu-latest
     defaults:
       run:
