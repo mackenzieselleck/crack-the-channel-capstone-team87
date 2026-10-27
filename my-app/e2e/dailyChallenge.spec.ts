@@ -14,6 +14,9 @@ import { mockTurnstile } from './mocks';
 // simulate the Daily Challenge API, grading and saved progress. This is not
 // evidence of live Qiskit/LLM/Supabase reward integration.
 test('Daily Challenge supports a hint, failed attempt, successful retry and refresh', async ({ page }) => {
+  // A cold Next.js dev server may compile routes while other specs log in.
+  // Bound the full multi-page journey and allow cold page transitions to finish.
+  test.setTimeout(90_000);
   const challenge: PublicChallenge = {
     id: '11111111-1111-4111-8111-111111111111',
     date: '2026-10-28',
@@ -126,10 +129,10 @@ test('Daily Challenge supports a hint, failed attempt, successful retry and refr
   await expect(page.getByRole('button', { name: 'Log in' })).toBeEnabled();
   await page.getByRole('button', { name: 'Log in' }).click();
 
-  await expect(page).toHaveURL('/daily-challenge');
-  await expect(page.getByRole('heading', { name: "Today's challenges" })).toBeVisible();
+  await expect(page).toHaveURL('/daily-challenge', { timeout: 20_000 });
+  await expect(page.getByRole('heading', { name: "Today's challenges" })).toBeVisible({ timeout: 20_000 });
   await page.locator('a[href="/daily-challenge/1"]').click();
-  await expect(page.getByRole('heading', { name: challenge.title })).toBeVisible();
+  await expect(page.getByRole('heading', { name: challenge.title })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole('button', { name: 'Submit answer' })).toBeDisabled();
   await expect(page.getByText(hints[0], { exact: true })).toHaveCount(0);
 
@@ -142,18 +145,18 @@ test('Daily Challenge supports a hint, failed attempt, successful retry and refr
   await expect(page.getByRole('radio', { name: 'Router', exact: true })).toBeChecked();
   await page.getByRole('button', { name: 'Submit answer' }).click();
 
-  await expect(page).toHaveURL('/daily-challenge/1/result');
+  await expect(page).toHaveURL('/daily-challenge/1/result', { timeout: 20_000 });
   await expect(page.getByRole('status').filter({ hasText: /^Not quite$/ })).toBeVisible();
   await expect(page.getByText('2 attempts left', { exact: true })).toBeVisible();
   await expect(page.getByText(workedSolution, { exact: true })).toHaveCount(0);
   await page.getByRole('link', { name: 'Try again', exact: true }).click();
-  await expect(page).toHaveURL('/daily-challenge/1');
+  await expect(page).toHaveURL('/daily-challenge/1', { timeout: 20_000 });
   await expect(page.getByText(hints[0], { exact: true })).toBeVisible();
   await expect(page.getByText('25 XP', { exact: true })).toBeVisible();
   await page.getByText('Qubit', { exact: true }).click();
   await expect(page.getByRole('radio', { name: 'Qubit', exact: true })).toBeChecked();
   await page.getByRole('button', { name: 'Submit answer' }).click();
-  await expect(page).toHaveURL('/daily-challenge/1/result');
+  await expect(page).toHaveURL('/daily-challenge/1/result', { timeout: 20_000 });
   await expect(page.getByRole('status').filter({ hasText: /^Correct!$/ })).toBeVisible();
   await expect(page.getByText('+25 XP', { exact: true })).toBeVisible();
   await expect(page.getByText(workedSolution, { exact: true })).toBeVisible();
@@ -164,7 +167,7 @@ test('Daily Challenge supports a hint, failed attempt, successful retry and refr
   await expect(page.getByText('Solved on attempt 2', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Try again', exact: true })).toHaveCount(0);
   await page.getByRole('link', { name: 'All challenges', exact: true }).click();
-  await expect(page.getByRole('heading', { name: "Today's challenges" })).toBeVisible();
+  await expect(page.getByRole('heading', { name: "Today's challenges" })).toBeVisible({ timeout: 20_000 });
   await expect(page.locator('a[href="/daily-challenge/1/result"]')).toContainText('Review');
   await expect(page.getByText('Safe for today', { exact: true })).toBeVisible();
 
