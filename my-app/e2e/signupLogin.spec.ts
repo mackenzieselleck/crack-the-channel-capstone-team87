@@ -48,7 +48,9 @@ test.describe('signup', () => {
     await expect(page.getByRole('button', { name: 'Create account' })).toBeEnabled();
     await page.getByRole('button', { name: 'Create account' }).click();
 
-    await expect(errorAlert(page)).toHaveText('Unable to create account. Please try again.');
+    await expect(errorAlert(page)).toHaveText(
+      'User already exists. Please try logging in instead.'
+    );
   });
 });
 
