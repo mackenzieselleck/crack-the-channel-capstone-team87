@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { BookOpen, Check, ChevronRight, Lock } from 'lucide-react';
 import { requireOnboarding } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
+import { percentComplete } from '@/lib/learning/progress';
 
 export const metadata: Metadata = { title: 'Learning | Crack the Channel' };
 
@@ -63,7 +64,10 @@ export default async function LearnPage() {
               const read = Math.min(p?.pages_completed ?? 0, total);
               const passed = !!p?.quiz_passed;
               // Reading is most of the work; the assessment is the last step.
-              const percent = passed ? 100 : total ? Math.round((read / total) * 90) : 0;
+              const percent = percentComplete(
+                { pagesCompleted: read, quizPassed: passed, bestScore: null, completedAt: null },
+                total,
+              );
               const started = !!p && (read > 0 || p.best_score !== null);
               const cta = passed ? 'Review' : started ? 'Continue' : 'Start';
               return (
