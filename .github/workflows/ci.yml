@@ -30,7 +30,7 @@ jobs:
         run: |
           missing=0
           for f in public/rive/badges.riv \
-                   public/images/badges/{quantum-starter,basis-explorer,key-sifter,eavesdropper-detective,qiskit-practitioner,daily-challenge,consistency,overall-champion}.png; do
+                   public/images/badges/{quantum-starter,basis-explorer,key-sifter,eavesdropper-detective,qiskit-practitioner,daily-challenge,consistency-master,overall-champion}.png; do
             if [ ! -s "$f" ]; then
               echo "::error file=my-app/$f::Missing or empty asset: $f"
               missing=1
