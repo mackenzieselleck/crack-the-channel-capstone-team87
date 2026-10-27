@@ -1,0 +1,136 @@
+name: CI/CD
+
+on:
+  push:
+  pull_request:
+
+defaults:
+  run:
+    working-directory: my-app
+
+# lint, typecheck, asset checks
+jobs:
+  quality:
+    name: Lint, types and assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: my-app/package-lock.json
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Type check
+        run: npx tsc --noEmit
+      # popup/profile page break silently if file is missing 
+      - name: Check badge assets exist
+        run: |
+          missing=0
+          for f in public/rive/badges.riv \
+                   public/images/badges/{quantum-starter,basis-explorer,key-sifter,eavesdropper-detective,qiskit-practitioner,daily-challenge,consistency,overall-champion}.png; do
+            if [ ! -s "$f" ]; then
+              echo "::error file=my-app/$f::Missing or empty asset: $f"
+              missing=1
+            fi
+          done
+          exit $missing
+  # unit tests via vitest
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: my-app/package-lock.json
+      - run: npm ci
+      - run: npx vitest run --project unit
+  # db tests via vitest
+  db:
+    name: Database tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: my-app/package-lock.json
+      - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      # throwaway db with all migrations applied
+      - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector
+      - run: npx vitest run --project db
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      # placeholders for build compilation check
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-build-placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: my-app/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  # e2e tests via playwright
+  e2e:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: my-app/package-lock.json
+      - run: npm ci
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      # playwright.config.ts starts mock Supabase server and `next dev` on port 3100
+      - name: Run E2E tests
+        run: npx playwright test
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-reports
+          path: my-app/reports/e2e
+          retention-days: 7
+  # deploy to vercel
+  deploy:
+    name: Deploy to Vercel
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [quality, unit, db, build, e2e]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .   # Vercel applies my-app Root Directory
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --global vercel@latest
+      - run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
