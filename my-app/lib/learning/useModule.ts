@@ -96,6 +96,7 @@ export function useModule(slug: string) {
 
     if (pos.index >= progress.pagesCompleted) {
       setBusy(true);
+      setError(null);
       const { data, error: rpcErr } = await supabase.rpc('increment_progress', {
         p_module_id: mod.id,
         p_page_index: pos.index,
