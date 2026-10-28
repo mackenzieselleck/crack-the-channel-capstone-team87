@@ -24,8 +24,9 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: "invalid request" }, { status: 400 });
   const { challengeId, index } = parsed.data;
 
-  const { data: ch } = await admin.from("daily_challenges")
+  const { data: ch, error: readError } = await admin.from("daily_challenges")
     .select("hints,hints_revealed").eq("id", challengeId).eq("user_id", user.id).maybeSingle();
+  if (readError) return NextResponse.json({ error: "Hints are temporarily unavailable. Try again." }, { status: 503 });
   if (!ch) return NextResponse.json({ error: "not found" }, { status: 404 });
 
   const hints: string[] = ch.hints ?? [];
@@ -35,11 +36,24 @@ export async function POST(req: NextRequest) {
 
   if (index === revealed) {
     // double-clicks and parallel requests count once
-    const { data: updated } = await admin.from("daily_challenges")
+    const { data: updated, error: saveError } = await admin.from("daily_challenges")
       .update({ hints_revealed: revealed + 1 })
       .eq("id", challengeId).eq("user_id", user.id).eq("hints_revealed", revealed)
       .select("hints_revealed").maybeSingle();
-    revealed = updated?.hints_revealed ?? revealed + 1;
+    if (saveError) return NextResponse.json({ error: "The hint could not be saved. Try again." }, { status: 503 });
+    if (updated) {
+      revealed = updated.hints_revealed;
+    } else {
+      // Another request may have won the conditional update. Return only hints
+      // confirmed in storage; never assume a failed/missed update succeeded.
+      const { data: latest, error: latestError } = await admin.from("daily_challenges")
+        .select("hints_revealed").eq("id", challengeId).eq("user_id", user.id).maybeSingle();
+      if (latestError) return NextResponse.json({ error: "Hints are temporarily unavailable. Try again." }, { status: 503 });
+      if (!latest || !Number.isInteger(latest.hints_revealed) || latest.hints_revealed <= index) {
+        return NextResponse.json({ error: "Hint progress changed. Try revealing the hint again." }, { status: 409 });
+      }
+      revealed = Math.min(latest.hints_revealed, hints.length);
+    }
   }
 
   return NextResponse.json({ hints: hints.slice(0, revealed), hintsTotal: hints.length } satisfies HintResponse);

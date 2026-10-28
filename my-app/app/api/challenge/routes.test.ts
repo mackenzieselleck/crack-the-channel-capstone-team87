@@ -35,6 +35,9 @@ let secret: Row | null;
 let profile: Row | null;
 let insertError: Row | null;
 let queries: QueryRecord[];
+let hintSaveError: boolean;
+let hintUpdateMiss: boolean;
+let hintReadError: boolean;
 
 function databaseFixture() {
   return {
@@ -45,6 +48,13 @@ function databaseFixture() {
       const matches = (row: Row) => record.filters.every(([key, expected]) =>
         Array.isArray(expected) ? expected.includes(row[key]) : row[key] === expected);
       function execute(single: boolean) {
+        if (table === 'daily_challenges' && record.action === 'select' && hintReadError) {
+          return { data: null, error: { code: 'offline' } };
+        }
+        if (table === 'daily_challenges' && record.action === 'update') {
+          if (hintSaveError) return { data: null, error: { code: 'offline' } };
+          if (hintUpdateMiss) return { data: null, error: null };
+        }
         let rows = table === 'daily_challenges' ? challenges
           : table === 'challenge_attempts' ? attempts
           : table === 'daily_challenge_answers' ? (secret ? [secret] : [])
@@ -86,6 +96,7 @@ beforeEach(() => {
   secret = { challenge_id: id, answer: { bits: '101' }, worked_solution: 'Secret worked solution.', leak_terms: ['101'] };
   profile = { id: 'learner', xp: 165, challenge_streak: 2, best_streak: 4, last_challenge: '2026-10-28' };
   insertError = null; queries = [];
+  hintSaveError = false; hintUpdateMiss = false; hintReadError = false;
   mocks.admin = databaseFixture();
   mocks.getUser.mockResolvedValue({ data: { user: { id: 'learner' } } });
   mocks.limitRoute.mockResolvedValue(null);
@@ -116,6 +127,48 @@ describe('Daily Challenge route access guards', () => {
 });
 
 describe('hint route', () => {
+  it('withholds a hint when the save fails and permits a later retry', async () => {
+    hintSaveError = true;
+    const failed = await hint(hintRequest());
+    expect(failed.status).toBe(503);
+    expect(await failed.json()).not.toHaveProperty('hints');
+    expect(challenges[0].hints_revealed).toBe(0);
+    hintSaveError = false;
+    const retried = await hint(hintRequest());
+    expect(retried.status).toBe(200);
+    expect(await retried.json()).toEqual({ hints: [hints[0]], hintsTotal: 3 });
+    expect(challenges[0].hints_revealed).toBe(1);
+  });
+  it('reports a read outage instead of calling it a missing challenge', async () => {
+    hintReadError = true;
+    expect((await hint(hintRequest())).status).toBe(503);
+    expect(queries.some(query => query.action === 'update')).toBe(false);
+  });
+  it('does not assume a hint was saved when a conditional update returns no row', async () => {
+    hintUpdateMiss = true;
+    const response = await hint(hintRequest());
+    expect(response.status).toBe(409);
+    expect(await response.json()).not.toHaveProperty('hints');
+    expect(challenges[0].hints_revealed).toBe(0);
+  });
+  it('reads persisted progress after another request wins the conditional update', async () => {
+    // A deterministic conflict fixture, not independent-connection concurrency.
+    const originalFrom = mocks.admin.from as (table: string) => unknown;
+    mocks.admin.from = (table: string) => {
+      const query = originalFrom(table) as { update: (value: Row) => unknown };
+      const originalUpdate = query.update;
+      query.update = function(value: Row) {
+        challenges[0].hints_revealed = 1;
+        hintUpdateMiss = true;
+        return originalUpdate.call(this, value);
+      };
+      return query;
+    };
+    const response = await hint(hintRequest());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ hints: [hints[0]], hintsTotal: 3 });
+    expect(challenges[0].hints_revealed).toBe(1);
+  });
   it.each([{ challengeId: 'bad-id', index: 0 }, { challengeId: id, index: -1 }, { challengeId: id, index: 3 }, { challengeId: id, index: 0.5 }])('rejects invalid hint payload %j', async (body) => {
     expect((await hint(request('hint', body))).status).toBe(400);
     expect(queries).toEqual([]);
