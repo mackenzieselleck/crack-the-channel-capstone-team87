@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { LoginForm } from './loginForm'
+import Image from 'next/image';
 
 export default async function LoginPage({
   searchParams,
@@ -39,18 +40,14 @@ export default async function LoginPage({
       <section className="mx-auto grid max-w-7xl gap-16 px-6 py-16 lg:grid-cols-2 lg:items-center lg:px-10 lg:py-24">
         {/* Graphic / branding side */}
         <div className="hidden lg:block">
-          <div className="flex min-h-[460px] items-center justify-center rounded-lg border border-border-strong bg-surface-raised">
-            <div className="flex h-[360px] w-[82%] items-center justify-center border border-border-strong bg-surface">
-              <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
-                <div className="absolute left-0 top-1/2 h-px w-full -rotate-[28deg] bg-border-strong" />
-                <div className="absolute left-0 top-1/2 h-px w-full rotate-[28deg] bg-border-strong" />
-
-                <span className="relative bg-surface px-4 text-xs font-medium uppercase tracking-[0.25em] text-text-secondary">
-                  Graphic
-                </span>
-              </div>
-            </div>
-          </div>
+          <Image
+            src="/images/marketing/login-daily-progress.png"
+            alt=""
+            width={1402}
+            height={1122}
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            className="h-auto max-h-[460px] w-full object-contain p-6"
+          />
 
           <div className="mt-8">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-accent">
