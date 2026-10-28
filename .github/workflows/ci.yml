@@ -50,7 +50,28 @@ jobs:
           cache-dependency-path: my-app/package-lock.json
       - run: npm ci
       - run: npx vitest run --project unit
-      
+    
+  # db tests via vitest
+  db:
+    name: Database tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: my-app/package-lock.json
+      - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta,mailpit
+      - name: Run pgTAP tests
+        run: supabase test db
+      - name: Run Vitest database tests
+        run: npx vitest run --project db
+
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -95,24 +116,4 @@ jobs:
           name: e2e-reports
           path: my-app/reports/e2e
           retention-days: 7
-  # deploy to vercel
-  deploy:
-    name: Deploy to Vercel
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [quality, unit, build, e2e]
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .   # Vercel applies my-app Root Directory
-    env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - run: npm install --global vercel@latest
-      - run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-      - run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-      - run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+ 
