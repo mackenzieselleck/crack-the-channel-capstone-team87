@@ -8,23 +8,23 @@ import { BadgeUnlockProvider } from './badgeUnlockProvider';
 const mocks = vi.hoisted(() => ({
   rpc: vi.fn(),
   order: vi.fn(),
+  select: vi.fn(),
+  eq: vi.fn(),
+  is: vi.fn(),
+  channel: vi.fn(),
+  removeChannel: vi.fn(),
+  subscription: { name: 'badge-subscription' },
+  pathname: '/profile',
   notify: () => {},
 }));
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/profile' }));
+vi.mock('next/navigation', () => ({ usePathname: () => mocks.pathname }));
 vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
-    from: () => ({
-      select: () => ({ eq: () => ({ is: () => ({ order: mocks.order }) }) }),
-    }),
+    from: () => ({ select: mocks.select }),
     rpc: mocks.rpc,
-    channel: () => ({
-      on: (_event: string, _filter: unknown, notify: () => void) => {
-        mocks.notify = notify;
-        return { subscribe: () => ({}) };
-      },
-    }),
-    removeChannel: vi.fn(),
+    channel: mocks.channel,
+    removeChannel: mocks.removeChannel,
   }),
 }));
 vi.mock('./badgeArt', () => ({ BadgeArt: () => <span>Badge art</span> }));
@@ -53,8 +53,8 @@ const originalShowModal = Object.getOwnPropertyDescriptor(HTMLDialogElement.prot
 const originalClose = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close');
 
 beforeAll(() => {
-  // jsdom does not implement native modal behaviour; keyboard containment and
-  // page inertness are verified separately in a real browser.
+  // jsdom does not implement native modal behaviour. This stub supports the
+  // component lifecycle and key-handler tests; native inertness needs a browser.
   Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
     configurable: true,
     value(this: HTMLDialogElement) { this.setAttribute('open', ''); },
@@ -74,8 +74,101 @@ afterAll(() => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.pathname = '/profile';
+  mocks.select.mockReturnValue({ eq: mocks.eq });
+  mocks.eq.mockReturnValue({ is: mocks.is });
+  mocks.is.mockReturnValue({ order: mocks.order });
+  mocks.channel.mockReturnValue({
+    on: (_event: string, _filter: unknown, notify: () => void) => {
+      mocks.notify = notify;
+      return { subscribe: () => mocks.subscription };
+    },
+  });
   mocks.order.mockResolvedValue({ data: badges, error: null });
   mocks.rpc.mockResolvedValue({ error: null });
+});
+
+describe('unseen badge loading', () => {
+  it('requests only the current learner\'s unseen badges in earned order', async () => {
+    openProvider();
+    await screen.findByRole('heading', { name: 'First badge' });
+    expect(mocks.eq).toHaveBeenCalledWith('user_id', 'learner');
+    expect(mocks.is).toHaveBeenCalledWith('seen_at', null);
+    expect(mocks.order).toHaveBeenCalledWith('earned_at');
+    expect(mocks.channel).toHaveBeenCalledWith('user-badges:learner');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    await screen.findByRole('heading', { name: 'Second badge' });
+  });
+
+  it('ignores missing badge relations and badges without display art', async () => {
+    mocks.order.mockResolvedValue({
+      data: [
+        { badge_id: 'missing', badges: null },
+        { badge_id: 'no-art', badges: { ...badges[0].badges, id: 'no-art', artboard: '' } },
+        badges[1],
+      ],
+      error: null,
+    });
+    openProvider();
+    expect(await screen.findByRole('dialog')).toHaveAccessibleName('Second badge');
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(mocks.rpc).toHaveBeenCalledTimes(1);
+    expect(mocks.rpc).toHaveBeenCalledWith('mark_badges_seen', { p_badge_ids: ['badge-1'] });
+  });
+
+  it('keeps the page available after a read error and recovers on a later notification', async () => {
+    mocks.order.mockResolvedValueOnce({ data: null, error: { message: 'offline' } });
+    openProvider();
+    await waitFor(() => expect(mocks.order).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole('button', { name: 'Background action' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(mocks.rpc).not.toHaveBeenCalled();
+
+    await act(async () => { mocks.notify(); });
+    expect(await screen.findByRole('dialog')).toHaveAccessibleName('First badge');
+  });
+
+  it('checks for newly earned badges after navigation', async () => {
+    mocks.order.mockResolvedValueOnce({ data: [], error: null });
+    const view = openProvider();
+    await waitFor(() => expect(mocks.order).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    mocks.pathname = '/learn';
+    view.rerender(
+      <BadgeUnlockProvider userId="learner"><button>Background action</button></BadgeUnlockProvider>,
+    );
+    expect(await screen.findByRole('dialog')).toHaveAccessibleName('First badge');
+    expect(mocks.order).toHaveBeenCalledTimes(2);
+  });
+
+  it('removes the realtime subscription on unmount', async () => {
+    mocks.order.mockResolvedValue({ data: [], error: null });
+    const view = openProvider();
+    await waitFor(() => expect(mocks.order).toHaveBeenCalledTimes(1));
+    view.unmount();
+    expect(mocks.removeChannel).toHaveBeenCalledTimes(1);
+    expect(mocks.removeChannel).toHaveBeenCalledWith(mocks.subscription);
+  });
+
+  it('does not show a saved dismissal after remount when the backend reports it as seen', async () => {
+    // This models the backend boundary across remount; database seen_at
+    // persistence and permissions are tested in the pgTAP suite separately.
+    let seen = false;
+    mocks.order.mockImplementation(async () => ({ data: seen ? [] : [badges[0]], error: null }));
+    mocks.rpc.mockImplementation(async () => { seen = true; return { error: null }; });
+    const first = openProvider();
+    fireEvent.click(await screen.findByRole('button', { name: 'Continue' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    first.unmount();
+
+    openProvider();
+    await waitFor(() => expect(mocks.order).toHaveBeenCalledTimes(2));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(mocks.rpc).toHaveBeenCalledTimes(1);
+  });
 });
 
 afterEach(() => {
@@ -159,7 +252,10 @@ describe('badge dismissal', () => {
     const button = await screen.findByRole('button', { name: 'Continue' });
     expect(button).toHaveFocus();
     fireEvent.click(button);
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(background).toHaveFocus();
+    });
     expect(background).toHaveFocus();
   });
 

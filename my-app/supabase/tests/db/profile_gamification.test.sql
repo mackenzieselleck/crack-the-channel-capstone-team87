@@ -8,6 +8,8 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
+set local search_path = public, extensions;
+grant usage on schema extensions to anon, authenticated, service_role;
 
 select plan(55);
 
@@ -38,9 +40,10 @@ select ('c0000000-0000-0000-0000-' || lpad(g::text, 12, '0'))::uuid,
 insert into answer_keys (question_id, correct_index)
 select id, 0 from quiz_questions where module_id = 'b0000000-0000-0000-0000-000000000001';
 
-insert into badges (id, title, description, threshold, module_id)
-values ('d0000000-0000-0000-0000-000000000001', 'pgTAP Badge', 'Passed the pgTAP module.',
-        'module_pass:pgtap-module', 'b0000000-0000-0000-0000-000000000001');
+insert into badges (id, slug, title, description, threshold, module_id, artboard, icon_url, position)
+values ('d0000000-0000-0000-0000-000000000001', 'pgtap-badge', 'pgTAP Badge', 'Passed the pgTAP module.',
+        'module_pass:pgtap-module', 'b0000000-0000-0000-0000-000000000001',
+        'PgTapBadge', '/images/badges/pgtap-badge.png', 999);
 
 -- learner 1 has finished the reading, learner 2 has only read 1 of 2 pages
 insert into module_progress (user_id, module_id, pages_completed) values
@@ -48,11 +51,22 @@ insert into module_progress (user_id, module_id, pages_completed) values
   ('a0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 1);
 
 -- answers with the first n questions right and the rest wrong, i.e. a score of n x 10%
--- (security definer so the anon test below reaches submit_quiz's own auth check)
+-- Security definer allows the test fixture to read protected answer keys.
 create function public.pgtap_answers(n int) returns jsonb language sql security definer set search_path = public as $$
   select jsonb_object_agg(id, case when position < n then 0 else 1 end)
     from quiz_questions where module_id = 'b0000000-0000-0000-0000-000000000001'
 $$;
+grant execute on function public.pgtap_answers(int) to authenticated, anon;
+
+-- Expected badge response comes from the known fixture/catalogue row, not from
+-- award_badges(), so the assertion still checks the function's returned shape.
+create function public.pgtap_badge_json(p_slug text) returns jsonb language sql security definer set search_path = public as $$
+  select jsonb_build_object(
+    'id', id, 'slug', slug, 'title', title, 'description', description,
+    'artboard', artboard, 'iconUrl', icon_url)
+  from badges where slug = p_slug
+$$;
+grant execute on function public.pgtap_badge_json(text) to authenticated, service_role;
 
 -- ===========================================================================
 -- 1. Module completion XP + badges via submit_quiz()  (PROG-06, PROG-08, PROG-09)
@@ -75,8 +89,7 @@ select is(
   submit_quiz('b0000000-0000-0000-0000-000000000001', pgtap_answers(7)) - 'results',
   jsonb_build_object(
     'score', 70, 'passed', true, 'correctCount', 7, 'total', 10, 'xpAwarded', 120,
-    'badgesAwarded', jsonb_build_array(jsonb_build_object(
-      'id', 'd0000000-0000-0000-0000-000000000001', 'title', 'pgTAP Badge', 'description', 'Passed the pgTAP module.'))
+    'badgesAwarded', jsonb_build_array(pgtap_badge_json('pgtap-badge'))
   ),
   'scoring exactly 70% passes and reports the module XP reward and badge'
 );
@@ -122,13 +135,13 @@ select throws_ok(
 );
 select is((select xp from profiles where id = auth.uid()), 0, 'learner with unfinished reading still has 0 XP');
 
--- logged out visitors cannot submit at all
+-- Logged out visitors cannot execute the submission function at all.
 reset role;
 set local request.jwt.claims = '';
 set local role anon;
 select throws_ok(
   $$select submit_quiz('b0000000-0000-0000-0000-000000000001', pgtap_answers(10))$$,
-  'P0001', 'not authenticated',
+  '42501', null,
   'an anonymous visitor cannot submit a module test'
 );
 
@@ -216,8 +229,10 @@ set local role service_role;
 -- first ever solve: streak starts at 1
 select is(
   record_daily_solve('a0000000-0000-0000-0000-000000000003', 1, 0, 1),
-  '{"xpAwarded": 50, "streak": 1, "bestStreak": 1}'::jsonb,
-  'first ever solve: tier 1 first try gives 50 XP and starts the streak at 1'
+  jsonb_build_object(
+    'xpAwarded', 50, 'streak', 1, 'bestStreak', 1,
+    'badgesAwarded', jsonb_build_array(pgtap_badge_json('daily-challenge'))),
+  'first ever solve: tier 1 first try gives 50 XP, starts the streak and returns the daily badge'
 );
 select is(
   (select last_challenge from profiles where id = 'a0000000-0000-0000-0000-000000000003'),
@@ -228,7 +243,7 @@ select is(
 -- another solve on the same day: XP added, streak unchanged
 select is(
   record_daily_solve('a0000000-0000-0000-0000-000000000003', 3, 0, 1),
-  '{"xpAwarded": 150, "streak": 1, "bestStreak": 1}'::jsonb,
+  '{"xpAwarded": 150, "streak": 1, "bestStreak": 1, "badgesAwarded": []}'::jsonb,
   'second solve on the same day adds XP but does not move the streak'
 );
 
@@ -253,7 +268,7 @@ update profiles set last_challenge = (now() at time zone 'Australia/Melbourne'):
  where id = 'a0000000-0000-0000-0000-000000000003';
 select is(
   record_daily_solve('a0000000-0000-0000-0000-000000000003', 1, 0, 1) - 'xpAwarded',
-  '{"streak": 5, "bestStreak": 5}'::jsonb,
+  '{"streak": 5, "bestStreak": 5, "badgesAwarded": []}'::jsonb,
   'solving the day after the last solve extends the streak and raises best streak'
 );
 
@@ -263,8 +278,10 @@ update profiles set last_challenge = (now() at time zone 'Australia/Melbourne'):
  where id = 'a0000000-0000-0000-0000-000000000003';
 select is(
   record_daily_solve('a0000000-0000-0000-0000-000000000003', 1, 0, 1) - 'xpAwarded',
-  '{"streak": 1, "bestStreak": 7}'::jsonb,
-  'missing a day resets the streak to 1 but keeps the best streak'
+  jsonb_build_object(
+    'streak', 1, 'bestStreak', 7,
+    'badgesAwarded', jsonb_build_array(pgtap_badge_json('consistency-master'))),
+  'missing a day resets the streak but preserves the best and awards its qualifying badge'
 );
 
 -- a streak that was never broken but is below the best does not lower best streak
@@ -273,7 +290,7 @@ update profiles set last_challenge = (now() at time zone 'Australia/Melbourne'):
  where id = 'a0000000-0000-0000-0000-000000000003';
 select is(
   record_daily_solve('a0000000-0000-0000-0000-000000000003', 1, 0, 1) - 'xpAwarded',
-  '{"streak": 3, "bestStreak": 7}'::jsonb,
+  '{"streak": 3, "bestStreak": 7, "badgesAwarded": []}'::jsonb,
   'continuing a streak below the best leaves best streak alone'
 );
 

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import ThemeToggle from '@/components/theme/ThemeToggle';
+import Image from 'next/image';
 
 export default function Home() {
   return (
@@ -91,19 +92,14 @@ export default function Home() {
         </div>
 
         {/* Graphic placeholder */}
-        <div className="flex min-h-[380px] items-center justify-center rounded-lg border border-border-strong bg-surface-raised">
-          <div className="flex h-[300px] w-[85%] items-center justify-center border border-border-strong bg-surface">
-            <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
-              <div className="absolute left-0 top-1/2 h-px w-full -rotate-[28deg] bg-border-strong" />
-
-              <div className="absolute left-0 top-1/2 h-px w-full rotate-[28deg] bg-border-strong" />
-
-              <span className="relative bg-surface px-4 text-xs font-medium uppercase tracking-[0.25em] text-text-secondary">
-                Graphic
-              </span>
-            </div>
-          </div>
-        </div>
+        <Image
+          src="/images/marketing/home-quantum-badges.png"
+          alt=""
+          width={1536}
+          height={1024}
+          sizes="(min-width: 1024px) 50vw, 100vw"
+          className="h-auto max-h-[380px] w-full object-contain p-6"
+        />
       </section>
 
       {/* Feature section */}

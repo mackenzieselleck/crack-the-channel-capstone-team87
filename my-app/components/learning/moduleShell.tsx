@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { useModule } from '@/lib/learning/useModule';
 import { Quiz } from './quiz';
 
-// Return to the learning modules index.
+// return to learning modules index
 function BackToModules() {
   return (
     <Link
