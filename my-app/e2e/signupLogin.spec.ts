@@ -38,7 +38,7 @@ test.describe('signup', () => {
     await expect(page).toHaveURL(/\/signup$/);
   });
 
-  test('surfaces a generic error when the account already exists', async ({ page }) => {
+  test('surfaces a user exist error when the account already exists', async ({ page }) => {
     await page.goto('/signup');
 
     await page.getByLabel('Email address').fill('existing@e2e.test');
@@ -48,9 +48,7 @@ test.describe('signup', () => {
     await expect(page.getByRole('button', { name: 'Create account' })).toBeEnabled();
     await page.getByRole('button', { name: 'Create account' }).click();
 
-    await expect(errorAlert(page)).toHaveText(
-      'User already exists. Please try logging in instead.'
-    );
+    await expect(errorAlert(page)).toHaveText('User already exists. Please try logging in instead.');
   });
 });
 
