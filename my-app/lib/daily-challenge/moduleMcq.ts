@@ -8,7 +8,9 @@ const MAX_PASSAGE_CHARS = 6000;
 type Mcq = { question: string; options: string[]; correct_index: number; explanation: string; supporting_quote?: string };
 
 // returns null if user has no completed module
-export async function buildModuleMcq(userId: string, seed: number, useLlm = true): Promise<Challenge | null> {
+export async function buildModuleMcq(
+  userId: string, seed: number, useLlm = true, deadlineAt = Date.now() + 20_000,
+): Promise<Challenge | null> {
   const admin = createAdminClient();   // reads module data and server only question pool
   // modules user has completed
   const { data: progress, error } = await admin.from("module_progress")
@@ -30,14 +32,14 @@ export async function buildModuleMcq(userId: string, seed: number, useLlm = true
   // question is from LLM if possible, otherwise from human written pool
   let q: Mcq | null = null;
   // try LLM first -> one random chunk of module text becomes one question
-   if (useLlm) {
+   if (useLlm && Date.now() < deadlineAt) {
     const { data: pages } = await admin.from("module_pages")
       .select("body").eq("module_id", moduleId).order("position");
     const usable = (pages ?? []).filter((p) => (p.body ?? "").trim().length >= 200);
     if (usable.length) {
       const body: string = usable[Math.floor(rand() * usable.length)].body;
       try {
-        q = await writeModuleMcq(body.slice(0, MAX_PASSAGE_CHARS));
+        q = await writeModuleMcq(body.slice(0, MAX_PASSAGE_CHARS), deadlineAt);
       } catch { /* fall through to the module's test questions */ }
     }
   }
