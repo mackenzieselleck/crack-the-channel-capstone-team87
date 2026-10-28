@@ -12,6 +12,8 @@
  * for the app's own code paths - this is not a general GoTrue/PostgREST
  * reimplementation.
  */
+
+/* eslint-disable @typescript-eslint/no-require-imports -- CommonJS script run directly by Node */
 const http = require('http');
 const { URL } = require('url');
 
@@ -247,6 +249,6 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  // eslint-disable-next-line no-console
+  
   console.log(`[mock-supabase-server] listening on http://127.0.0.1:${PORT}`);
 });
