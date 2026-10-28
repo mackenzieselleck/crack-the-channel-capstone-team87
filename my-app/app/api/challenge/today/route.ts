@@ -7,11 +7,13 @@ import { createAdminClient, createClient, melbourneDate, MODULE_MCQ, PYTHON_TYPE
 import { limitRoute, llmAllowed } from "@/lib/daily-challenge/rateLimit";
 import { loadProgress, PUBLIC_COLS } from "@/lib/daily-challenge/progress";
 import type { PublicChallenge, TodayResponse } from "@/lib/daily-challenge/types";
+import { createLlmDeadline } from "@/lib/daily-challenge/deadline";
 
 // allow 60 s: first generation calls Python service and LLM
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
+  const deadlineAt = createLlmDeadline();
   // ---- Authenticate: read signed-in user from session cookie
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -43,7 +45,7 @@ export async function GET(req: NextRequest) {
   let ch: Challenge | null = null;
   if (type === MODULE_MCQ) {
     // returns null if none are eligible
-    ch = await buildModuleMcq(userId, seed, await llmAllowed(userId));
+    ch = await buildModuleMcq(userId, seed, Date.now() < deadlineAt && await llmAllowed(userId), deadlineAt);
     if (!ch) type = PYTHON_TYPES[pickSeed % PYTHON_TYPES.length];   // no completed modules/content yet
   }
   // all other category come from Python service
@@ -56,10 +58,10 @@ export async function GET(req: NextRequest) {
   // ---- Have LLM write title, scenario, task and hints
   // uses fallback if llm fails or usage runs out
   let text = FALLBACK_TEXT[type], usedFallback = true;
-  if (await llmAllowed(userId)) {
+  if (Date.now() < deadlineAt && await llmAllowed(userId)) {
     const started = Date.now();
     try {
-      text = await writeChallengeText(ch);
+      text = await writeChallengeText(ch, deadlineAt);
       usedFallback = false;
     } catch (e) {
       console.warn("[daily-challenge] challenge text fell back:", e instanceof Error ? e.message : e);

@@ -39,6 +39,8 @@ def build(tokens: list[str], n: int) -> QuantumCircuit:
     qc = QuantumCircuit(n)
     for t in tokens[:MAX_TOKENS]:
         parts = str(t).split()
+        if not parts:
+            raise ValueError("bad gate")
         g, qs = parts[0].lower(), parts[1:]               #gate name, then qubit numbers
         #every qubit must be a whole number that exists in this circuit
         if not all(q.isdigit() and int(q) < n for q in qs):
