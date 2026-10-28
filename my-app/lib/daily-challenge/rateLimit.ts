@@ -1,21 +1,31 @@
 // rate limiting for Daily Challenge routes and LLM prompting
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/server";
 
 type Rule = { limit: number; windowSec: number };
 
 // count one hit against `key`. Returns whether it is within `limit` for the current window
-async function hit(key: string, { limit, windowSec }: Rule): Promise<{ allowed: boolean; retryAfter: number }> {
-  const { data, error } = await createAdminClient().rpc("rate_limit_hit", {
-    p_key: key, p_limit: limit, p_window_seconds: windowSec,
-  });
-  if (error || !data?.[0]) {
-    // fail open: a missing migration or database hiccup must not lock everyone out
-    // limits are a cost and abuse control
-    console.warn("[rate-limit] check failed, allowing request:", error?.message);
-    return { allowed: true, retryAfter: 0 };
+async function hit(
+  key: string,
+  { limit, windowSec }: Rule,
+  allowOnFailure = true,
+): Promise<{ allowed: boolean; retryAfter: number }> {
+  try {
+    const { data, error } = await createAdminClient().rpc("rate_limit_hit", {
+      p_key: key, p_limit: limit, p_window_seconds: windowSec,
+    });
+    const row = Array.isArray(data) && data.length === 1 ? data[0] : null;
+    if (error || !row || typeof row.allowed !== "boolean"
+      || !Number.isInteger(row.retry_after) || row.retry_after < (row.allowed ? 0 : 1)) {
+      throw new Error("Unavailable or invalid rate-limit result");
+    }
+    return { allowed: row.allowed, retryAfter: row.retry_after };
+  } catch {
+    // Route access stays available during outages. Optional model work uses
+    // deterministic fallback instead of bypassing its cost/abuse budget.
+    console.warn(`[rate-limit] check failed, ${allowOnFailure ? "allowing route" : "skipping LLM"}`);
+    return { allowed: allowOnFailure, retryAfter: allowOnFailure ? 0 : windowSec };
   }
-  return { allowed: data[0].allowed, retryAfter: data[0].retry_after };
 }
 
 
@@ -54,10 +64,10 @@ const LLM_RULES = {
 
  // Reserve one LLM job for user. Call once before each LLM job
 export async function llmAllowed(userId: string): Promise<boolean> {
-  const user = await hit(`llm:user:${userId}`, LLM_RULES.perUserHour);
+  const user = await hit(`llm:user:${userId}`, LLM_RULES.perUserHour, false);
   if (!user.allowed) return false;
-  const minute = await hit("llm:global:min", LLM_RULES.globalMin);
+  const minute = await hit("llm:global:min", LLM_RULES.globalMin, false);
   if (!minute.allowed) return false;
-  const day = await hit("llm:global:day", LLM_RULES.globalDay);
+  const day = await hit("llm:global:day", LLM_RULES.globalDay, false);
   return day.allowed;
 }

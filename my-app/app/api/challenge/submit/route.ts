@@ -7,6 +7,7 @@ import { createAdminClient, createClient, MAX_ATTEMPTS, MODULE_MCQ, qiskit, melb
 import { limitRoute, llmAllowed } from "@/lib/daily-challenge/rateLimit";
 import { loadStreak } from "@/lib/daily-challenge/progress";
 import type { SubmitResponse } from "@/lib/daily-challenge/types";
+import { createLlmDeadline } from "@/lib/daily-challenge/deadline";
 
 // grading plus feedback can take a while
 export const maxDuration = 60;
@@ -27,6 +28,7 @@ const Body = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const deadlineAt = createLlmDeadline();
   // ---- Authenticate: read the signed in user from their session cookie
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -79,7 +81,8 @@ export async function POST(req: NextRequest) {
   const feedback = await writeFeedback({
     type: ch.type, correct: grade.correct, mistake_tag: grade.mistake_tag,
     explanation: grade.explanation, attemptsLeft, leakTerms: secret.leak_terms ?? [],
-    useLlm: await llmAllowed(userId),
+    useLlm: Date.now() < deadlineAt && await llmAllowed(userId),
+    deadlineAt,
   });
 
   // ---- Record attempt
