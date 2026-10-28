@@ -1,0 +1,3 @@
+-- Application catalogue/content fixtures are created by the migrations.
+-- Test-specific users and progress are created inside each pgTAP transaction
+-- and rolled back by that test file. No additional local seed data is needed.
