@@ -159,7 +159,10 @@ describe('badge dismissal', () => {
     const button = await screen.findByRole('button', { name: 'Continue' });
     expect(button).toHaveFocus();
     fireEvent.click(button);
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(background).toHaveFocus();
+    });
     expect(background).toHaveFocus();
   });
 
