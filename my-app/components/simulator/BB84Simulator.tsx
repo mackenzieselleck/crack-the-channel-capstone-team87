@@ -297,6 +297,11 @@ export default function BB84Simulator() {
           ? eveComplete
           : false;
 
+  // Alice and Eve make their six choices during Transmit (stage 0); Bob
+  // makes his during Measure (stage 1). This is the stage where the
+  // current role must finish their choices before continuing.
+  const inputStage = role === 'bob' ? 1 : 0;
+
   const qberPercent = result ? toPercent(result.qber) : 0;
 
   const status = useMemo<SimulationStatus | null>(() => {
@@ -493,12 +498,14 @@ export default function BB84Simulator() {
       return;
     }
 
+    // Don't advance past the stage where this role makes their choices
+    // until all six are filled in.
+    if (stage === inputStage && !roleInputComplete) {
+      return;
+    }
+
     // Run the simulation before entering the Compare stage.
     if (stage === 1 && !result) {
-      if (!roleInputComplete) {
-        return;
-      }
-
       const successful = await runSimulation();
 
       if (!successful) {
@@ -615,7 +622,7 @@ export default function BB84Simulator() {
                 onClick={nextStage}
                 disabled={
                   isLoading ||
-                  (stage === 1 && !roleInputComplete)
+                  (stage === inputStage && !roleInputComplete)
                 }
                 className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent-simulator)] px-5 py-2.5 text-sm font-semibold text-[var(--simulator-accent-contrast)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
               >

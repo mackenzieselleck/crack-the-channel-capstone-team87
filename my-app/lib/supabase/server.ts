@@ -89,7 +89,8 @@ export function seededRandom(seed: number) {
 export const PYTHON_TYPES = [
   'bb84_eve',
   'sifting',
-  'state_evolution',
+  // State evolution is not registered by the Python service yet. Scheduling
+  // it returns "unknown challenge type" instead of a playable challenge.
   'normalisation',
   'gate_simplification',
 ] as const
@@ -98,4 +99,3 @@ export const PYTHON_TYPES = [
 export const MODULE_MCQ = 'module_mcq'
 //maximum attempts per challenge tier before worked solution is revealed
 export const MAX_ATTEMPTS = 3
- 

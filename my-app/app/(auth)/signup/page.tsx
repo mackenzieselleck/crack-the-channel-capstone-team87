@@ -5,6 +5,7 @@ import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
+import Image from 'next/image';
 
 export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
@@ -44,18 +45,14 @@ export default function SignUpPage() {
       <section className="mx-auto grid max-w-7xl gap-16 px-6 py-16 lg:grid-cols-2 lg:items-center lg:px-10 lg:py-24">
         {/* Graphic / branding side */}
         <div className="hidden lg:block">
-          <div className="flex min-h-[500px] items-center justify-center rounded-lg border border-border-strong bg-surface-raised">
-            <div className="flex h-[380px] w-[82%] items-center justify-center border border-border-strong bg-surface">
-              <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
-                <div className="absolute left-0 top-1/2 h-px w-full -rotate-[28deg] bg-border-strong" />
-                <div className="absolute left-0 top-1/2 h-px w-full rotate-[28deg] bg-border-strong" />
-
-                <span className="relative bg-surface px-4 text-xs font-medium uppercase tracking-[0.25em] text-text-secondary">
-                  Graphic
-                </span>
-              </div>
-            </div>
-          </div>
+          <Image
+            src="/images/marketing/signup-learning-journey.png"
+            alt=""
+            width={1334}
+            height={1179}
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            className="h-auto max-h-[500px] w-full object-contain p-6"
+          />
 
           <div className="mt-8">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-accent">
