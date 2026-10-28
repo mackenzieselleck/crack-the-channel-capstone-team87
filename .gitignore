@@ -3,3 +3,5 @@
 # Local Supabase state
 **/supabase/.branches/
 **/supabase/.temp/
+.vercel
+.env*
