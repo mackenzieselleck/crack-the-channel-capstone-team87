@@ -18,7 +18,8 @@
 
 
 <!-- Start of picture text -->
-| |<br>(WY :<br>ie \<br>A q \ L')<br>QUANTUM STARTER<br><!-- End of picture text -->
+| ![Quantum Beginner Badge](my-app/public/images/quantum-starter.png)
+<!-- End of picture text -->
 
 ## **2. Basis Explorer** 
 
@@ -29,7 +30,8 @@
 
 
 <!-- Start of picture text -->
-‘Le<br>A<br>&ZS<br>a<br>¥,<br>Cybers Quantum + Achievements<br><!-- End of picture text -->
+![Basis Explorer Badge](my-app/public/images/basis-explorer.png)
+<!-- End of picture text -->
 
 ## **3. Key Sifter** 
 
@@ -38,7 +40,8 @@
 
 
 <!-- Start of picture text -->
-| |<br>(AOS<br>AS¥Y2AA<br>“a ¥ i YS<br>Le g Kr<br>N<br><!-- End of picture text -->
+![Key Sifter Badge](my-app/public/images/key-sifter.png)
+<!-- End of picture text -->
 
 **4. Eavesdropper Detective** 
 
@@ -47,7 +50,8 @@
 
 
 <!-- Start of picture text -->
-|<br>| |<br>=)<br>|<br>“AS& I<br>aw 4<br>Vv<br><!-- End of picture text -->
+![Eavesdropper Detective Badge](my-app/public/images/eavesdropper-detective.png)
+<!-- End of picture text -->
 
 ## **5. Qiskit Practitioner** 
 
@@ -58,7 +62,8 @@
 
 
 <!-- Start of picture text -->
-|<br>I i<br>* p?<br>agen<br>Vv<br><!-- End of picture text -->
+![Qiskit Practitioner Badge](my-app/public/images/qiskit-practitioner.png)
+<!-- End of picture text -->
 
 ## **6. Daily Challenge** 
 
@@ -69,16 +74,17 @@
 
 
 <!-- Start of picture text -->
-ait<br><!-- End of picture text -->
+![Daily Challenge Badge](my-app/public/images/daily-challenge.png)
+<!-- End of picture text -->
 
 **7. Consistency Master** 
 
 **Earn it when:** The learner completes Daily Quantum Challenges for seven consecutive days. **Why it matters:** It recognises dedication, regular practice and continued engagement with the QKD learning platform. 
 
 
-
 <!-- Start of picture text -->
-+<br>6c)<br>N Zo,<br>A<br><!-- End of picture text -->
+![Consistency Master Badge](my-app/public/images/consistency-master.png)
+<!-- End of picture text -->
 
 ## **8. Overall Champion** 
 
@@ -89,7 +95,8 @@ ait<br><!-- End of picture text -->
 
 
 <!-- Start of picture text -->
-ON A0,<br>NG Se (=<br>Se<br><!-- End of picture text -->
+![Overall Champion Badge](my-app/public/images/overall-champion.png)
+<!-- End of picture text -->
 
 ## **3. How does the badge awarding work?** 
 
