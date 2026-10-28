@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, render, within } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 type Result = { data: unknown; error: unknown };
 
@@ -44,7 +44,16 @@ const MODULES = [
   { id: 'm3', slug: 'eve', title: 'Eve and QBER', summary: null, position: 3, pass_mark: 70 },
 ];
 const pages = (id: string, n: number) => Array.from({ length: n }, () => ({ module_id: id }));
-const card = (title: string) => screen.getByRole('link', { name: new RegExp(title) });
+
+// renders the page and returns queries scoped to it, so leftovers from other tests can't interfere
+async function renderPage() {
+  const { container } = render(await LearnPage());
+  const page = within(container);
+  return {
+    page,
+    card: (title: string) => page.getByRole('link', { name: new RegExp(title) }),
+  };
+}
 
 beforeEach(() => {
   mocks.state.queries = [];
@@ -61,9 +70,13 @@ beforeEach(() => {
   };
 });
 
+afterEach(() => {
+  cleanup();
+});
+
 describe('LearnPage', () => {
   it('lists only published modules, in order, with this user’s progress', async () => {
-    render(await LearnPage());
+    await renderPage();
 
     const modules = mocks.state.queries.find((q) => q.table === 'modules')!;
     expect(modules.calls).toContainEqual(['eq', 'is_published', true]);
@@ -76,7 +89,7 @@ describe('LearnPage', () => {
   });
 
   it('shows each module’s status and next action', async () => {
-    render(await LearnPage());
+    const { page, card } = await renderPage();
 
     expect(card('Quantum Basics')).toHaveTextContent('Completed · 85%');
     expect(card('Quantum Basics')).toHaveTextContent('Review');
@@ -84,22 +97,22 @@ describe('LearnPage', () => {
     expect(card('BB84')).toHaveTextContent('Continue');
     expect(card('Eve and QBER')).toHaveTextContent('Not started');
     expect(card('Eve and QBER')).toHaveTextContent('Start');
-    expect(screen.getByText('1 of 3 modules')).toBeInTheDocument();
+    expect(page.getByText('1 of 3 modules')).toBeInTheDocument();
   });
 
   it('never shows more parts read than a module has', async () => {
-    render(await LearnPage());
+    const { card } = await renderPage();
     expect(card('BB84')).toHaveTextContent('4 of 4 parts read');
   });
 
   it('links each module to its page', async () => {
-    render(await LearnPage());
+    const { card } = await renderPage();
     expect(card('BB84')).toHaveAttribute('href', '/learn/bb84');
   });
 
   it('shows an empty state when there are no modules', async () => {
     mocks.state.results.modules = { data: [], error: null };
-    render(await LearnPage());
-    expect(screen.getByText('No modules yet')).toBeInTheDocument();
+    const { page } = await renderPage();
+    expect(page.getByText('No modules yet')).toBeInTheDocument();
   });
 });
