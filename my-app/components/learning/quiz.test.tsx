@@ -1,9 +1,13 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react';
+import {  cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { QuizResult } from '@/lib/learning/types';
 import { Quiz } from './quiz';
+
+afterEach(() => {
+  cleanup();
+});
 
 const QUESTIONS = [
   { id: 'q1', position: 0, prompt: 'What is a qubit?', options: ['A bit', 'A quantum bit'] },

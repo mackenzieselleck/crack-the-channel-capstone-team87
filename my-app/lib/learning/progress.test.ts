@@ -44,7 +44,7 @@ describe('percentComplete', () => {
     [4, false, 4, 80],
     [4, true, 4, 100],
     [1, false, 2, 33],
-    [2, false, 2, 60],
+    [2, false, 2, 67],
   ])('%i pages read, passed=%s, %i pages -> %i%%', (read, passed, pages, expected) => {
     expect(percentComplete(p({ pagesCompleted: read, quizPassed: passed }), pages)).toBe(expected);
   });

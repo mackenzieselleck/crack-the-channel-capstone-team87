@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({ hook: {} as Record<string, unknown> }));
 
@@ -14,7 +14,7 @@ vi.mock('next/link', () => ({
   ),
 }));
 
-import { ModuleShell } from '@/components/learning/moduleShell';
+import { ModuleShell } from './moduleShell';
 
 const MOD = {
   id: 'm1',
@@ -46,13 +46,22 @@ function setHook(overrides: Record<string, unknown> = {}) {
     retryQuiz: vi.fn(),
     ...overrides,
   };
-  return mocks.hook as { next: ReturnType<typeof vi.fn>; back: ReturnType<typeof vi.fn>; submitQuiz: ReturnType<typeof vi.fn> };
+  return mocks.hook as {
+    next: ReturnType<typeof vi.fn>;
+    back: ReturnType<typeof vi.fn>;
+    submitQuiz: ReturnType<typeof vi.fn>;
+  };
 }
 
 const pathway = () => screen.getByRole('heading', { name: 'Module pathway' }).closest('aside') as HTMLElement;
 const lockIcons = () => pathway().querySelectorAll('.lucide-lock').length;
 
 beforeEach(() => setHook());
+
+// Remove the previous test's page so its elements can't match this test's queries
+afterEach(() => {
+  cleanup();
+});
 
 describe('ModuleShell: loading and errors', () => {
   it('shows a skeleton while loading', () => {
@@ -61,7 +70,7 @@ describe('ModuleShell: loading and errors', () => {
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
   });
 
-  it('shows the load error with a way back to module list', () => {
+  it('shows the load error with a way back to the module list', () => {
     setHook({ mod: null, error: 'Could not load this module.' });
     render(<ModuleShell slug="quantum-basics" />);
 
@@ -118,7 +127,7 @@ describe('ModuleShell: reading', () => {
     expect(screen.getByRole('button', { name: 'Back' })).toBeDisabled();
   });
 
-  it('enables Back on later pages', async () => {
+  it('enables Back on later pages and calls back()', async () => {
     const user = userEvent.setup();
     const hook = setHook({ pos: { kind: 'reading', index: 1 } });
     render(<ModuleShell slug="quantum-basics" />);
@@ -136,7 +145,7 @@ describe('ModuleShell: reading', () => {
     expect(hook.next).toHaveBeenCalledTimes(1);
   });
 
-  it('labels the last page’s button as going to assessment', () => {
+  it('labels the last page’s button as going to the assessment', () => {
     setHook({ pos: { kind: 'reading', index: 2 } });
     render(<ModuleShell slug="quantum-basics" />);
     expect(screen.getByRole('button', { name: 'Continue to assessment' })).toBeInTheDocument();
@@ -150,8 +159,8 @@ describe('ModuleShell: reading', () => {
 });
 
 describe('ModuleShell: pathway sidebar', () => {
-  it('locks every part ahead of the current one', () => {
-    // part 1 read, on part 2, part 3 and assessment still locked
+  it('locks every part ahead of the current one, and the assessment', () => {
+    // part 1 read, on part 2; part 3 and the assessment still locked
     setHook({ pos: { kind: 'reading', index: 1 }, progress: { pagesCompleted: 1, quizPassed: false } });
     render(<ModuleShell slug="quantum-basics" />);
 
@@ -183,7 +192,7 @@ describe('ModuleShell: pathway sidebar', () => {
 describe('ModuleShell: assessment', () => {
   beforeEach(() => setHook({ pos: { kind: 'quiz' }, progress: { pagesCompleted: 3, quizPassed: false } }));
 
-  it('shows the assessment instead of reading page', () => {
+  it('shows the assessment instead of a reading page', () => {
     render(<ModuleShell slug="quantum-basics" />);
     expect(screen.getByRole('heading', { name: 'Check your understanding' })).toBeInTheDocument();
     expect(screen.getByText('What is a qubit?')).toBeInTheDocument();
